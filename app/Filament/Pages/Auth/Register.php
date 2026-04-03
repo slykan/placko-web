@@ -43,15 +43,7 @@ class Register extends BaseRegister
             'remoteip' => request()->ip(),
         ]);
 
-        \Log::info('Turnstile register', [
-            'token_len'   => strlen($token),
-            'secret_len'  => strlen(config('services.turnstile.secret') ?? ''),
-            'status'      => $response->status(),
-            'body'        => $response->body(),
-            'cf_response' => $response->json(),
-        ]);
-
-        if (! ($response->json('success') ?? false)) {
+if (! ($response->json('success') ?? false)) {
             // Resetiraj token za novi pokušaj
             $this->turnstileToken = '';
             $this->addError('data.email', 'Provjera nije uspjela. Pokušajte ponovo.');
