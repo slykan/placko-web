@@ -16,11 +16,6 @@ class RegisterTvrtka extends RegisterTenant
 {
     protected static string $view = 'filament.pages.register-tvrtka';
 
-    public function getCachedSubNavigation(): array
-    {
-        return [];
-    }
-
     public static function getLabel(): string
     {
         return 'Dodaj obrt / tvrtku';
