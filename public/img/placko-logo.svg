@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 110" fill="none">
+  <defs>
+    <linearGradient id="stemG" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0%" stop-color="#2ba99b"/>
+      <stop offset="100%" stop-color="#3dcfb8"/>
+    </linearGradient>
+    <linearGradient id="bowlG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#42d4a8"/>
+      <stop offset="100%" stop-color="#96f070"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Stem shadow -->
+  <rect x="7" y="19" width="48" height="88" rx="14" fill="#196b5e" opacity="0.35"/>
+  <!-- Stem -->
+  <rect x="3" y="15" width="48" height="88" rx="14" fill="url(#stemG)"/>
+
+  <!-- Bowl shadow -->
+  <rect x="19" y="7" width="72" height="58" rx="14" fill="#196b5e" opacity="0.25"/>
+  <!-- Bowl -->
+  <rect x="15" y="3" width="72" height="58" rx="14" fill="url(#bowlG)"/>
+
+  <!-- Placko text -->
+  <text x="108" y="68"
+    font-family="'Nunito','Poppins','Segoe UI',system-ui,sans-serif"
+    font-weight="800"
+    font-size="52"
+    fill="#162433"
+    letter-spacing="-1">Placko</text>
+
+  <!-- .app text -->
+  <text x="223" y="90"
+    font-family="'Nunito','Poppins','Segoe UI',system-ui,sans-serif"
+    font-weight="500"
+    font-size="22"
+    fill="#2ba99b"
+    letter-spacing="0.5">.app</text>
+</svg>
