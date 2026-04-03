@@ -1,6 +1,4 @@
-@php
-    $turnstileActive = config('services.turnstile.key') && !app()->environment('local');
-@endphp
+@php $turnstileActive = config('services.turnstile.key') && !app()->environment('local'); @endphp
 
 <x-filament-panels::page.simple>
     @if (filament()->hasLogin())
@@ -12,10 +10,6 @@
 
     {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::AUTH_REGISTER_FORM_BEFORE, scopes: $this->getRenderHookScopes()) }}
 
-    <div
-        x-data="{ tsToken: null, handleSubmit(e) { if({{ $turnstileActive ? 'true' : 'false' }} && !this.tsToken){ e.preventDefault(); e.stopImmediatePropagation(); return; } } }"
-        x-on:submit.capture="handleSubmit($event)"
-    >
     <x-filament-panels::form id="form" wire:submit="register">
         {{ $this->form }}
 
@@ -35,7 +29,6 @@
             :full-width="$this->hasFullWidthFormActions()"
         />
     </x-filament-panels::form>
-    </div>
 
     {{-- Google gumb --}}
     <div style="margin-top: 1rem;">
@@ -68,9 +61,15 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
     function plackoTsRegister(token) {
-        window._tsToken = token;
-        document.querySelector('[x-data]').__x.$data.tsToken = token;
-        @this.set('turnstileToken', token);
+        fetch('{{ route('turnstile.verify') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content
+                    || '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ token: token })
+        });
     }
 </script>
 @endif

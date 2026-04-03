@@ -1,6 +1,4 @@
-@php
-    $turnstileActive = config('services.turnstile.key') && !app()->environment('local');
-@endphp
+@php $turnstileActive = config('services.turnstile.key') && !app()->environment('local'); @endphp
 
 <x-filament-panels::page.simple>
     @if (filament()->hasRegistration())
@@ -63,7 +61,15 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
     function plackoTsLogin(token) {
-        @this.set('turnstileToken', token);
+        fetch('{{ route('turnstile.verify') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content
+                    || '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ token: token })
+        });
     }
 </script>
 @endif
