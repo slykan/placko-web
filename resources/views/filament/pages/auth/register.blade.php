@@ -13,7 +13,7 @@
 
         {{-- Cloudflare Turnstile --}}
         @if(config('services.turnstile.key') && !app()->environment('local'))
-        <div wire:ignore>
+        <div wire:ignore x-data x-init="window.onTurnstileRegister = (token) => { $wire.turnstileToken = token; }">
             <div
                 class="cf-turnstile"
                 data-sitekey="{{ config('services.turnstile.key') }}"
