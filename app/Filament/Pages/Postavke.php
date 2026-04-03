@@ -353,14 +353,21 @@ class Postavke extends Page implements HasForms
         $data     = $this->fiskalizacijaForm->getState();
         $tvrtkaId = filament()->getTenant()->id;
 
+        \Log::info('Fiskalizacija save', ['data' => $data]);
+
         $update = [
             'fiskalizacija_aktivna' => $data['fiskalizacija_aktivna'] ?? false,
             'fis_prostor_oznaka'    => $data['fis_prostor_oznaka'] ?? '1',
             'fis_uredaj_oznaka'     => $data['fis_uredaj_oznaka'] ?? '1',
         ];
 
-        if (! empty($data['fina_cert_putanja'])) {
-            $update['fina_cert_putanja'] = $data['fina_cert_putanja'];
+        // FileUpload vraća array ili string
+        $cert = $data['fina_cert_putanja'] ?? null;
+        if (is_array($cert)) {
+            $cert = array_values($cert)[0] ?? null;
+        }
+        if (! empty($cert)) {
+            $update['fina_cert_putanja'] = $cert;
         }
 
         if (! empty($data['fina_cert_lozinka'])) {
