@@ -311,6 +311,43 @@ class Postavke extends Page implements HasForms
             ->statePath('fiskalizacijaData');
     }
 
+    public function testirajCertifikat(): void
+    {
+        $tvrtkaId = filament()->getTenant()->id;
+        $postavke = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->first();
+
+        if (! $postavke?->fina_cert_putanja) {
+            Notification::make()->title('Certifikat nije uploadan')->warning()->send();
+            return;
+        }
+
+        $certPutanja = \Illuminate\Support\Facades\Storage::disk('local')->path($postavke->fina_cert_putanja);
+
+        if (! file_exists($certPutanja)) {
+            Notification::make()->title('Certifikat nije pronađen na serveru')->danger()->send();
+            return;
+        }
+
+        $lozinka = $postavke->fina_cert_lozinka ?? '';
+
+        // Pokušaj otvoriti PKCS#12 certifikat
+        $result = openssl_pkcs12_read(file_get_contents($certPutanja), $certs, $lozinka);
+
+        if ($result) {
+            Notification::make()
+                ->title('Certifikat je ispravan')
+                ->body('Lozinka je točna i certifikat se može koristiti za fiskalizaciju.')
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Certifikat nije ispravan')
+                ->body('Lozinka je pogrešna ili je certifikat oštećen. Provjerite .p12 datoteku i lozinku.')
+                ->danger()
+                ->send();
+        }
+    }
+
     public function spreminiFiskalizaciju(): void
     {
         $data     = $this->fiskalizacijaForm->getState();
