@@ -556,7 +556,7 @@
         <a href="#cijene" class="nav-link">Cijene</a>
         <a href="#faq" class="nav-link">FAQ</a>
         <a href="/admin" class="btn-nav-outline">Prijava</a>
-        <a href="/admin/register" class="btn-nav-solid">Isprobaj besplatno</a>
+        <a href="/admin/register" class="btn-nav-solid">Isprobaj</a>
     </div>
 </nav>
 
