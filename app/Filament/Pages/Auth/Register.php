@@ -37,7 +37,7 @@ class Register extends BaseRegister
             $this->halt();
         }
 
-        $response = Http::timeout(10)->asForm()->post('https://challenges.cloudflare.com/turnstile/v1/siteverify', [
+        $response = Http::timeout(10)->asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
             'secret'   => config('services.turnstile.secret'),
             'response' => $token,
             'remoteip' => request()->ip(),
