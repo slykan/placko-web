@@ -330,6 +330,11 @@ class Postavke extends Page implements HasForms
 
         $lozinka = $postavke->fina_cert_lozinka ?? '';
 
+        // Legacy OpenSSL provider za FINA certifikate
+        if (file_exists(base_path('openssl-legacy.cnf'))) {
+            putenv('OPENSSL_CONF=' . base_path('openssl-legacy.cnf'));
+        }
+
         // Pokušaj otvoriti PKCS#12 certifikat
         $result = openssl_pkcs12_read(file_get_contents($certPutanja), $certs, $lozinka);
 
