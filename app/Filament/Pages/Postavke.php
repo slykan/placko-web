@@ -367,6 +367,18 @@ class Postavke extends Page implements HasForms
             $cert = array_values($cert)[0] ?? null;
         }
         if (! empty($cert)) {
+            // Obriši stare certifikate iz direktorija
+            $stariCert = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->value('fina_cert_putanja');
+            if ($stariCert && $stariCert !== $cert) {
+                \Illuminate\Support\Facades\Storage::disk('local')->delete($stariCert);
+            }
+            // Obriši sve ostale .p12 fajlove u direktoriju
+            $dir = 'fina/' . $tvrtkaId;
+            foreach (\Illuminate\Support\Facades\Storage::disk('local')->files($dir) as $file) {
+                if ($file !== $cert) {
+                    \Illuminate\Support\Facades\Storage::disk('local')->delete($file);
+                }
+            }
             $update['fina_cert_putanja'] = $cert;
         }
 
