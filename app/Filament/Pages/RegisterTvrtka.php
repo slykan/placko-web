@@ -123,7 +123,7 @@ class RegisterTvrtka extends RegisterTenant
                 ->label('Odustani')
                 ->color('gray')
                 ->url(fn () => auth()->user()->tvrtke()->first()
-                    ? filament()->getTenantUrl(auth()->user()->tvrtke()->first())
+                    ? '/admin/' . auth()->user()->tvrtke()->first()->id
                     : '/')
                 ->visible(fn () => auth()->user()->tvrtke()->exists()),
         ];
