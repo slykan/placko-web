@@ -44,8 +44,10 @@ class Register extends BaseRegister
         ]);
 
         \Log::info('Turnstile register', [
-            'token_len' => strlen($token),
-            'secret_len' => strlen(config('services.turnstile.secret') ?? ''),
+            'token_len'   => strlen($token),
+            'secret_len'  => strlen(config('services.turnstile.secret') ?? ''),
+            'status'      => $response->status(),
+            'body'        => $response->body(),
             'cf_response' => $response->json(),
         ]);
 
