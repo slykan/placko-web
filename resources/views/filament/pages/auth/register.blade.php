@@ -12,7 +12,7 @@
         {{ $this->form }}
 
         {{-- Cloudflare Turnstile --}}
-        @if(config('services.turnstile.key'))
+        @if(config('services.turnstile.key') && !app()->environment('local'))
         <div wire:ignore>
             <div
                 class="cf-turnstile"
@@ -57,7 +57,7 @@
     {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::AUTH_REGISTER_FORM_AFTER, scopes: $this->getRenderHookScopes()) }}
 </x-filament-panels::page.simple>
 
-@if(config('services.turnstile.key'))
+@if(config('services.turnstile.key') && !app()->environment('local'))
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
     function onTurnstileRegister(token) {
