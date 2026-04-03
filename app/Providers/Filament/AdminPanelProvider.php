@@ -29,7 +29,6 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(\App\Filament\Pages\Auth\Login::class)
             ->registration(\App\Filament\Pages\Auth\Register::class)
-            ->locale('hr')
             ->colors([
                 'primary' => Color::hex('#2ba99b'),
             ])
