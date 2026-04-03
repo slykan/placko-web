@@ -21,7 +21,6 @@
                 data-theme="light"
             ></div>
         </div>
-        <input type="hidden" wire:model="turnstileToken" />
         @endif
 
         <x-filament-panels::form.actions
