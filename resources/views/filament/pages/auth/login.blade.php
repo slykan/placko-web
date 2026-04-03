@@ -1,3 +1,7 @@
+@php
+    $turnstileActive = config('services.turnstile.key') && !app()->environment('local');
+@endphp
+
 <x-filament-panels::page.simple>
     @if (filament()->hasRegistration())
         <x-slot name="subheading">
@@ -8,16 +12,10 @@
 
     {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE, scopes: $this->getRenderHookScopes()) }}
 
-    <x-filament-panels::form id="form"
-        @if(config('services.turnstile.key') && !app()->environment('local'))
-        x-data="{ submitWithTurnstile(e) { e.preventDefault(); if(!window._tsTokenLogin){ return; } @this.set('turnstileToken', window._tsTokenLogin).then(() => @this.call('authenticate')); } }"
-        x-on:submit="submitWithTurnstile($event)"
-        @endif
-        wire:submit="authenticate">
+    <x-filament-panels::form id="form" wire:submit="authenticate">
         {{ $this->form }}
 
-        {{-- Cloudflare Turnstile --}}
-        @if(config('services.turnstile.key') && !app()->environment('local'))
+        @if($turnstileActive)
         <div wire:ignore>
             <div
                 class="cf-turnstile"
@@ -61,10 +59,11 @@
     {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, scopes: $this->getRenderHookScopes()) }}
 </x-filament-panels::page.simple>
 
-@if(config('services.turnstile.key') && !app()->environment('local'))
+@if($turnstileActive)
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
-    window._tsTokenLogin = null;
-    function plackoTsLogin(token) { window._tsTokenLogin = token; }
+    function plackoTsLogin(token) {
+        @this.set('turnstileToken', token);
+    }
 </script>
 @endif

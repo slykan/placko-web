@@ -1,3 +1,7 @@
+@php
+    $turnstileActive = config('services.turnstile.key') && !app()->environment('local');
+@endphp
+
 <x-filament-panels::page.simple>
     @if (filament()->hasLogin())
         <x-slot name="subheading">
@@ -8,16 +12,14 @@
 
     {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::AUTH_REGISTER_FORM_BEFORE, scopes: $this->getRenderHookScopes()) }}
 
-    <x-filament-panels::form id="form"
-        @if(config('services.turnstile.key') && !app()->environment('local'))
-        x-data="{ submitWithTurnstile(e) { e.preventDefault(); if(!window._tsToken){ return; } @this.set('turnstileToken', window._tsToken).then(() => @this.call('register')); } }"
-        x-on:submit="submitWithTurnstile($event)"
-        @endif
-        wire:submit="register">
+    <div
+        x-data="{ tsToken: null, handleSubmit(e) { if({{ $turnstileActive ? 'true' : 'false' }} && !this.tsToken){ e.preventDefault(); e.stopImmediatePropagation(); return; } } }"
+        x-on:submit.capture="handleSubmit($event)"
+    >
+    <x-filament-panels::form id="form" wire:submit="register">
         {{ $this->form }}
 
-        {{-- Cloudflare Turnstile --}}
-        @if(config('services.turnstile.key') && !app()->environment('local'))
+        @if($turnstileActive)
         <div wire:ignore>
             <div
                 class="cf-turnstile"
@@ -33,6 +35,7 @@
             :full-width="$this->hasFullWidthFormActions()"
         />
     </x-filament-panels::form>
+    </div>
 
     {{-- Google gumb --}}
     <div style="margin-top: 1rem;">
@@ -61,10 +64,13 @@
     {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::AUTH_REGISTER_FORM_AFTER, scopes: $this->getRenderHookScopes()) }}
 </x-filament-panels::page.simple>
 
-@if(config('services.turnstile.key') && !app()->environment('local'))
+@if($turnstileActive)
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
-    window._tsToken = null;
-    function plackoTsRegister(token) { window._tsToken = token; }
+    function plackoTsRegister(token) {
+        window._tsToken = token;
+        document.querySelector('[x-data]').__x.$data.tsToken = token;
+        @this.set('turnstileToken', token);
+    }
 </script>
 @endif
