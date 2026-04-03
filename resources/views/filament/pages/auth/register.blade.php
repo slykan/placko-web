@@ -8,16 +8,21 @@
 
     {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::AUTH_REGISTER_FORM_BEFORE, scopes: $this->getRenderHookScopes()) }}
 
-    <x-filament-panels::form id="form" wire:submit="register">
+    <x-filament-panels::form id="form"
+        @if(config('services.turnstile.key') && !app()->environment('local'))
+        x-data="{ submitWithTurnstile(e) { e.preventDefault(); if(!window._tsToken){ return; } @this.set('turnstileToken', window._tsToken).then(() => @this.call('register')); } }"
+        x-on:submit="submitWithTurnstile($event)"
+        @endif
+        wire:submit="register">
         {{ $this->form }}
 
         {{-- Cloudflare Turnstile --}}
         @if(config('services.turnstile.key') && !app()->environment('local'))
-        <div wire:ignore x-data x-init="window.onTurnstileRegister = (token) => { $wire.set('turnstileToken', token); }">
+        <div wire:ignore>
             <div
                 class="cf-turnstile"
                 data-sitekey="{{ config('services.turnstile.key') }}"
-                data-callback="onTurnstileRegister"
+                data-callback="plackoTsRegister"
                 data-theme="light"
             ></div>
         </div>
@@ -59,8 +64,7 @@
 @if(config('services.turnstile.key') && !app()->environment('local'))
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
-    function onTurnstileRegister(token) {
-        @this.set('turnstileToken', token);
-    }
+    window._tsToken = null;
+    function plackoTsRegister(token) { window._tsToken = token; }
 </script>
 @endif

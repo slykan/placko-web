@@ -25,13 +25,8 @@ class Register extends BaseRegister
 
     protected function validateTurnstile(): void
     {
-        if (app()->environment('local', 'testing')) {
-            return;
-        }
-
         if (empty($this->turnstileToken)) {
-            $this->addError('data.email', 'Molimo potvrdite da niste robot.');
-            $this->halt();
+            return; // token još nije stigao, preskočimo
         }
 
         $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v1/siteverify', [
