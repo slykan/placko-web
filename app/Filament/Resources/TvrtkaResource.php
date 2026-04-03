@@ -28,7 +28,7 @@ class TvrtkaResource extends Resource
 
     protected static ?string $modelLabel = 'Obrt / Tvrtka';
 
-    protected static ?string $pluralModelLabel = 'Obrts / Tvrtke';
+    protected static ?string $pluralModelLabel = 'Obrts i Tvrtke';
 
     protected static ?int $navigationSort = 1;
 
