@@ -30,6 +30,11 @@ class TvrtkaResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Obrts i Tvrtke';
 
+    public static function getPluralModelLabel(): string
+    {
+        return 'Obrts i Tvrtke';
+    }
+
     protected static ?int $navigationSort = 1;
 
     // Tvrtka je sam tenant model - ne scopamo po tenantу
