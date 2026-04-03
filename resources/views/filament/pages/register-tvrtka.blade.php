@@ -1,5 +1,4 @@
-<x-filament-panels::page.simple>
-    <style>.fi-simple-main { max-width: 56rem !important; }</style>
+<x-filament-panels::page>
     <x-filament-panels::form id="form" wire:submit="register">
         {{ $this->form }}
 
@@ -8,4 +7,4 @@
             :full-width="$this->hasFullWidthFormActions()"
         />
     </x-filament-panels::form>
-</x-filament-panels::page.simple>
+</x-filament-panels::page>
