@@ -14,6 +14,8 @@ use Filament\Pages\Tenancy\RegisterTenant;
 
 class RegisterTvrtka extends RegisterTenant
 {
+    protected static string $view = 'filament.pages.register-tvrtka';
+
     public static function getLabel(): string
     {
         return 'Dodaj obrt / tvrtku';
