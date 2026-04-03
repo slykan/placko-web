@@ -19,6 +19,7 @@
                 class="cf-turnstile"
                 data-sitekey="{{ config('services.turnstile.key') }}"
                 data-callback="plackoTsLogin"
+                data-expired-callback="plackoTsLoginExpired"
                 data-theme="light"
             ></div>
         </div>
@@ -60,16 +61,16 @@
 @if($turnstileActive)
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
+    window._tsTokenLogin = null;
+
     function plackoTsLogin(token) {
-        fetch('{{ route('turnstile.verify') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content
-                    || '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ token: token })
-        });
+        window._tsTokenLogin = token;
+        @this.set('turnstileToken', token);
+    }
+
+    function plackoTsLoginExpired() {
+        window._tsTokenLogin = null;
+        @this.set('turnstileToken', '');
     }
 </script>
 @endif

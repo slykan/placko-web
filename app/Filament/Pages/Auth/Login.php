@@ -29,20 +29,21 @@ class Login extends BaseLogin
             return;
         }
 
-        $token = session()->pull('turnstile_token');
+        $token = $this->turnstileToken ?: session()->pull('turnstile_token');
 
         if (empty($token)) {
             $this->addError('data.email', 'Molimo potvrdite da niste robot.');
             $this->halt();
         }
 
-        $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v1/siteverify', [
+        $response = Http::timeout(10)->asForm()->post('https://challenges.cloudflare.com/turnstile/v1/siteverify', [
             'secret'   => config('services.turnstile.secret'),
             'response' => $token,
             'remoteip' => request()->ip(),
         ]);
 
         if (! ($response->json('success') ?? false)) {
+            $this->turnstileToken = '';
             $this->addError('data.email', 'Provjera nije uspjela. Pokušajte ponovo.');
             $this->halt();
         }

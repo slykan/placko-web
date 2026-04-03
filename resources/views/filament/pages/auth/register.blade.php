@@ -19,6 +19,7 @@
                 class="cf-turnstile"
                 data-sitekey="{{ config('services.turnstile.key') }}"
                 data-callback="plackoTsRegister"
+                data-expired-callback="plackoTsExpired"
                 data-theme="light"
             ></div>
         </div>
@@ -60,16 +61,27 @@
 @if($turnstileActive)
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
+    window._tsToken = null;
+
     function plackoTsRegister(token) {
-        fetch('{{ route('turnstile.verify') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content
-                    || '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ token: token })
-        });
+        window._tsToken = token;
+        @this.set('turnstileToken', token);
     }
+
+    function plackoTsExpired() {
+        window._tsToken = null;
+        @this.set('turnstileToken', '');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var form = document.getElementById('form');
+        if (!form) return;
+        form.addEventListener('submit', function (e) {
+            if (!window._tsToken) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        }, true);
+    });
 </script>
 @endif
