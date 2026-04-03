@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Tvrtka;
+use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -112,6 +113,20 @@ class RegisterTvrtka extends RegisterTenant
                     ->columnSpanFull(),
             ]),
         ]);
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            ...parent::getFormActions(),
+            Action::make('odustani')
+                ->label('Odustani')
+                ->color('gray')
+                ->url(fn () => auth()->user()->tvrtke()->first()
+                    ? filament()->getTenantUrl(auth()->user()->tvrtke()->first())
+                    : '/')
+                ->visible(fn () => auth()->user()->tvrtke()->exists()),
+        ];
     }
 
     protected function handleRegistration(array $data): Tvrtka
