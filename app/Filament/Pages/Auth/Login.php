@@ -14,7 +14,11 @@ class Login extends BaseLogin
 
     public function authenticate(): ?LoginResponse
     {
-        $this->validateTurnstile();
+        try {
+            $this->validateTurnstile();
+        } catch (\Filament\Support\Exceptions\Halt) {
+            return null;
+        }
 
         return parent::authenticate();
     }

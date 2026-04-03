@@ -14,7 +14,11 @@ class Register extends BaseRegister
 
     public function register(): ?RegistrationResponse
     {
-        $this->validateTurnstile();
+        try {
+            $this->validateTurnstile();
+        } catch (\Filament\Support\Exceptions\Halt) {
+            return null;
+        }
 
         return parent::register();
     }
