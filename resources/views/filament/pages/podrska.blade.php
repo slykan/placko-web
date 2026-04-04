@@ -27,13 +27,23 @@
         </div>
 
         <div style="background:#f9fafb; border-radius:0.5rem; padding:1rem 1.25rem; margin-bottom:1rem;">
-            <p style="font-weight:600; margin-bottom:0.5rem;">Proces nabave (vrijedi 5 godina):</p>
+            <p style="font-weight:600; margin-bottom:0.5rem;">Proces nabave (certifikat vrijedi 5 godina):</p>
             <ol style="color:#374151; line-height:2; margin:0; padding-left:1.25rem;">
                 <li>Predajte dokumentaciju osobno u FINA poslovnici <strong>ili</strong> online (OSPD portal)</li>
                 <li>Skrbnik certifikata prima aktivacijske podatke e-mailom i SMS-om</li>
                 <li>Certifikat se preuzima putem FINA portala za preuzimanje</li>
                 <li>Prilikom preuzimanja kreirate lozinku za <code style="background:#e5e7eb; padding:0.1rem 0.3rem; border-radius:0.25rem;">.p12</code> datoteku — <strong>zapamtite je!</strong></li>
             </ol>
+        </div>
+
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:0.5rem; padding:0.75rem 1rem; margin-bottom:1rem; font-size:0.875rem; color:#166534;">
+            <strong>Cijena (prema FINA cjeniku):</strong>
+            <ul style="margin:0.4rem 0 0 0; padding-left:1.25rem; line-height:1.9;">
+                <li>Jednokratna registracija poslovnog subjekta: <strong>10,62 EUR</strong></li>
+                <li>Izdavanje certifikata: <strong>39,82 EUR</strong></li>
+                <li>Ukupno za novi subjekt: <strong>~50,44 EUR</strong></li>
+            </ul>
+            <p style="margin:0.5rem 0 0 0; color:#15803d;">Naknade su bez PDV-a. Certifikat je jednom plaćen i vrijedi 5 godina.</p>
         </div>
 
         <div style="background:#fefce8; border:1px solid #fde68a; border-radius:0.5rem; padding:0.75rem 1rem; margin-bottom:1rem; font-size:0.875rem; color:#854d0e;">
