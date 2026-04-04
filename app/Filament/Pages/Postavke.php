@@ -358,8 +358,6 @@ class Postavke extends Page implements HasForms
         $data     = $this->fiskalizacijaForm->getState();
         $tvrtkaId = filament()->getTenant()->id;
 
-        \Log::info('Fiskalizacija save', ['data' => $data]);
-
         $update = [
             'fiskalizacija_aktivna' => $data['fiskalizacija_aktivna'] ?? false,
             'fis_prostor_oznaka'    => $data['fis_prostor_oznaka'] ?? '1',

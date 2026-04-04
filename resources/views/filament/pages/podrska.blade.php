@@ -16,33 +16,50 @@
         </p>
 
         <div style="background:#f9fafb; border-radius:0.5rem; padding:1rem 1.25rem; margin-bottom:1rem;">
-            <p style="font-weight:600; margin-bottom:0.5rem;">Što vam treba:</p>
+            <p style="font-weight:600; margin-bottom:0.5rem;">Potrebna dokumentacija:</p>
             <ul style="color:#374151; line-height:2; margin:0; padding-left:1.25rem;">
-                <li>Osobni dolazak u FINA ured (s osobnom iskaznicom)</li>
+                <li>Izvadak iz sudskog/obrtnog registra (ne stariji od 6 mjeseci)</li>
+                <li>Osobna iskaznica ili putovnica skrbnika certifikata</li>
                 <li>OIB obrta/tvrtke</li>
-                <li>Popunjen zahtjev za poslovni certifikat</li>
-                <li>Jednokratna naknada (trenutno ~100 EUR + PDV, vrijedi 5 godina)</li>
+                <li>Popunjen zahtjev i ugovor o certificiranju</li>
+                <li>Dokaz o uplati naknade</li>
             </ul>
         </div>
 
+        <div style="background:#f9fafb; border-radius:0.5rem; padding:1rem 1.25rem; margin-bottom:1rem;">
+            <p style="font-weight:600; margin-bottom:0.5rem;">Proces nabave (vrijedi 5 godina):</p>
+            <ol style="color:#374151; line-height:2; margin:0; padding-left:1.25rem;">
+                <li>Predajte dokumentaciju osobno u FINA poslovnici <strong>ili</strong> online (OSPD portal)</li>
+                <li>Skrbnik certifikata prima aktivacijske podatke e-mailom i SMS-om</li>
+                <li>Certifikat se preuzima putem FINA portala za preuzimanje</li>
+                <li>Prilikom preuzimanja kreirate lozinku za <code style="background:#e5e7eb; padding:0.1rem 0.3rem; border-radius:0.25rem;">.p12</code> datoteku — <strong>zapamtite je!</strong></li>
+            </ol>
+        </div>
+
         <div style="background:#fefce8; border:1px solid #fde68a; border-radius:0.5rem; padding:0.75rem 1rem; margin-bottom:1rem; font-size:0.875rem; color:#854d0e;">
-            <strong>Format certifikata:</strong> FINA certifikat dolazi u <strong>PKCS#12 (.p12)</strong> formatu zajedno s lozinkom.
-            U Postavke → Fiskalizacija uploadajte <code style="background:#fef08a; padding:0.1rem 0.3rem; border-radius:0.25rem;">.p12</code> datoteku
-            i unesite lozinku koju ste dobili od FINE. Nemojte mijenjati naziv datoteke.
+            <strong>Unos u aplikaciju:</strong> U <strong>Postavke → Fiskalizacija</strong> uploadajte
+            <code style="background:#fef08a; padding:0.1rem 0.3rem; border-radius:0.25rem;">.p12</code> datoteku
+            i unesite lozinku koju ste kreirali pri preuzimanju. Certifikat je u PKCS#12 formatu — nemojte mijenjati naziv datoteke.
         </div>
 
         <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
-            <a href="https://www.fina.hr/poslovni-certifikat" target="_blank"
+            <a href="https://www.fina.hr/poslovni-digitalni-certifikati/poslovni-certifikati-za-fiskalizaciju/izdavanje-certifikata-za-fiskalizaciju" target="_blank"
                style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem;
                       background:#16a34a; color:#fff; border-radius:0.5rem; text-decoration:none; font-size:0.875rem; font-weight:500;">
                 <x-heroicon-o-arrow-top-right-on-square style="width:1rem; height:1rem;" />
-                FINA — Poslovni certifikat
+                FINA — Certifikat za fiskalizaciju
             </a>
             <a href="https://www.fina.hr/lokacije" target="_blank"
                style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem;
                       background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:0.5rem; text-decoration:none; font-size:0.875rem; font-weight:500;">
                 <x-heroicon-o-map-pin style="width:1rem; height:1rem;" />
-                Pronađi FINA ured
+                Pronađi FINA poslovnicu
+            </a>
+            <a href="tel:08000080"
+               style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem;
+                      background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:0.5rem; text-decoration:none; font-size:0.875rem; font-weight:500;">
+                <x-heroicon-o-phone style="width:1rem; height:1rem;" />
+                FINA podrška: 0800 0080
             </a>
         </div>
     </div>
@@ -104,11 +121,11 @@
             Imate pitanje ili problem s aplikacijom? Slobodno nas kontaktirajte — odgovaramo u roku 24 sata radnim danom.
         </p>
 
-        <a href="mailto:podrska@placko.app"
+        <a href="mailto:placko@placko.app"
            style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem;
                   background:#2ba99b; color:#fff; border-radius:0.5rem; text-decoration:none; font-size:0.875rem; font-weight:500;">
             <x-heroicon-o-envelope style="width:1rem; height:1rem;" />
-            podrska@placko.app
+            placko@placko.app
         </a>
     </div>
 
