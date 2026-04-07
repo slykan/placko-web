@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Racun;
+use App\Models\TvrtkaPostavke;
+use App\Models\UlazniEracun;
 use DateTime;
 use Einvoicing\AllowanceOrCharge;
 use Einvoicing\Identifier;
@@ -12,6 +14,9 @@ use Einvoicing\Party;
 use Einvoicing\Payments\Transfer;
 use Einvoicing\Presets\Peppol;
 use Einvoicing\Writers\UblWriter;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class EracunService
 {
@@ -162,6 +167,265 @@ class EracunService
         // ── Generiraj XML ─────────────────────────────────────────
         $writer = new UblWriter();
         return $writer->export($invoice);
+    }
+
+    /**
+     * Pošalji eRačun na FINA servis putem mTLS-a.
+     *
+     * @return array{poruka_id: string|null, status_kod: int, odgovor: mixed}
+     * @throws \RuntimeException
+     */
+    public static function posalji(Racun $racun, TvrtkaPostavke $postavke): array
+    {
+        if (! $postavke->eracun_aktivan) {
+            throw new \RuntimeException('eRačun servis nije aktiviran u postavkama.');
+        }
+
+        if (! $postavke->eracun_cert_putanja) {
+            throw new \RuntimeException('eRačun certifikat nije konfiguriran.');
+        }
+
+        if (! $postavke->eracun_api_url) {
+            throw new \RuntimeException('eRačun API URL nije konfiguriran.');
+        }
+
+        [$tmpCert, $tmpKey] = static::izvuciPrivremeneKljuceve(
+            $postavke->eracun_cert_putanja,
+            $postavke->eracun_cert_lozinka ?? ''
+        );
+
+        try {
+            $xml = static::generirajXml($racun);
+
+            $url = rtrim($postavke->eracun_api_url, '/') . '/racuni';
+
+            $response = Http::withOptions([
+                'cert'    => $tmpCert,
+                'ssl_key' => $tmpKey,
+                'verify'  => true,
+            ])->withHeaders([
+                'Content-Type' => 'application/xml',
+                'Accept'       => 'application/json',
+            ])->withBody($xml, 'application/xml')
+              ->post($url);
+
+            if ($response->failed()) {
+                throw new \RuntimeException(
+                    'FINA eRačun servis vratio grešku ' . $response->status() . ': ' . $response->body()
+                );
+            }
+
+            $tijelo = $response->json() ?? [];
+
+            $porukaId = $tijelo['id'] ?? $tijelo['messageId'] ?? $tijelo['porukaId'] ?? null;
+
+            return [
+                'poruka_id' => $porukaId,
+                'status_kod' => $response->status(),
+                'odgovor'   => $tijelo,
+            ];
+        } finally {
+            @unlink($tmpCert);
+            @unlink($tmpKey);
+        }
+    }
+
+    /**
+     * Dohvati primljene eRačune s FINA servisa i spremi ih u bazu.
+     *
+     * @return array{novi: int, ukupno: int}
+     * @throws \RuntimeException
+     */
+    public static function dohvatiPrimljene(TvrtkaPostavke $postavke): array
+    {
+        if (! $postavke->eracun_aktivan) {
+            throw new \RuntimeException('eRačun servis nije aktiviran u postavkama.');
+        }
+
+        if (! $postavke->eracun_cert_putanja || ! $postavke->eracun_api_url) {
+            throw new \RuntimeException('eRačun certifikat ili API URL nije konfiguriran.');
+        }
+
+        [$tmpCert, $tmpKey] = static::izvuciPrivremeneKljuceve(
+            $postavke->eracun_cert_putanja,
+            $postavke->eracun_cert_lozinka ?? ''
+        );
+
+        try {
+            $url = rtrim($postavke->eracun_api_url, '/') . '/racuni/primljeni';
+
+            $response = Http::withOptions([
+                'cert'    => $tmpCert,
+                'ssl_key' => $tmpKey,
+                'verify'  => true,
+            ])->withHeaders([
+                'Accept' => 'application/json',
+            ])->get($url);
+
+            if ($response->failed()) {
+                throw new \RuntimeException(
+                    'Greška pri dohvaćanju primljenih eRačuna ' . $response->status() . ': ' . $response->body()
+                );
+            }
+
+            $lista   = $response->json() ?? [];
+            $novi    = 0;
+            $ukupno  = count($lista);
+
+            foreach ($lista as $stavka) {
+                $finaId = $stavka['id'] ?? $stavka['messageId'] ?? null;
+
+                // Preskočiti ako već postoji
+                if ($finaId && UlazniEracun::where('tvrtka_id', $postavke->tvrtka_id)
+                        ->where('fina_id', $finaId)->exists()) {
+                    continue;
+                }
+
+                // Dohvati XML pojedinog računa ako API vraća zasebni endpoint
+                $xml = null;
+                if (isset($stavka['xmlUrl'])) {
+                    try {
+                        $xmlResp = Http::withOptions([
+                            'cert'    => $tmpCert,
+                            'ssl_key' => $tmpKey,
+                            'verify'  => true,
+                        ])->get($stavka['xmlUrl']);
+                        $xml = $xmlResp->ok() ? $xmlResp->body() : null;
+                    } catch (\Throwable $e) {
+                        Log::warning('eRačun: ne mogu dohvatiti XML za ' . $finaId . ': ' . $e->getMessage());
+                    }
+                } elseif (isset($stavka['xml'])) {
+                    $xml = $stavka['xml'];
+                }
+
+                $podaci = static::parsirajUlazniXml($xml ?? '');
+
+                UlazniEracun::create([
+                    'tvrtka_id'       => $postavke->tvrtka_id,
+                    'fina_id'         => $finaId,
+                    'broj_racuna'     => $stavka['brojRacuna'] ?? $podaci['broj_racuna'] ?? null,
+                    'dobavljac_naziv' => $stavka['dobavljacNaziv'] ?? $podaci['dobavljac_naziv'] ?? null,
+                    'dobavljac_oib'   => $stavka['dobavljacOib'] ?? $podaci['dobavljac_oib'] ?? null,
+                    'datum_izdavanja' => $stavka['datumIzdavanja'] ?? $podaci['datum_izdavanja'] ?? null,
+                    'datum_dospijeca' => $stavka['datumDospijeca'] ?? $podaci['datum_dospijeca'] ?? null,
+                    'iznos'           => $stavka['iznos'] ?? $podaci['iznos'] ?? 0,
+                    'valuta'          => $stavka['valuta'] ?? $podaci['valuta'] ?? 'EUR',
+                    'status'          => 'nova',
+                    'xml'             => $xml,
+                    'primljeno_at'    => now(),
+                ]);
+
+                $novi++;
+            }
+
+            return ['novi' => $novi, 'ukupno' => $ukupno];
+        } finally {
+            @unlink($tmpCert);
+            @unlink($tmpKey);
+        }
+    }
+
+    /**
+     * Testiraj eRačun certifikat - vrati array s informacijama.
+     *
+     * @throws \RuntimeException
+     */
+    public static function testirajEracunCertifikat(string $certPutanja, string $lozinka): array
+    {
+        $putanja = Storage::disk('local')->path($certPutanja);
+
+        if (! file_exists($putanja)) {
+            throw new \RuntimeException('Certifikat nije pronađen na serveru.');
+        }
+
+        if (file_exists(base_path('openssl-legacy.cnf'))) {
+            putenv('OPENSSL_CONF=' . base_path('openssl-legacy.cnf'));
+        }
+
+        $sadrzaj = file_get_contents($putanja);
+        $ok = openssl_pkcs12_read($sadrzaj, $certs, $lozinka);
+
+        if (! $ok) {
+            throw new \RuntimeException('Lozinka je pogrešna ili je certifikat oštećen.');
+        }
+
+        $certInfo = openssl_x509_parse($certs['cert']);
+
+        return [
+            'subjekt'    => $certInfo['subject']['CN'] ?? 'N/A',
+            'izdavac'    => $certInfo['issuer']['CN'] ?? 'N/A',
+            'vrijedi_do' => isset($certInfo['validTo_time_t'])
+                ? date('d.m.Y.', $certInfo['validTo_time_t'])
+                : 'N/A',
+        ];
+    }
+
+    /**
+     * Parsira UBL XML i izvuče ključne podatke.
+     */
+    public static function parsirajUlazniXml(string $xml): array
+    {
+        if (empty($xml)) {
+            return [];
+        }
+
+        try {
+            $dom = new \DOMDocument();
+            $dom->loadXML($xml);
+            $xpath = new \DOMXPath($dom);
+
+            // UBL 2.1 namespace
+            $xpath->registerNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+            $xpath->registerNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+
+            $get = fn (string $q) => $xpath->evaluate('string(' . $q . ')', $dom);
+
+            return [
+                'broj_racuna'     => $get('//cbc:ID') ?: null,
+                'datum_izdavanja' => $get('//cbc:IssueDate') ?: null,
+                'datum_dospijeca' => $get('//cac:PaymentMeans/cbc:PaymentDueDate') ?: null,
+                'iznos'           => (float) ($get('//cac:LegalMonetaryTotal/cbc:PayableAmount') ?: 0),
+                'valuta'          => $get('//cbc:DocumentCurrencyCode') ?: 'EUR',
+                'dobavljac_naziv' => $get('//cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name') ?: null,
+                'dobavljac_oib'   => $get('//cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID') ?: null,
+            ];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Iz .p12 certifikata izvuci PEM cert i ključ u privremene fajlove.
+     *
+     * @return array{0: string, 1: string} Putanje do [cert.pem, key.pem]
+     * @throws \RuntimeException
+     */
+    private static function izvuciPrivremeneKljuceve(string $certPutanja, string $lozinka): array
+    {
+        $putanja = Storage::disk('local')->path($certPutanja);
+
+        if (! file_exists($putanja)) {
+            throw new \RuntimeException('eRačun certifikat nije pronađen: ' . $certPutanja);
+        }
+
+        if (file_exists(base_path('openssl-legacy.cnf'))) {
+            putenv('OPENSSL_CONF=' . base_path('openssl-legacy.cnf'));
+        }
+
+        $sadrzaj = file_get_contents($putanja);
+        $ok = openssl_pkcs12_read($sadrzaj, $certs, $lozinka);
+
+        if (! $ok) {
+            throw new \RuntimeException('Neispravan eRačun certifikat ili lozinka.');
+        }
+
+        $tmpCert = tempnam(sys_get_temp_dir(), 'eracun_c_');
+        $tmpKey  = tempnam(sys_get_temp_dir(), 'eracun_k_');
+
+        file_put_contents($tmpCert, $certs['cert']);
+        file_put_contents($tmpKey, $certs['pkey']);
+
+        return [$tmpCert, $tmpKey];
     }
 
     /**

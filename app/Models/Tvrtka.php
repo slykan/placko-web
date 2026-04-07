@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\UlazniEracun;
 
 class Tvrtka extends Model
 {
@@ -77,6 +78,11 @@ class Tvrtka extends Model
     public function pretplate(): HasMany
     {
         return $this->hasMany(Pretplata::class);
+    }
+
+    public function ulazniEracuni(): HasMany
+    {
+        return $this->hasMany(UlazniEracun::class);
     }
 
     public function __toString(): string

@@ -26,11 +26,17 @@ class TvrtkaPostavke extends Model
         'fis_prostor_oznaka',
         'fis_uredaj_oznaka',
         'fiskalizacija_aktivna',
+        'eracun_aktivan',
+        'eracun_cert_putanja',
+        'eracun_cert_lozinka',
+        'eracun_api_url',
     ];
 
     protected $casts = [
-        'fina_cert_lozinka'      => 'encrypted',
-        'fiskalizacija_aktivna'  => 'boolean',
+        'fina_cert_lozinka'   => 'encrypted',
+        'fiskalizacija_aktivna' => 'boolean',
+        'eracun_cert_lozinka' => 'encrypted',
+        'eracun_aktivan'      => 'boolean',
     ];
 
     protected $hidden = ['smtp_pass'];

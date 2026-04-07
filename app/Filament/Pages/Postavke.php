@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\TvrtkaPostavke;
+use App\Services\EracunService;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -34,6 +35,7 @@ class Postavke extends Page implements HasForms
     public ?array $emailData          = [];
     public ?array $pretplateData      = [];
     public ?array $fiskalizacijaData  = [];
+    public ?array $eracunData         = [];
 
     public function mount(): void
     {
@@ -72,11 +74,17 @@ class Postavke extends Page implements HasForms
             'fis_prostor_oznaka'    => $postavke->fis_prostor_oznaka ?? '1',
             'fis_uredaj_oznaka'     => $postavke->fis_uredaj_oznaka ?? '1',
         ]);
+
+        $this->eracunForm->fill([
+            'eracun_aktivan'      => $postavke->eracun_aktivan ?? false,
+            'eracun_cert_putanja' => $postavke->eracun_cert_putanja,
+            'eracun_api_url'      => $postavke->eracun_api_url,
+        ]);
     }
 
     protected function getForms(): array
     {
-        return ['korisnikForm', 'smtpForm', 'emailForm', 'pretplateForm', 'fiskalizacijaForm'];
+        return ['korisnikForm', 'smtpForm', 'emailForm', 'pretplateForm', 'fiskalizacijaForm', 'eracunForm'];
     }
 
     public function korisnikForm(Form $form): Form
@@ -392,5 +400,117 @@ class Postavke extends Page implements HasForms
         TvrtkaPostavke::updateOrCreate(['tvrtka_id' => $tvrtkaId], $update);
 
         Notification::make()->title('Postavke fiskalizacije spremljene')->success()->send();
+    }
+
+    public function eracunForm(Form $form): Form
+    {
+        $tvrtkaId = filament()->getTenant()->id;
+
+        return $form
+            ->schema([
+                Section::make('eRačun (FINA)')
+                    ->description('Elektroničko fakturiranje putem FINA sustava. Potreban je poseban FINA eRačun certifikat.')
+                    ->schema([
+                        Toggle::make('eracun_aktivan')
+                            ->label('Aktiviraj eRačun')
+                            ->helperText('Omogući slanje i primanje eRačuna')
+                            ->columnSpanFull(),
+
+                        TextInput::make('eracun_api_url')
+                            ->label('API URL')
+                            ->placeholder('https://demo.efaktura.fina.hr/api/v1')
+                            ->helperText('URL eRačun servisa (demo ili produkcija) — vidi FINA dokumentaciju')
+                            ->url()
+                            ->columnSpan(2),
+
+                        FileUpload::make('eracun_cert_putanja')
+                            ->label('eRačun certifikat (.p12)')
+                            ->disk('local')
+                            ->directory('eracun/' . $tvrtkaId)
+                            ->acceptedFileTypes(['application/x-pkcs12', 'application/octet-stream'])
+                            ->maxSize(2048)
+                            ->helperText('Poseban FINA certifikat za eRačun servis (nije isti kao za fiskalizaciju)')
+                            ->columnSpan(2),
+
+                        TextInput::make('eracun_cert_lozinka')
+                            ->label('Lozinka certifikata')
+                            ->password()
+                            ->revealable()
+                            ->helperText('Ostavi prazno ako ne mijenjаš lozinku')
+                            ->columnSpan(2),
+                    ])->columns(2),
+            ])
+            ->statePath('eracunData');
+    }
+
+    public function spremiEracun(): void
+    {
+        $data     = $this->eracunForm->getState();
+        $tvrtkaId = filament()->getTenant()->id;
+
+        $update = [
+            'eracun_aktivan'  => $data['eracun_aktivan'] ?? false,
+            'eracun_api_url'  => $data['eracun_api_url'] ?? null,
+        ];
+
+        $cert = $data['eracun_cert_putanja'] ?? null;
+        if (is_array($cert)) {
+            $cert = array_values($cert)[0] ?? null;
+        }
+        if (! empty($cert)) {
+            $stariCert = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->value('eracun_cert_putanja');
+            if ($stariCert && $stariCert !== $cert) {
+                \Illuminate\Support\Facades\Storage::disk('local')->delete($stariCert);
+            }
+            $dir = 'eracun/' . $tvrtkaId;
+            foreach (\Illuminate\Support\Facades\Storage::disk('local')->files($dir) as $file) {
+                if ($file !== $cert) {
+                    \Illuminate\Support\Facades\Storage::disk('local')->delete($file);
+                }
+            }
+            $update['eracun_cert_putanja'] = $cert;
+        }
+
+        if (! empty($data['eracun_cert_lozinka'])) {
+            $update['eracun_cert_lozinka'] = $data['eracun_cert_lozinka'];
+        }
+
+        TvrtkaPostavke::updateOrCreate(['tvrtka_id' => $tvrtkaId], $update);
+
+        Notification::make()->title('eRačun postavke spremljene')->success()->send();
+    }
+
+    public function testirajEracunCertifikat(): void
+    {
+        $tvrtkaId = filament()->getTenant()->id;
+        $postavke = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->first();
+
+        if (! $postavke?->eracun_cert_putanja) {
+            Notification::make()->title('eRačun certifikat nije uploadан')->warning()->send();
+            return;
+        }
+
+        try {
+            $info = EracunService::testirajEracunCertifikat(
+                $postavke->eracun_cert_putanja,
+                $postavke->eracun_cert_lozinka ?? ''
+            );
+
+            Notification::make()
+                ->title('eRačun certifikat je ispravan')
+                ->body(
+                    'Subjekt: ' . $info['subjekt'] . "\n" .
+                    'Izdavač: ' . $info['izdavac'] . "\n" .
+                    'Vrijedi do: ' . $info['vrijedi_do']
+                )
+                ->success()
+                ->send();
+        } catch (\RuntimeException $e) {
+            Notification::make()
+                ->title('eRačun certifikat nije ispravan')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 }

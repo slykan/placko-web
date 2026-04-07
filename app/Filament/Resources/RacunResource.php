@@ -362,6 +362,18 @@ class RacunResource extends Resource
                         ? 'Fiskalizirano: ' . $record->fiskaliziran_at->format('d.m.Y. H:i') . "\nJIR: " . $record->jir
                         : 'Nije fiskalizirano')
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\IconColumn::make('poslan_eracun_at')
+                    ->label('eRač.')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-paper-airplane')
+                    ->falseIcon('heroicon-o-minus-circle')
+                    ->trueColor('info')
+                    ->falseColor('gray')
+                    ->tooltip(fn ($record) => $record->poslan_eracun_at
+                        ? 'eRačun poslan: ' . $record->poslan_eracun_at->format('d.m.Y. H:i') . ($record->eracun_poruka_id ? "\nID: " . $record->eracun_poruka_id : '')
+                        : 'eRačun nije poslan')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('id', 'desc')
             ->filters([
@@ -560,6 +572,48 @@ class RacunResource extends Resource
                             ->body('Račun ' . $r->broj . ' poslan na ' . $data['prima'])
                             ->success()
                             ->send();
+                    }),
+
+                Tables\Actions\Action::make('posalji_eracun')
+                    ->icon(fn (Racun $r) => $r->poslan_eracun_at ? 'heroicon-o-paper-airplane' : 'heroicon-o-arrow-up-tray')
+                    ->color(fn (Racun $r) => $r->poslan_eracun_at ? 'info' : 'gray')
+                    ->iconButton()
+                    ->tooltip(fn (Racun $r) => $r->poslan_eracun_at
+                        ? 'eRačun poslan ' . $r->poslan_eracun_at->format('d.m.Y. H:i')
+                        : 'Pošalji eRačun na FINA')
+                    ->visible(function () {
+                        $postavke = TvrtkaPostavke::where('tvrtka_id', filament()->getTenant()->id)->first();
+                        return $postavke?->eracun_aktivan ?? false;
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading(fn (Racun $r) => $r->poslan_eracun_at ? 'Ponovo pošalji eRačun' : 'Pošalji eRačun')
+                    ->modalDescription(fn (Racun $r) => $r->poslan_eracun_at
+                        ? 'eRačun je već poslan ' . $r->poslan_eracun_at->format('d.m.Y. H:i') . '. Pošalji ponovo?'
+                        : 'Pošalji račun ' . $r->broj . ' na FINA eRačun servis.')
+                    ->action(function (Racun $r) {
+                        $postavke = TvrtkaPostavke::where('tvrtka_id', $r->tvrtka_id)->first();
+
+                        try {
+                            $rezultat = EracunService::posalji($r, $postavke);
+
+                            $r->update([
+                                'poslan_eracun_at'  => now(),
+                                'eracun_poruka_id'  => $rezultat['poruka_id'],
+                            ]);
+
+                            Notification::make()
+                                ->title('eRačun poslan')
+                                ->body('Račun ' . $r->broj . ' uspješno poslan na FINA.' .
+                                    ($rezultat['poruka_id'] ? ' ID: ' . $rezultat['poruka_id'] : ''))
+                                ->success()
+                                ->send();
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->title('Greška pri slanju eRačuna')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
                     }),
 
                 Tables\Actions\Action::make('fiskaliziraj')

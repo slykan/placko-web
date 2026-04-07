@@ -29,6 +29,8 @@ class Racun extends Model
         'zki',
         'jir',
         'fiskaliziran_at',
+        'poslan_eracun_at',
+        'eracun_poruka_id',
         'ukupno_osnovica',
         'ukupno_rabat',
         'ukupno_pdv',
@@ -42,6 +44,7 @@ class Racun extends Model
         'placen_at'        => 'datetime',
         'arhiviran_at'     => 'datetime',
         'fiskaliziran_at'  => 'datetime',
+        'poslan_eracun_at' => 'datetime',
     ];
 
     public static function generiraBroj(int $tvrtkaId): array

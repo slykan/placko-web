@@ -38,4 +38,14 @@
         </div>
     </form>
 
+    <form wire:submit="spremiEracun" class="mt-6">
+        {{ $this->eracunForm }}
+        <div class="mt-4 flex justify-end gap-3">
+            <x-filament::button type="button" wire:click="testirajEracunCertifikat" color="gray" icon="heroicon-o-shield-check">
+                Testiraj eRačun certifikat
+            </x-filament::button>
+            <x-filament::button type="submit" color="info">Spremi eRačun postavke</x-filament::button>
+        </div>
+    </form>
+
 </x-filament-panels::page>
