@@ -26,6 +26,7 @@ class TvrtkaPostavke extends Model
         'fis_prostor_oznaka',
         'fis_uredaj_oznaka',
         'fiskalizacija_aktivna',
+        'fiskalizacija_demo',
         'eracun_aktivan',
         'eracun_cert_putanja',
         'eracun_cert_lozinka',
@@ -35,6 +36,7 @@ class TvrtkaPostavke extends Model
     protected $casts = [
         'fina_cert_lozinka'   => 'encrypted',
         'fiskalizacija_aktivna' => 'boolean',
+        'fiskalizacija_demo'    => 'boolean',
         'eracun_cert_lozinka' => 'encrypted',
         'eracun_aktivan'      => 'boolean',
     ];

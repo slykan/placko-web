@@ -631,7 +631,8 @@ class RacunResource extends Resource
                         : 'Potvrdi slanje računa ' . $r->broj . ' na Poreznu upravu (PU).')
                     ->action(function (Racun $r) {
                         try {
-                            $demo = app()->environment('local', 'testing');
+                            $postavke = \App\Models\TvrtkaPostavke::where('tvrtka_id', $r->tvrtka_id)->first();
+                            $demo = $postavke?->fiskalizacija_demo ?? app()->environment('local', 'testing');
                             $result = FiskalizacijaService::fiskaliziraj($r, $demo);
                             Notification::make()
                                 ->title('Račun fiskaliziran')

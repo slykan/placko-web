@@ -70,6 +70,7 @@ class Postavke extends Page implements HasForms
 
         $this->fiskalizacijaForm->fill([
             'fiskalizacija_aktivna' => $postavke->fiskalizacija_aktivna ?? false,
+            'fiskalizacija_demo'    => $postavke->fiskalizacija_demo ?? false,
             'fina_cert_putanja'     => $postavke->fina_cert_putanja,
             'fis_prostor_oznaka'    => $postavke->fis_prostor_oznaka ?? '1',
             'fis_uredaj_oznaka'     => $postavke->fis_uredaj_oznaka ?? '1',
@@ -287,6 +288,11 @@ class Postavke extends Page implements HasForms
                             ->helperText('Uključi ako naplaćuješ gotovinom ili karticom')
                             ->columnSpanFull(),
 
+                        Toggle::make('fiskalizacija_demo')
+                            ->label('Demo način rada')
+                            ->helperText('Koristi FINA demo certifikat i testni CIS server — isključi za produkciju')
+                            ->columnSpanFull(),
+
                         FileUpload::make('fina_cert_putanja')
                             ->label('FINA certifikat (.p12)')
                             ->disk('local')
@@ -368,6 +374,7 @@ class Postavke extends Page implements HasForms
 
         $update = [
             'fiskalizacija_aktivna' => $data['fiskalizacija_aktivna'] ?? false,
+            'fiskalizacija_demo'    => $data['fiskalizacija_demo'] ?? false,
             'fis_prostor_oznaka'    => $data['fis_prostor_oznaka'] ?? '1',
             'fis_uredaj_oznaka'     => $data['fis_uredaj_oznaka'] ?? '1',
         ];
