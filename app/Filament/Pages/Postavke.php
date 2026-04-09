@@ -77,10 +77,11 @@ class Postavke extends Page implements HasForms
         ]);
 
         $this->eracunForm->fill([
-            'eracun_aktivan'      => $postavke->eracun_aktivan ?? false,
-            'eracun_demo'         => $postavke->eracun_demo ?? false,
-            'eracun_cert_putanja' => $postavke->eracun_cert_putanja,
-            'eracun_api_url'      => $postavke->eracun_api_url,
+            'eracun_aktivan'        => $postavke->eracun_aktivan ?? false,
+            'eracun_demo'           => $postavke->eracun_demo ?? false,
+            'eracun_middleware_url' => $postavke->eracun_middleware_url,
+            'eracun_api_url'        => $postavke->eracun_api_url,
+            'eracun_cert_putanja'   => $postavke->eracun_cert_putanja,
         ]);
     }
 
@@ -426,15 +427,31 @@ class Postavke extends Page implements HasForms
 
                         Toggle::make('eracun_demo')
                             ->label('Demo način rada')
-                            ->helperText('Koristi FINA demo server (demo.efaktura.fina.hr) — isključi za produkciju')
+                            ->helperText('Koristi FINA demo server — isključi za produkciju')
+                            ->live()
+                            ->columnSpanFull(),
+
+                        TextInput::make('eracun_middleware_url')
+                            ->label('URL za slanje računa')
+                            ->placeholder(fn (\Filament\Forms\Get $get) => $get('eracun_demo')
+                                ? 'https://prezdigitalneusluge.fina.hr/SendB2BOutgoingInvoicePKIWebService/services/SendB2BOutgoingInvoicePKIWebService'
+                                : 'https://webservisi.fina.hr/SendB2BOutgoingInvoicePKIWebService/services/SendB2BOutgoingInvoicePKIWebService')
+                            ->helperText(fn (\Filament\Forms\Get $get) => $get('eracun_demo')
+                                ? 'Demo server: prezdigitalneusluge.fina.hr'
+                                : 'Produkcijski server: webservisi.fina.hr')
+                            ->url()
                             ->columnSpanFull(),
 
                         TextInput::make('eracun_api_url')
-                            ->label('API URL')
-                            ->placeholder('https://demo.efaktura.fina.hr/api/v1')
-                            ->helperText('URL eRačun servisa (demo ili produkcija) — vidi FINA dokumentaciju')
+                            ->label('URL za primanje računa')
+                            ->placeholder(fn (\Filament\Forms\Get $get) => $get('eracun_demo')
+                                ? 'https://prezdigitalneusluge.fina.hr/B2BFinaInvoiceWebService/services/B2BFinaInvoiceWebService'
+                                : 'https://webservisi.fina.hr/B2BFinaInvoiceWebService/services/B2BFinaInvoiceWebService')
+                            ->helperText(fn (\Filament\Forms\Get $get) => $get('eracun_demo')
+                                ? 'Demo server: prezdigitalneusluge.fina.hr'
+                                : 'Produkcijski server: webservisi.fina.hr')
                             ->url()
-                            ->columnSpan(2),
+                            ->columnSpanFull(),
 
                         FileUpload::make('eracun_cert_putanja')
                             ->label('eRačun certifikat (.p12)')
@@ -464,11 +481,10 @@ class Postavke extends Page implements HasForms
         $demo = $data['eracun_demo'] ?? false;
 
         $update = [
-            'eracun_aktivan'  => $data['eracun_aktivan'] ?? false,
-            'eracun_demo'     => $demo,
-            'eracun_api_url'  => $demo
-                ? 'https://demo.efaktura.fina.hr/api/v1'
-                : ($data['eracun_api_url'] ?? null),
+            'eracun_aktivan'        => $data['eracun_aktivan'] ?? false,
+            'eracun_demo'           => $demo,
+            'eracun_middleware_url' => $data['eracun_middleware_url'] ?? null,
+            'eracun_api_url'        => $data['eracun_api_url'] ?? null,
         ];
 
         $cert = $data['eracun_cert_putanja'] ?? null;

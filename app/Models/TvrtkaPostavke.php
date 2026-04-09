@@ -29,6 +29,7 @@ class TvrtkaPostavke extends Model
         'fiskalizacija_demo',
         'eracun_aktivan',
         'eracun_demo',
+        'eracun_middleware_url',
         'eracun_cert_putanja',
         'eracun_cert_lozinka',
         'eracun_api_url',
