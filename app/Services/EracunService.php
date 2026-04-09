@@ -202,7 +202,7 @@ class EracunService
             $response = Http::withOptions([
                 'cert'    => $tmpCert,
                 'ssl_key' => $tmpKey,
-                'verify'  => true,
+                'verify'  => ! ($postavke->eracun_demo ?? false),
             ])->withHeaders([
                 'Content-Type' => 'application/xml',
                 'Accept'       => 'application/json',
@@ -257,7 +257,7 @@ class EracunService
             $response = Http::withOptions([
                 'cert'    => $tmpCert,
                 'ssl_key' => $tmpKey,
-                'verify'  => true,
+                'verify'  => ! ($postavke->eracun_demo ?? false),
             ])->withHeaders([
                 'Accept' => 'application/json',
             ])->get($url);
@@ -288,7 +288,7 @@ class EracunService
                         $xmlResp = Http::withOptions([
                             'cert'    => $tmpCert,
                             'ssl_key' => $tmpKey,
-                            'verify'  => true,
+                            'verify'  => ! ($postavke->eracun_demo ?? false),
                         ])->get($stavka['xmlUrl']);
                         $xml = $xmlResp->ok() ? $xmlResp->body() : null;
                     } catch (\Throwable $e) {
