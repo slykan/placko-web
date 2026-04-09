@@ -308,6 +308,10 @@ class Postavke extends Page implements HasForms
                             ->label('Lozinka certifikata')
                             ->password()
                             ->revealable()
+                            ->placeholder(function () use ($tvrtkaId) {
+                                $postavke = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->first();
+                                return $postavke?->fina_cert_lozinka ? '••••••••' : '';
+                            })
                             ->helperText('Ostavi prazno ako ne mijenjаš lozinku')
                             ->columnSpan(2),
 
@@ -466,6 +470,10 @@ class Postavke extends Page implements HasForms
                             ->label('Lozinka certifikata')
                             ->password()
                             ->revealable()
+                            ->placeholder(function () use ($tvrtkaId) {
+                                $postavke = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->first();
+                                return $postavke?->eracun_cert_lozinka ? '••••••••' : '';
+                            })
                             ->helperText('Ostavi prazno ako ne mijenjаš lozinku')
                             ->columnSpan(2),
                     ])->columns(2),
