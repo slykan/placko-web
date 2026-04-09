@@ -40,7 +40,7 @@ class FiskalizacijaService
         $fis = new Fiskalizacija(
             $certPutanja,
             $postavke->fina_cert_lozinka,
-            'TLS',
+            'SSL',
             $demo
         );
 
