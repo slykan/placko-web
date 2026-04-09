@@ -338,18 +338,22 @@ class EracunService
             throw new \RuntimeException('Certifikat nije pronađen na serveru.');
         }
 
-        if (file_exists(base_path('openssl-legacy.cnf'))) {
-            putenv('OPENSSL_CONF=' . base_path('openssl-legacy.cnf'));
-        }
+        $legacyCnf = base_path('openssl-legacy.cnf');
+        $env       = file_exists($legacyCnf) ? 'OPENSSL_CONF=' . escapeshellarg($legacyCnf) . ' ' : '';
+        $p12       = escapeshellarg($putanja);
+        $pass      = escapeshellarg($lozinka);
 
-        $sadrzaj = file_get_contents($putanja);
-        $ok = openssl_pkcs12_read($sadrzaj, $certs, $lozinka);
+        $tmpCert = tempnam(sys_get_temp_dir(), 'eracun_test_') . '.pem';
+        exec("{$env}openssl pkcs12 -in {$p12} -clcerts -nokeys -out " . escapeshellarg($tmpCert) . " -passin pass:{$pass} -legacy 2>&1", $out, $rc);
 
-        if (! $ok) {
+        if ($rc !== 0 || ! file_exists($tmpCert) || filesize($tmpCert) === 0) {
+            @unlink($tmpCert);
             throw new \RuntimeException('Lozinka je pogrešna ili je certifikat oštećen.');
         }
 
-        $certInfo = openssl_x509_parse($certs['cert']);
+        $certPem  = file_get_contents($tmpCert);
+        @unlink($tmpCert);
+        $certInfo = openssl_x509_parse($certPem);
 
         return [
             'subjekt'    => $certInfo['subject']['CN'] ?? 'N/A',
@@ -408,22 +412,26 @@ class EracunService
             throw new \RuntimeException('eRačun certifikat nije pronađen: ' . $certPutanja);
         }
 
-        if (file_exists(base_path('openssl-legacy.cnf'))) {
-            putenv('OPENSSL_CONF=' . base_path('openssl-legacy.cnf'));
+        $tmpCert = tempnam(sys_get_temp_dir(), 'eracun_c_') . '.pem';
+        $tmpKey  = tempnam(sys_get_temp_dir(), 'eracun_k_') . '.pem';
+
+        $legacyCnf = base_path('openssl-legacy.cnf');
+        $env       = file_exists($legacyCnf) ? 'OPENSSL_CONF=' . escapeshellarg($legacyCnf) . ' ' : '';
+        $p12       = escapeshellarg($putanja);
+        $pass      = escapeshellarg($lozinka);
+        $cert      = escapeshellarg($tmpCert);
+        $key       = escapeshellarg($tmpKey);
+
+        // Izvuci certifikat
+        exec("{$env}openssl pkcs12 -in {$p12} -clcerts -nokeys -out {$cert} -passin pass:{$pass} -legacy 2>&1", $out1, $rc1);
+        // Izvuci privatni ključ
+        exec("{$env}openssl pkcs12 -in {$p12} -nocerts -nodes -out {$key} -passin pass:{$pass} -legacy 2>&1", $out2, $rc2);
+
+        if ($rc1 !== 0 || $rc2 !== 0) {
+            @unlink($tmpCert);
+            @unlink($tmpKey);
+            throw new \RuntimeException('Neispravan eRačun certifikat ili lozinka. ' . implode(' ', $out1) . ' ' . implode(' ', $out2));
         }
-
-        $sadrzaj = file_get_contents($putanja);
-        $ok = openssl_pkcs12_read($sadrzaj, $certs, $lozinka);
-
-        if (! $ok) {
-            throw new \RuntimeException('Neispravan eRačun certifikat ili lozinka.');
-        }
-
-        $tmpCert = tempnam(sys_get_temp_dir(), 'eracun_c_');
-        $tmpKey  = tempnam(sys_get_temp_dir(), 'eracun_k_');
-
-        file_put_contents($tmpCert, $certs['cert']);
-        file_put_contents($tmpKey, $certs['pkey']);
 
         return [$tmpCert, $tmpKey];
     }
