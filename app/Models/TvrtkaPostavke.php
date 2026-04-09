@@ -28,6 +28,7 @@ class TvrtkaPostavke extends Model
         'fiskalizacija_aktivna',
         'fiskalizacija_demo',
         'eracun_aktivan',
+        'eracun_demo',
         'eracun_cert_putanja',
         'eracun_cert_lozinka',
         'eracun_api_url',
@@ -39,6 +40,7 @@ class TvrtkaPostavke extends Model
         'fiskalizacija_demo'    => 'boolean',
         'eracun_cert_lozinka' => 'encrypted',
         'eracun_aktivan'      => 'boolean',
+        'eracun_demo'         => 'boolean',
     ];
 
     protected $hidden = ['smtp_pass'];

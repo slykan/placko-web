@@ -78,6 +78,7 @@ class Postavke extends Page implements HasForms
 
         $this->eracunForm->fill([
             'eracun_aktivan'      => $postavke->eracun_aktivan ?? false,
+            'eracun_demo'         => $postavke->eracun_demo ?? false,
             'eracun_cert_putanja' => $postavke->eracun_cert_putanja,
             'eracun_api_url'      => $postavke->eracun_api_url,
         ]);
@@ -423,6 +424,11 @@ class Postavke extends Page implements HasForms
                             ->helperText('Omogući slanje i primanje eRačuna')
                             ->columnSpanFull(),
 
+                        Toggle::make('eracun_demo')
+                            ->label('Demo način rada')
+                            ->helperText('Koristi FINA demo server (demo.efaktura.fina.hr) — isključi za produkciju')
+                            ->columnSpanFull(),
+
                         TextInput::make('eracun_api_url')
                             ->label('API URL')
                             ->placeholder('https://demo.efaktura.fina.hr/api/v1')
@@ -455,9 +461,14 @@ class Postavke extends Page implements HasForms
         $data     = $this->eracunForm->getState();
         $tvrtkaId = filament()->getTenant()->id;
 
+        $demo = $data['eracun_demo'] ?? false;
+
         $update = [
             'eracun_aktivan'  => $data['eracun_aktivan'] ?? false,
-            'eracun_api_url'  => $data['eracun_api_url'] ?? null,
+            'eracun_demo'     => $demo,
+            'eracun_api_url'  => $demo
+                ? 'https://demo.efaktura.fina.hr/api/v1'
+                : ($data['eracun_api_url'] ?? null),
         ];
 
         $cert = $data['eracun_cert_putanja'] ?? null;
