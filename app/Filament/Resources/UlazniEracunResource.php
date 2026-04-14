@@ -3,7 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UlazniEracunResource\Pages;
+use App\Models\TvrtkaPostavke;
 use App\Models\UlazniEracun;
+use App\Services\EracunService;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
@@ -144,6 +146,20 @@ class UlazniEracunResource extends Resource
                     ->visible(fn (UlazniEracun $r) => ! in_array($r->status, ['prihvacena']))
                     ->requiresConfirmation()
                     ->action(function (UlazniEracun $r) {
+                        $postavke = TvrtkaPostavke::where('tvrtka_id', $r->tvrtka_id)->first();
+
+                        if ($postavke?->eracun_aktivan && $r->fina_id) {
+                            try {
+                                EracunService::promijeniStatus($r, 'prihvacena', $postavke);
+                            } catch (\Throwable $e) {
+                                Notification::make()
+                                    ->title('Upozorenje: nije se moglo javiti FINA sustavu')
+                                    ->body($e->getMessage())
+                                    ->warning()
+                                    ->send();
+                            }
+                        }
+
                         $r->update(['status' => 'prihvacena']);
                         Notification::make()->title('eRačun prihvaćen')->success()->send();
                     }),
@@ -155,11 +171,40 @@ class UlazniEracunResource extends Resource
                     ->tooltip('Odbij')
                     ->visible(fn (UlazniEracun $r) => $r->status !== 'odbijena')
                     ->form([
-                        Textarea::make('napomena')
+                        Select::make('sifra_razloga')
                             ->label('Razlog odbijanja')
+                            ->options([
+                                'VAT_REASON'        => 'Netočan PDV',
+                                'QUANTITY_REASON'   => 'Netočna količina',
+                                'PRICE_REASON'      => 'Netočna cijena',
+                                'OTHER_REASON'      => 'Ostalo',
+                            ])
+                            ->native(false)
+                            ->default('OTHER_REASON'),
+
+                        Textarea::make('napomena')
+                            ->label('Napomena')
                             ->rows(3),
                     ])
                     ->action(function (UlazniEracun $r, array $data) {
+                        $postavke = TvrtkaPostavke::where('tvrtka_id', $r->tvrtka_id)->first();
+
+                        if ($postavke?->eracun_aktivan && $r->fina_id) {
+                            try {
+                                EracunService::promijeniStatus(
+                                    $r, 'odbijena', $postavke,
+                                    $data['sifra_razloga'] ?? 'OTHER_REASON',
+                                    $data['napomena'] ?? null
+                                );
+                            } catch (\Throwable $e) {
+                                Notification::make()
+                                    ->title('Upozorenje: nije se moglo javiti FINA sustavu')
+                                    ->body($e->getMessage())
+                                    ->warning()
+                                    ->send();
+                            }
+                        }
+
                         $r->update([
                             'status'   => 'odbijena',
                             'napomena' => $data['napomena'] ?? null,

@@ -80,7 +80,7 @@ class Postavke extends Page implements HasForms
             'eracun_aktivan'        => $postavke->eracun_aktivan ?? false,
             'eracun_demo'           => $postavke->eracun_demo ?? false,
             'eracun_middleware_url' => $postavke->eracun_middleware_url,
-            'eracun_api_url'        => $postavke->eracun_api_url,
+            'eracun_jks_uuid'       => $postavke->eracun_jks_uuid,
             'eracun_cert_putanja'   => $postavke->eracun_cert_putanja,
         ]);
     }
@@ -421,40 +421,30 @@ class Postavke extends Page implements HasForms
 
         return $form
             ->schema([
-                Section::make('eRačun (FINA)')
-                    ->description('Elektroničko fakturiranje putem FINA sustava. Potreban je poseban FINA eRačun certifikat.')
+                Section::make('eRačun (FINA Middleware)')
+                    ->description('Elektroničko fakturiranje putem FINA eRačun Middlewarea. Middleware mora biti instaliran i pokrenut na serveru.')
                     ->schema([
                         Toggle::make('eracun_aktivan')
                             ->label('Aktiviraj eRačun')
-                            ->helperText('Omogući slanje i primanje eRačuna')
+                            ->helperText('Omogući slanje i primanje eRačuna putem middlewarea')
                             ->columnSpanFull(),
 
                         Toggle::make('eracun_demo')
-                            ->label('Demo način rada')
-                            ->helperText('Koristi FINA demo server — isključi za produkciju')
-                            ->live()
+                            ->label('Demo (prezentacijska) okolina')
+                            ->helperText('Koristi FINA prezentacijski server — isključi za produkciju')
                             ->columnSpanFull(),
 
                         TextInput::make('eracun_middleware_url')
-                            ->label('URL za slanje računa')
-                            ->placeholder(fn (\Filament\Forms\Get $get) => $get('eracun_demo')
-                                ? 'https://prezdigitalneusluge.fina.hr/SendB2BOutgoingInvoicePKIWebService/services/SendB2BOutgoingInvoicePKIWebService'
-                                : 'https://webservisi.fina.hr/SendB2BOutgoingInvoicePKIWebService/services/SendB2BOutgoingInvoicePKIWebService')
-                            ->helperText(fn (\Filament\Forms\Get $get) => $get('eracun_demo')
-                                ? 'Demo server: prezdigitalneusluge.fina.hr'
-                                : 'Produkcijski server: webservisi.fina.hr')
+                            ->label('Middleware URL')
+                            ->placeholder('http://localhost:8888')
+                            ->helperText('Adresa na kojoj radi FINA eRačun Middleware')
                             ->url()
                             ->columnSpanFull(),
 
-                        TextInput::make('eracun_api_url')
-                            ->label('URL za primanje računa')
-                            ->placeholder(fn (\Filament\Forms\Get $get) => $get('eracun_demo')
-                                ? 'https://prezdigitalneusluge.fina.hr/B2BFinaInvoiceWebService/services/B2BFinaInvoiceWebService'
-                                : 'https://webservisi.fina.hr/B2BFinaInvoiceWebService/services/B2BFinaInvoiceWebService')
-                            ->helperText(fn (\Filament\Forms\Get $get) => $get('eracun_demo')
-                                ? 'Demo server: prezdigitalneusluge.fina.hr'
-                                : 'Produkcijski server: webservisi.fina.hr')
-                            ->url()
+                        TextInput::make('eracun_jks_uuid')
+                            ->label('JKS UUID')
+                            ->placeholder('npr. 62c81250-8cfc-4605-9627-e9a52231b869')
+                            ->helperText('UUID certifikata u middleware keystoreu — dobiva se iz middleware konfiguracije')
                             ->columnSpanFull(),
 
                         FileUpload::make('eracun_cert_putanja')
@@ -463,7 +453,7 @@ class Postavke extends Page implements HasForms
                             ->directory('eracun/' . $tvrtkaId)
                             ->acceptedFileTypes(['application/x-pkcs12', 'application/octet-stream'])
                             ->maxSize(2048)
-                            ->helperText('Poseban FINA certifikat za eRačun servis (nije isti kao za fiskalizaciju)')
+                            ->helperText('Spremi certifikat ovdje, a zatim ga konfiguriraj u middleware keystoreu')
                             ->columnSpan(2),
 
                         TextInput::make('eracun_cert_lozinka')
@@ -486,15 +476,14 @@ class Postavke extends Page implements HasForms
         $data     = $this->eracunForm->getState();
         $tvrtkaId = filament()->getTenant()->id;
 
-        $demo = $data['eracun_demo'] ?? false;
-
         $update = [
             'eracun_aktivan'        => $data['eracun_aktivan'] ?? false,
-            'eracun_demo'           => $demo,
+            'eracun_demo'           => $data['eracun_demo'] ?? false,
             'eracun_middleware_url' => $data['eracun_middleware_url'] ?? null,
-            'eracun_api_url'        => $data['eracun_api_url'] ?? null,
+            'eracun_jks_uuid'       => $data['eracun_jks_uuid'] ?? null,
         ];
 
+        // Certifikat — čisti stari ako je novi uploadан
         $cert = $data['eracun_cert_putanja'] ?? null;
         if (is_array($cert)) {
             $cert = array_values($cert)[0] ?? null;
@@ -540,16 +529,44 @@ class Postavke extends Page implements HasForms
 
             Notification::make()
                 ->title('eRačun certifikat je ispravan')
-                ->body(
-                    'Subjekt: ' . $info['subjekt'] . "\n" .
-                    'Izdavač: ' . $info['izdavac'] . "\n" .
-                    'Vrijedi do: ' . $info['vrijedi_do']
-                )
+                ->body('Subjekt: ' . $info['subjekt'] . "\nIzdavač: " . $info['izdavac'] . "\nVrijedi do: " . $info['vrijedi_do'])
                 ->success()
                 ->send();
         } catch (\RuntimeException $e) {
             Notification::make()
                 ->title('eRačun certifikat nije ispravan')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function testirajMiddleware(): void
+    {
+        $tvrtkaId = filament()->getTenant()->id;
+        $postavke = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->first();
+
+        if (! $postavke?->eracun_middleware_url) {
+            Notification::make()->title('Middleware URL nije konfiguriran')->warning()->send();
+            return;
+        }
+
+        $okolina = $postavke->eracun_demo ? 'prez' : 'prod';
+        $tvrtka  = filament()->getTenant();
+        $url     = rtrim($postavke->eracun_middleware_url, '/')
+            . '/' . $okolina . '/echoB2B/prez/test-' . uniqid();
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(5)->post($url);
+
+            Notification::make()
+                ->title('Middleware dostupan')
+                ->body('HTTP ' . $response->status() . ' — ' . $postavke->eracun_middleware_url)
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Middleware nije dostupan')
                 ->body($e->getMessage())
                 ->danger()
                 ->send();
