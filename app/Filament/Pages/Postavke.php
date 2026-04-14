@@ -551,25 +551,42 @@ class Postavke extends Page implements HasForms
             return;
         }
 
+        $baseUrl = rtrim($postavke->eracun_middleware_url, '/');
+
+        // Provjeri je li middleware uopće dostupan
+        try {
+            $health = \Illuminate\Support\Facades\Http::timeout(5)->get($baseUrl . '/actuator/health');
+            if (! $health->successful()) {
+                Notification::make()->title('Middleware nije dostupan')->body('Health check nije OK.')->danger()->send();
+                return;
+            }
+        } catch (\Throwable $e) {
+            Notification::make()->title('Middleware nije dostupan')->body($e->getMessage())->danger()->send();
+            return;
+        }
+
+        // Ako nema UUID, samo javi da je middleware živ
+        if (empty($postavke->eracun_jks_uuid)) {
+            Notification::make()->title('Middleware dostupan')->body('Middleware radi, ali JKS UUID nije konfiguriran.')->warning()->send();
+            return;
+        }
+
+        // Testiraj FINA vezu putem echo endpointa
         $okolina = $postavke->eracun_demo ? 'prez' : 'prod';
-        $tvrtka  = filament()->getTenant();
-        $url     = rtrim($postavke->eracun_middleware_url, '/')
-            . '/' . $okolina . '/echoB2B/prez/test-' . uniqid();
+        $url     = $baseUrl . '/pki/echoB2B/' . $okolina . '/' . $postavke->eracun_jks_uuid;
 
         try {
-            $response = \Illuminate\Support\Facades\Http::timeout(5)->post($url);
+            $response = \Illuminate\Support\Facades\Http::timeout(10)
+                ->withHeaders(['Content-Type' => 'application/xml', 'Accept' => 'application/xml'])
+                ->post($url);
 
-            Notification::make()
-                ->title('Middleware dostupan')
-                ->body('HTTP ' . $response->status() . ' — ' . $postavke->eracun_middleware_url)
-                ->success()
-                ->send();
+            if ($response->successful() || str_contains($response->body(), 'zaprimljena')) {
+                Notification::make()->title('FINA veza OK')->body('Middleware i FINA certifikat rade ispravno.')->success()->send();
+            } else {
+                Notification::make()->title('Middleware dostupan, FINA greška')->body('HTTP ' . $response->status() . ': ' . $response->body())->warning()->send();
+            }
         } catch (\Throwable $e) {
-            Notification::make()
-                ->title('Middleware nije dostupan')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
+            Notification::make()->title('Greška pri testiranju FINA veze')->body($e->getMessage())->danger()->send();
         }
     }
 }
