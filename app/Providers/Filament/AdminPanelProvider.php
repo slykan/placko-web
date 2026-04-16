@@ -35,6 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('img/placko-logo.svg'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('img/placko-icon.svg'))
+            ->maxContentWidth('full')
             ->tenant(Tvrtka::class, slugAttribute: 'id')
             ->tenantRegistration(\App\Filament\Pages\RegisterTvrtka::class)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
