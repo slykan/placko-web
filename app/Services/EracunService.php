@@ -198,11 +198,13 @@ class EracunService
         $okolina = $postavke->eracun_demo ? 'prez' : 'prod';
         $base    = rtrim($postavke->eracun_middleware_url, '/');
 
-        // 1. Dohvati listu primljenih
+        // 1. Dohvati listu primljenih (zadnjih 90 dana)
         $listTijelo = [
             'okolina'  => $okolina,
             'idPoruke' => (string) Str::uuid(),
             'idKupca'  => '9934:' . $tvrtka->oib,
+            'datumOd'  => now()->subDays(90)->format('Y-m-d'),
+            'datumDo'  => now()->format('Y-m-d'),
         ];
         if ($postavke->eracun_jks_uuid) {
             $listTijelo['jksUuid'] = $postavke->eracun_jks_uuid;
@@ -217,8 +219,8 @@ class EracunService
             );
         }
 
-        $lista   = $listResponse->json() ?? [];
-        $stavke  = $lista['lista'] ?? $lista['invoices'] ?? (is_array($lista) ? $lista : []);
+        $lista  = $listResponse->json() ?? [];
+        $stavke = $lista['b2BIncomingInvoiceList']['b2BIncomingInvoice'] ?? [];
         $novi    = 0;
         $ukupno  = count($stavke);
 
