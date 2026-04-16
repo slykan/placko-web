@@ -408,7 +408,7 @@ class RacunResource extends Resource
                     ->tooltip('Preuzmi eRačun (UBL 2.1 XML)')
                     ->action(function (Racun $r) {
                         try {
-                            $xml = EracunService::generirajXml($r);
+                            $xml = EracunService::buildCiusHrXml($r);
                             return response()->streamDownload(
                                 fn () => print($xml),
                                 'eRacun_' . $r->broj . '.xml',
