@@ -556,22 +556,31 @@ class RacunResource extends Resource
                         $mailable = (new RacunMail($data['poruka'], $pdfOutput, $pdfNaziv, $dodatniPrivitci))
                             ->subject('Račun ' . $r->broj . ' - ' . ($r->tvrtka->naziv ?? ''));
 
-                        $send = $mailer->to($data['prima']);
-                        if (! empty($data['cc'])) {
-                            $send = $send->cc($data['cc']);
+                        try {
+                            $send = $mailer->to($data['prima']);
+                            if (! empty($data['cc'])) {
+                                $send = $send->cc($data['cc']);
+                            }
+                            $send->send($mailable);
+
+                            Notification::make()
+                                ->title('E-mail poslan')
+                                ->body('Račun ' . $r->broj . ' poslan na ' . $data['prima'])
+                                ->success()
+                                ->send();
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->title('Greška pri slanju e-maila')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->persistent()
+                                ->send();
                         }
-                        $send->send($mailable);
 
                         // Počisti tmp privitke
                         foreach ($data['dodatni_privitci'] ?? [] as $file) {
                             Storage::disk('local')->delete($file);
                         }
-
-                        Notification::make()
-                            ->title('E-mail poslan')
-                            ->body('Račun ' . $r->broj . ' poslan na ' . $data['prima'])
-                            ->success()
-                            ->send();
                     }),
 
                 Tables\Actions\Action::make('posalji_eracun')
