@@ -594,11 +594,10 @@ class RacunResource extends Resource
                         $postavke = TvrtkaPostavke::where('tvrtka_id', filament()->getTenant()->id)->first();
                         return $postavke?->eracun_aktivan ?? false;
                     })
+                    ->disabled(fn (Racun $r) => $r->poslan_eracun_at !== null)
                     ->requiresConfirmation()
-                    ->modalHeading(fn (Racun $r) => $r->poslan_eracun_at ? 'Ponovo pošalji eRačun' : 'Pošalji eRačun')
-                    ->modalDescription(fn (Racun $r) => $r->poslan_eracun_at
-                        ? 'eRačun je već poslan ' . $r->poslan_eracun_at->format('d.m.Y. H:i') . '. Pošalji ponovo?'
-                        : 'Pošalji račun ' . $r->broj . ' na FINA eRačun servis.')
+                    ->modalHeading(fn (Racun $r) => 'Pošalji eRačun')
+                    ->modalDescription(fn (Racun $r) => 'Pošalji račun ' . $r->broj . ' na FINA eRačun servis.')
                     ->action(function (Racun $r) {
                         $postavke = TvrtkaPostavke::where('tvrtka_id', $r->tvrtka_id)->first();
 
