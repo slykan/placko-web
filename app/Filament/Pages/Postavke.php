@@ -4,6 +4,8 @@ namespace App\Filament\Pages;
 
 use App\Models\TvrtkaPostavke;
 use App\Services\EracunService;
+use Filament\Forms\Components\Actions as FormActions;
+use Filament\Forms\Components\Actions\Action as FormAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -15,6 +17,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Mail;
 
 class Postavke extends Page implements HasForms
 {
@@ -148,7 +151,11 @@ class Postavke extends Page implements HasForms
                             ->label('SMTP Lozinka')
                             ->password()
                             ->revealable()
-                            ->helperText('Ostavi prazno ako ne želiš mjenjati lozinku'),
+                            ->placeholder(function () {
+                                $ima = TvrtkaPostavke::where('tvrtka_id', filament()->getTenant()->id)->value('smtp_pass');
+                                return $ima ? '••••••••' : 'Unesi lozinku';
+                            })
+                            ->helperText('Ostavi prazno ako ne želiš mijenjati lozinku'),
 
                         Select::make('smtp_sigurnost')
                             ->label('Sigurnost')
@@ -166,6 +173,16 @@ class Postavke extends Page implements HasForms
                         TextInput::make('smtp_from_email')
                             ->label('From Email')
                             ->email(),
+
+                        FormActions::make([
+                            FormAction::make('testirajSmtp')
+                                ->label('Pošalji testni email')
+                                ->icon('heroicon-o-paper-airplane')
+                                ->color('gray')
+                                ->action(function () {
+                                    $this->testirajSmtp();
+                                }),
+                        ])->columnSpanFull(),
                     ])->columns(2),
             ])
             ->statePath('smtpData');
@@ -259,6 +276,42 @@ class Postavke extends Page implements HasForms
         );
 
         Notification::make()->title('SMTP postavke spremljene')->success()->send();
+    }
+
+    public function testirajSmtp(): void
+    {
+        $tvrtkaId = filament()->getTenant()->id;
+        $postavke = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->first();
+        $korisnik = auth()->user();
+
+        if (! $postavke?->smtp_host || ! $postavke?->smtp_user || ! $postavke?->smtp_pass) {
+            Notification::make()->title('SMTP nije konfiguriran')->body('Unesite i spremite SMTP postavke prije testiranja.')->warning()->send();
+            return;
+        }
+
+        try {
+            config([
+                'mail.mailers.smtp.host'       => $postavke->smtp_host,
+                'mail.mailers.smtp.port'       => $postavke->smtp_port ?? 587,
+                'mail.mailers.smtp.username'   => $postavke->smtp_user,
+                'mail.mailers.smtp.password'   => $postavke->smtp_pass,
+                'mail.mailers.smtp.encryption' => $postavke->smtp_sigurnost ?? 'tls',
+                'mail.from.address'            => $postavke->smtp_from_email ?? $postavke->smtp_user,
+                'mail.from.name'               => $postavke->smtp_from_name ?? filament()->getTenant()->naziv,
+            ]);
+
+            Mail::mailer('smtp')->raw(
+                "Ovo je testni email iz aplikacije Placko.\n\nSMTP konfiguracija radi ispravno.\n\nHost: {$postavke->smtp_host}",
+                function ($message) use ($korisnik, $postavke) {
+                    $message->to($korisnik->email, $korisnik->name)
+                        ->subject('Test SMTP – Placko');
+                }
+            );
+
+            Notification::make()->title('Testni email poslan!')->body("Email poslan na {$korisnik->email}")->success()->send();
+        } catch (\Throwable $e) {
+            Notification::make()->title('Greška pri slanju')->body($e->getMessage())->danger()->send();
+        }
     }
 
     public function spremiEmail(): void
