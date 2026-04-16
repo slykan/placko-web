@@ -768,7 +768,7 @@ class EracunService
                     'ulicaIkucniBroj'                     => $tvrtka->adresa ?? null,
                     'kontaktImePrezime'                   => $tvrtka->vlasnik ?? null,
                     'telefon'                             => $tvrtka->kontakt_broj ?? null,
-                    'email'                               => $tvrtka->email ?? '',
+                    'email'                               => $tvrtka->email ?: null,
                     'elektronickaAdresaProdavatelja'      => $tvrtka->oib,
                     'gradProdavatelja'                    => $tvrtka->mjesto ?? null,
                     'postanskiBrojProdavatelja'           => $tvrtka->po_broj ?? null,
