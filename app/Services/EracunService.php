@@ -604,7 +604,7 @@ class EracunService
         throw new \RuntimeException('UUID nije pronađen u middleware odgovoru. Provjerite middleware logs.');
     }
 
-    private static function stripNulls(array $data): array
+    public static function stripNulls(array $data): array
     {
         $result = [];
         foreach ($data as $key => $value) {
