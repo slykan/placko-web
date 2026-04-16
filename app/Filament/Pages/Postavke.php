@@ -65,6 +65,8 @@ class Postavke extends Page implements HasForms
 
         $this->pretplateForm->fill([
             'pretplate_dani_upozorenja' => $postavke->pretplate_dani_upozorenja ?? '30,15,1',
+            'pretplate_email_subject'   => $postavke->pretplate_email_subject,
+            'pretplate_email_cc'        => $postavke->pretplate_email_cc ?? filament()->getTenant()->email,
             'pretplate_email_predlozak' => $postavke->pretplate_email_predlozak,
         ]);
 
@@ -199,12 +201,22 @@ class Postavke extends Page implements HasForms
                             ->helperText('Unesite dane odvojene zarezom')
                             ->default('30,15,1'),
 
+                        TextInput::make('pretplate_email_subject')
+                            ->label('Naslov (Subject) emaila')
+                            ->placeholder('Podsjetnik: pretplata ističe za {dani} dana')
+                            ->helperText('Dostupne varijable: {klijent}, {usluga}, {datum_isteka}, {dani}, {tvrtka}'),
+
+                        TextInput::make('pretplate_email_cc')
+                            ->label('CC (kopija emaila)')
+                            ->email()
+                            ->helperText('Email adresa koja prima kopiju svake obavijesti'),
+
                         Textarea::make('pretplate_email_predlozak')
                             ->label('Predložak email poruke')
                             ->rows(10)
-                            ->placeholder('Dostupne varijable: {klijent}, {usluga}, {datum_isteka}, {cijena}, {opis}, {tvrtka}')
+                            ->placeholder('Dostupne varijable: {klijent}, {usluga}, {datum_isteka}, {cijena}, {opis}, {tvrtka}, {dani}')
                             ->columnSpanFull(),
-                    ])->columns(1),
+                    ])->columns(2),
             ])
             ->statePath('pretplateData');
     }
@@ -269,6 +281,8 @@ class Postavke extends Page implements HasForms
             ['tvrtka_id' => filament()->getTenant()->id],
             [
                 'pretplate_dani_upozorenja' => $data['pretplate_dani_upozorenja'] ?? '30,15,1',
+                'pretplate_email_subject'   => $data['pretplate_email_subject'] ?? null,
+                'pretplate_email_cc'        => $data['pretplate_email_cc'] ?? null,
                 'pretplate_email_predlozak' => $data['pretplate_email_predlozak'] ?? null,
             ]
         );

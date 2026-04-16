@@ -20,6 +20,8 @@ class TvrtkaPostavke extends Model
         'smtp_from_email',
         'pretplate_dani_upozorenja',
         'pretplate_email_predlozak',
+        'pretplate_email_subject',
+        'pretplate_email_cc',
         'racun_email_predlozak',
         'fina_cert_putanja',
         'fina_cert_lozinka',
