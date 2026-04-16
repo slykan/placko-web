@@ -661,10 +661,10 @@ class EracunService
                 'netoIznosStavke'            => $neto,
                 'kategorijaPdvStavke'        => $katPdv,
                 'stopaPdvStavke'             => number_format($pdvStopa, 2, '.', ''),
-                'klasifikacijaArtikla'       => $tvrtka->nkd ? [
+                'klasifikacijeArtikla'       => $tvrtka->nkd ? [[
                     'idSheme'    => 'CG',
                     'vrijednost' => $tvrtka->nkd,
-                ] : null,
+                ]] : null,
                 'popustiStavke'              => null,
                 'troskoviStavke'             => null,
                 'obracunskiPeriodOd'         => $datumIsporuke,
