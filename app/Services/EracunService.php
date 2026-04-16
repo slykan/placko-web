@@ -630,7 +630,7 @@ class EracunService
     /**
      * Gradi FINA JSON strukturu računa (jsonContentRacun).
      */
-    private static function buildJsonRacun(Racun $racun): array
+    public static function buildJsonRacun(Racun $racun): array
     {
         $tvrtka  = $racun->tvrtka;
         $klijent = $racun->klijent;
