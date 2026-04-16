@@ -501,21 +501,18 @@ class EracunService
             throw new \RuntimeException('Greška pri kreiranju JKS keystora: ' . implode(' ', $out));
         }
 
-        // 2. Preimenuj alias (privremeni shell script u storage jer /tmp ima noexec)
-        $tmpScript = storage_path('app/eracun_rename_' . uniqid() . '.sh');
-        file_put_contents($tmpScript, implode("\n", [
-            '#!/bin/bash',
-            'K=' . escapeshellarg($keytool),
-            'J=' . escapeshellarg($jksPath),
-            'P=' . escapeshellarg($lozinka),
-            'A=$($K -list -keystore "$J" -storepass "$P" 2>/dev/null | grep "PrivateKeyEntry" | cut -d"," -f1 | xargs)',
-            '$K -changealias -keystore "$J" -storepass "$P" -alias "$A" -destalias "eracun" -keypass "$P" 2>&1',
-        ]));
-        chmod($tmpScript, 0755);
-        exec($tmpScript . ' 2>&1', $renameOut, $renameRc);
-        @unlink($tmpScript);
-        if ($renameRc !== 0) {
-            Log::warning('eRačun alias rename failed: ' . implode(' ', $renameOut));
+        // 2. Dohvati stvarni alias iz JKS-a (izbjegavamo rename zbog UTF-8 encoding problema)
+        exec(
+            escapeshellarg($keytool) . ' -list -keystore ' . escapeshellarg($jksPath)
+            . ' -storepass ' . escapeshellarg($lozinka) . ' 2>/dev/null',
+            $listOut
+        );
+        $alias = 'eracun';
+        foreach ($listOut as $line) {
+            if (str_contains($line, 'PrivateKeyEntry')) {
+                $alias = trim(explode(',', $line)[0]);
+                break;
+            }
         }
 
         // 3. Dodaj Sectigo intermediate u JKS (CXF koristi JKS i kao truststore)
@@ -550,7 +547,7 @@ class EracunService
         Http::timeout(10)->asForm()->post($baseUrl . '/spremiB2BPostavke', [
             "{$prefix}putanjaJsk"         => $jksPath,
             "{$prefix}passJks"            => $lozinka,
-            "{$prefix}nazivCertifikata"   => 'eracun',
+            "{$prefix}nazivCertifikata"   => $alias,
         ]);
 
         // 6. Dohvati UUID parsiranjem settings stranice
