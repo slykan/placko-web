@@ -451,6 +451,115 @@ class EracunService
         ];
     }
 
+    // ────────────────────────────────────────────────────────────────────────
+    // MIDDLEWARE — automatska registracija certifikata
+    // ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Konvertira .p12 u .jks, registrira u middlewareu i vraća UUID.
+     *
+     * @throws \RuntimeException
+     */
+    public static function registrirajCertifikat(
+        string $p12RelativePath,
+        string $lozinka,
+        string $middlewareUrl,
+        bool $demo = true,
+        ?string $stariUuid = null
+    ): string {
+        $keytool = env(
+            'ERACUN_KEYTOOL_PATH',
+            '/home/placko/eRacunMiddleware-2-2-3/jre/openlogic-openjdk-jre-17.0.16+8-linux-x64/bin/keytool'
+        );
+
+        if (! file_exists($keytool)) {
+            throw new \RuntimeException('keytool nije pronađen: ' . $keytool);
+        }
+
+        $p12Abs = \Illuminate\Support\Facades\Storage::disk('local')->path($p12RelativePath);
+        if (! file_exists($p12Abs)) {
+            throw new \RuntimeException('Certifikat nije pronađen na serveru.');
+        }
+
+        $jksPath = dirname($p12Abs) . '/' . pathinfo($p12Abs, PATHINFO_FILENAME) . '.jks';
+
+        // 1. Konvertiraj .p12 → .jks
+        $convertCmd = implode(' ', [
+            escapeshellarg($keytool),
+            '-importkeystore',
+            '-srckeystore', escapeshellarg($p12Abs),
+            '-srcstoretype PKCS12',
+            '-destkeystore', escapeshellarg($jksPath),
+            '-deststoretype JKS',
+            '-srcstorepass', escapeshellarg($lozinka),
+            '-deststorepass', escapeshellarg($lozinka),
+            '-noprompt',
+        ]);
+        exec('bash -c ' . escapeshellarg($convertCmd) . ' 2>&1', $out, $rc);
+
+        if ($rc !== 0 || ! file_exists($jksPath)) {
+            throw new \RuntimeException('Greška pri kreiranju JKS keystora: ' . implode(' ', $out));
+        }
+
+        // 2. Preimenuj alias (koristi shell varijablu za UTF-8 alias)
+        $renameScript =
+            'K=' . escapeshellarg($keytool) . '; ' .
+            'J=' . escapeshellarg($jksPath) . '; ' .
+            'P=' . escapeshellarg($lozinka) . '; ' .
+            'A=$($K -list -keystore "$J" -storepass "$P" 2>/dev/null | grep "PrivateKeyEntry" | cut -d"," -f1 | xargs); ' .
+            '$K -changealias -keystore "$J" -storepass "$P" -alias "$A" -destalias "eracun" -keypass "$P" 2>&1';
+        exec('bash -c ' . escapeshellarg($renameScript));
+
+        // 3. Dodaj Sectigo intermediate u JKS (CXF koristi JKS i kao truststore)
+        $sectigoCert = env('ERACUN_SECTIGO_CERT', '/home/placko/sectigo_intermediate.pem');
+        if (file_exists($sectigoCert)) {
+            $addCmd = implode(' ', [
+                escapeshellarg($keytool),
+                '-import -trustcacerts',
+                '-alias sectigo-intermediate',
+                '-file', escapeshellarg($sectigoCert),
+                '-keystore', escapeshellarg($jksPath),
+                '-storepass', escapeshellarg($lozinka),
+                '-noprompt',
+            ]);
+            exec('bash -c ' . escapeshellarg($addCmd) . ' 2>&1');
+        }
+
+        $baseUrl = rtrim($middlewareUrl, '/');
+        $okolina = $demo ? 'prez' : 'prod';
+        $prefix  = "b2b_{$okolina}_";
+
+        // 4. Obriši stari UUID iz middlewarea ako postoji
+        if ($stariUuid) {
+            try {
+                Http::timeout(5)->post($baseUrl . '/obrisiB2BPostavku/' . $okolina . '/' . $stariUuid);
+            } catch (\Throwable) {
+                // non-critical
+            }
+        }
+
+        // 5. Registriraj novi JKS u middlewareu
+        Http::timeout(10)->asForm()->post($baseUrl . '/spremiB2BPostavke', [
+            "{$prefix}putanjaJsk"         => $jksPath,
+            "{$prefix}passJks"            => $lozinka,
+            "{$prefix}nazivCertifikata"   => 'eracun',
+        ]);
+
+        // 6. Dohvati UUID parsiranjem settings stranice
+        $html = Http::timeout(10)->get($baseUrl . '/postavke?type=B2B')->body();
+
+        $jksEsc = preg_quote($jksPath, '/');
+        if (preg_match(
+            '/<td>([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})<\/td>\s*<td>' . $jksEsc . '<\/td>/s',
+            $html,
+            $matches
+        )) {
+            return $matches[1];
+        }
+
+        throw new \RuntimeException('UUID nije pronađen u middleware odgovoru. Provjerite middleware logs.');
+    }
+
     private static function provjeriMiddlewarePostavke(TvrtkaPostavke $postavke): void
     {
         if (! $postavke->eracun_aktivan) {

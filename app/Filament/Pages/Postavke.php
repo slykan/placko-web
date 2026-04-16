@@ -506,6 +506,36 @@ class Postavke extends Page implements HasForms
             $update['eracun_cert_lozinka'] = $data['eracun_cert_lozinka'];
         }
 
+        // Auto-registracija certifikata u middlewareu kad se uploada novi cert
+        $middlewareUrl = $data['eracun_middleware_url'] ?? null;
+        if (! empty($cert) && ! empty($middlewareUrl)) {
+            $postojecePostavke = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->first();
+            $certLozinka = ! empty($data['eracun_cert_lozinka'])
+                ? $data['eracun_cert_lozinka']
+                : $postojecePostavke?->eracun_cert_lozinka;
+
+            if ($certLozinka) {
+                try {
+                    $stariUuid = $postojecePostavke?->eracun_jks_uuid;
+                    $uuid = EracunService::registrirajCertifikat(
+                        $cert,
+                        $certLozinka,
+                        $middlewareUrl,
+                        $data['eracun_demo'] ?? false,
+                        $stariUuid
+                    );
+                    $update['eracun_jks_uuid'] = $uuid;
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Auto-registracija eRačun certifikata neuspješna: ' . $e->getMessage());
+                    Notification::make()
+                        ->title('Certifikat nije automatski registriran u middlewareu')
+                        ->body($e->getMessage())
+                        ->warning()
+                        ->send();
+                }
+            }
+        }
+
         TvrtkaPostavke::updateOrCreate(['tvrtka_id' => $tvrtkaId], $update);
 
         Notification::make()->title('eRačun postavke spremljene')->success()->send();
