@@ -490,21 +490,24 @@ class EracunService
         $tmpCertPem = $p12Abs . '.cert.pem';
         $tmpP12     = $p12Abs . '.clean.p12';
 
-        $legacy = file_exists(base_path('openssl-legacy.cnf'))
+        $openssl = env('OPENSSL_PATH', '/usr/bin/openssl');
+        $legacy  = file_exists(base_path('openssl-legacy.cnf'))
             ? 'OPENSSL_CONF=' . escapeshellarg(base_path('openssl-legacy.cnf')) . ' '
             : '';
 
-        exec($legacy . 'openssl pkcs12 -in ' . escapeshellarg($p12Abs)
+        exec($legacy . escapeshellarg($openssl) . ' pkcs12 -in ' . escapeshellarg($p12Abs)
             . ' -nocerts -nodes -passin pass:' . escapeshellarg($lozinka)
-            . ' -out ' . escapeshellarg($tmpKeyPem) . ' -legacy 2>/dev/null', $o1, $rc1);
+            . ' -out ' . escapeshellarg($tmpKeyPem) . ' -legacy 2>&1', $o1, $rc1);
 
-        exec($legacy . 'openssl pkcs12 -in ' . escapeshellarg($p12Abs)
+        exec($legacy . escapeshellarg($openssl) . ' pkcs12 -in ' . escapeshellarg($p12Abs)
             . ' -clcerts -nokeys -passin pass:' . escapeshellarg($lozinka)
-            . ' -out ' . escapeshellarg($tmpCertPem) . ' -legacy 2>/dev/null', $o2, $rc2);
+            . ' -out ' . escapeshellarg($tmpCertPem) . ' -legacy 2>&1', $o2, $rc2);
 
-        if ($rc1 !== 0 || $rc2 !== 0 || ! file_exists($tmpKeyPem) || ! file_exists($tmpCertPem)) {
+        if ($rc1 !== 0 || $rc2 !== 0 || ! file_exists($tmpKeyPem) || filesize($tmpKeyPem) === 0
+            || ! file_exists($tmpCertPem) || filesize($tmpCertPem) === 0) {
+            $err = implode(' | ', array_filter(array_merge($o1, $o2)));
             @unlink($tmpKeyPem); @unlink($tmpCertPem);
-            throw new \RuntimeException('Greška pri ekstrakciji certifikata iz .p12.');
+            throw new \RuntimeException('Greška pri ekstrakciji certifikata iz .p12: ' . $err);
         }
 
         exec($legacy . 'openssl pkcs12 -export'
