@@ -119,6 +119,11 @@ class TvrtkaResource extends Resource
 
                 TextInput::make('oznaka_operatera')
                     ->label('Oznaka operatera (npr. AF)'),
+
+                TextInput::make('oib_operatera')
+                    ->label('OIB operatera')
+                    ->helperText('Osobni OIB osobe koja izdaje račune (za d.o.o. ≠ OIB tvrtke; za obrtnike isto kao OIB tvrtke)')
+                    ->maxLength(11),
             ])->columns(2),
 
             Section::make('PDV')->schema([

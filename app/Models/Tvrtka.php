@@ -28,6 +28,7 @@ class Tvrtka extends Model
         'email',
         'web_mjesto',
         'oznaka_operatera',
+        'oib_operatera',
         'logo',
         'napomena',
         'u_sustavu_pdv',
