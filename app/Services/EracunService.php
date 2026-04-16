@@ -501,8 +501,8 @@ class EracunService
             throw new \RuntimeException('Greška pri kreiranju JKS keystora: ' . implode(' ', $out));
         }
 
-        // 2. Preimenuj alias (privremeni shell script za UTF-8 alias)
-        $tmpScript = tempnam(sys_get_temp_dir(), 'eracun_rename_') . '.sh';
+        // 2. Preimenuj alias (privremeni shell script u storage jer /tmp ima noexec)
+        $tmpScript = storage_path('app/eracun_rename_' . uniqid() . '.sh');
         file_put_contents($tmpScript, implode("\n", [
             '#!/bin/bash',
             'K=' . escapeshellarg($keytool),
@@ -512,8 +512,11 @@ class EracunService
             '$K -changealias -keystore "$J" -storepass "$P" -alias "$A" -destalias "eracun" -keypass "$P" 2>&1',
         ]));
         chmod($tmpScript, 0755);
-        exec($tmpScript . ' 2>&1');
+        exec($tmpScript . ' 2>&1', $renameOut, $renameRc);
         @unlink($tmpScript);
+        if ($renameRc !== 0) {
+            Log::warning('eRačun alias rename failed: ' . implode(' ', $renameOut));
+        }
 
         // 3. Dodaj Sectigo intermediate u JKS (CXF koristi JKS i kao truststore)
         $sectigoCert = env('ERACUN_SECTIGO_CERT', '/home/placko/sectigo_intermediate.pem');
