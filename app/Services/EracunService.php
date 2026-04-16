@@ -662,8 +662,9 @@ class EracunService
                 'kategorijaPdvStavke'        => $katPdv,
                 'stopaPdvStavke'             => number_format($pdvStopa, 2, '.', ''),
                 'klasifikacijeArtikla'       => $tvrtka->nkd ? [[
-                    'idSheme'    => 'CG',
-                    'vrijednost' => $tvrtka->nkd,
+                    'idShemeKlasifikacijeArtikla'      => 'CG',
+                    'idKlasifikacijeArtikla'           => $tvrtka->nkd,
+                    'verzijaIdShemeKlasifikacijeArtikla' => null,
                 ]] : null,
                 'popustiStavke'              => null,
                 'troskoviStavke'             => null,
