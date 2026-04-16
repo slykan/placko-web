@@ -674,7 +674,10 @@ class RacunResource extends Resource
                     ->action(fn (Racun $r) => $r->update(['placen_at' => null])),
 
                 Tables\Actions\ActionGroup::make([
-                    Tables\Actions\EditAction::make()->label('Uredi'),
+                    Tables\Actions\EditAction::make()
+                        ->label('Uredi')
+                        ->disabled(fn (Racun $r) => $r->fiskaliziran_at !== null)
+                        ->tooltip(fn (Racun $r) => $r->fiskaliziran_at ? 'Fiskalizirani račun se ne može uređivati' : null),
                     Tables\Actions\DeleteAction::make()->label('Obriši'),
                 ])->iconButton()->icon('heroicon-o-ellipsis-vertical')->color('gray'),
             ])
