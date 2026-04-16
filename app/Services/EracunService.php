@@ -697,14 +697,19 @@ class EracunService
         $ukupno         = (float) $racun->ukupno;
         $neto           = round($ukupnoOsnovica - $ukupnoRabat, 2);
 
+        $razlogOslobodenja = in_array(true, array_map(fn($g) => in_array($g['kat'], ['E', 'Z']), $pdvGrupe))
+            ? ($racun->napomena ?? null)
+            : null;
+
         $shemaPdv = [];
         foreach ($pdvGrupe as $g) {
+            $jeOsloboden = in_array($g['kat'], ['E', 'Z']);
             $shemaPdv[] = [
                 'iznosOsnoviceKategorijePdv' => round($g['osnovica'], 2),
                 'iznosKategorijePdv'          => round($g['iznos'], 2),
                 'sifraKategorijePdv'          => $g['kat'],
                 'stopaKategorijePdv'          => $g['stopa'],
-                'tekstRazlogaIzuzecaPdv'      => null,
+                'tekstRazlogaIzuzecaPdv'      => $jeOsloboden ? ($racun->napomena ?? null) : null,
                 'sifraRazlogaIzuzecaPdv'      => null,
                 'idSheme'                     => 'VAT',
             ];
@@ -752,8 +757,6 @@ class EracunService
                     'postanskiBrojProdavatelja'           => $tvrtka->po_broj ?? null,
                     'sifraDrzaveProdavatelja'             => 'HR',
                     'nazivProdavatelja'                   => $tvrtka->naziv,
-                    'oznakaOperatera'                     => $tvrtka->oznaka_operatera ?? null,
-                    'oibOperatera'                        => $tvrtka->oib_operatera ?? $tvrtka->oib,
                 ],
                 'kupac' => [
                     'poreznaShema'          => 'VAT',
