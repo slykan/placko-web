@@ -490,18 +490,24 @@ class EracunService
         $tmpCertPem = $p12Abs . '.cert.pem';
         $tmpP12     = $p12Abs . '.clean.p12';
 
-        $openssl = env('OPENSSL_PATH', '/usr/bin/openssl');
-        $legacy  = file_exists(base_path('openssl-legacy.cnf'))
+        $openssl  = env('OPENSSL_PATH', '/usr/bin/openssl');
+        $legacy   = file_exists(base_path('openssl-legacy.cnf'))
             ? 'OPENSSL_CONF=' . escapeshellarg(base_path('openssl-legacy.cnf')) . ' '
             : '';
 
+        // Spremi lozinku u file da izbjegnemo shell escaping probleme
+        $passFile = dirname($p12Abs) . '/.pass_' . uniqid();
+        file_put_contents($passFile, $lozinka);
+
         exec($legacy . escapeshellarg($openssl) . ' pkcs12 -in ' . escapeshellarg($p12Abs)
-            . ' -nocerts -nodes -passin pass:' . escapeshellarg($lozinka)
+            . ' -nocerts -nodes -passin file:' . escapeshellarg($passFile)
             . ' -out ' . escapeshellarg($tmpKeyPem) . ' -legacy 2>&1', $o1, $rc1);
 
         exec($legacy . escapeshellarg($openssl) . ' pkcs12 -in ' . escapeshellarg($p12Abs)
-            . ' -clcerts -nokeys -passin pass:' . escapeshellarg($lozinka)
+            . ' -clcerts -nokeys -passin file:' . escapeshellarg($passFile)
             . ' -out ' . escapeshellarg($tmpCertPem) . ' -legacy 2>&1', $o2, $rc2);
+
+        @unlink($passFile);
 
         if ($rc1 !== 0 || $rc2 !== 0 || ! file_exists($tmpKeyPem) || filesize($tmpKeyPem) === 0
             || ! file_exists($tmpCertPem) || filesize($tmpCertPem) === 0) {
@@ -510,12 +516,17 @@ class EracunService
             throw new \RuntimeException('Greška pri ekstrakciji certifikata iz .p12: ' . $err);
         }
 
-        exec($legacy . 'openssl pkcs12 -export'
+        $passOutFile = dirname($p12Abs) . '/.passout_' . uniqid();
+        file_put_contents($passOutFile, $lozinka);
+
+        exec($legacy . escapeshellarg($openssl) . ' pkcs12 -export'
             . ' -in ' . escapeshellarg($tmpCertPem)
             . ' -inkey ' . escapeshellarg($tmpKeyPem)
             . ' -name ' . escapeshellarg($alias)
-            . ' -passout pass:' . escapeshellarg($lozinka)
-            . ' -out ' . escapeshellarg($tmpP12) . ' 2>/dev/null', $o3, $rc3);
+            . ' -passout file:' . escapeshellarg($passOutFile)
+            . ' -out ' . escapeshellarg($tmpP12) . ' 2>&1', $o3, $rc3);
+
+        @unlink($passOutFile);
 
         @unlink($tmpKeyPem); @unlink($tmpCertPem);
 
@@ -534,7 +545,7 @@ class EracunService
             '-deststoretype JKS',
             '-srcstorepass', escapeshellarg($lozinka),
             '-deststorepass', escapeshellarg($lozinka),
-            '-noprompt 2>/dev/null',
+            '-noprompt 2>&1',
         ]);
         exec($convertCmd, $out, $rc);
         @unlink($tmpP12);
