@@ -482,37 +482,62 @@ class EracunService
         }
 
         $jksPath = dirname($p12Abs) . '/' . pathinfo($p12Abs, PATHINFO_FILENAME) . '.jks';
+        $alias   = 'eracun';
 
-        // 1. Konvertiraj .p12 → .jks
+        // 1. Kreiraj novi .p12 s čistim aliasom "eracun" putem openssl
+        //    (original .p12 može imati UTF-8 alias koji JKS ne podnosi)
+        $tmpKeyPem  = $p12Abs . '.key.pem';
+        $tmpCertPem = $p12Abs . '.cert.pem';
+        $tmpP12     = $p12Abs . '.clean.p12';
+
+        $legacy = file_exists(base_path('openssl-legacy.cnf'))
+            ? 'OPENSSL_CONF=' . escapeshellarg(base_path('openssl-legacy.cnf')) . ' '
+            : '';
+
+        exec($legacy . 'openssl pkcs12 -in ' . escapeshellarg($p12Abs)
+            . ' -nocerts -nodes -passin pass:' . escapeshellarg($lozinka)
+            . ' -out ' . escapeshellarg($tmpKeyPem) . ' -legacy 2>/dev/null', $o1, $rc1);
+
+        exec($legacy . 'openssl pkcs12 -in ' . escapeshellarg($p12Abs)
+            . ' -clcerts -nokeys -passin pass:' . escapeshellarg($lozinka)
+            . ' -out ' . escapeshellarg($tmpCertPem) . ' -legacy 2>/dev/null', $o2, $rc2);
+
+        if ($rc1 !== 0 || $rc2 !== 0 || ! file_exists($tmpKeyPem) || ! file_exists($tmpCertPem)) {
+            @unlink($tmpKeyPem); @unlink($tmpCertPem);
+            throw new \RuntimeException('Greška pri ekstrakciji certifikata iz .p12.');
+        }
+
+        exec($legacy . 'openssl pkcs12 -export'
+            . ' -in ' . escapeshellarg($tmpCertPem)
+            . ' -inkey ' . escapeshellarg($tmpKeyPem)
+            . ' -name ' . escapeshellarg($alias)
+            . ' -passout pass:' . escapeshellarg($lozinka)
+            . ' -out ' . escapeshellarg($tmpP12) . ' 2>/dev/null', $o3, $rc3);
+
+        @unlink($tmpKeyPem); @unlink($tmpCertPem);
+
+        if ($rc3 !== 0 || ! file_exists($tmpP12)) {
+            @unlink($tmpP12);
+            throw new \RuntimeException('Greška pri kreiranju čistog .p12 s aliasom "eracun".');
+        }
+
+        // 2. Konvertiraj čisti .p12 → .jks
         $convertCmd = implode(' ', [
             escapeshellarg($keytool),
             '-importkeystore',
-            '-srckeystore', escapeshellarg($p12Abs),
+            '-srckeystore', escapeshellarg($tmpP12),
             '-srcstoretype PKCS12',
             '-destkeystore', escapeshellarg($jksPath),
             '-deststoretype JKS',
             '-srcstorepass', escapeshellarg($lozinka),
             '-deststorepass', escapeshellarg($lozinka),
-            '-noprompt',
+            '-noprompt 2>/dev/null',
         ]);
-        exec('bash -c ' . escapeshellarg($convertCmd) . ' 2>&1', $out, $rc);
+        exec($convertCmd, $out, $rc);
+        @unlink($tmpP12);
 
         if ($rc !== 0 || ! file_exists($jksPath)) {
-            throw new \RuntimeException('Greška pri kreiranju JKS keystora: ' . implode(' ', $out));
-        }
-
-        // 2. Dohvati stvarni alias iz JKS-a (izbjegavamo rename zbog UTF-8 encoding problema)
-        exec(
-            escapeshellarg($keytool) . ' -list -keystore ' . escapeshellarg($jksPath)
-            . ' -storepass ' . escapeshellarg($lozinka) . ' 2>/dev/null',
-            $listOut
-        );
-        $alias = 'eracun';
-        foreach ($listOut as $line) {
-            if (str_contains($line, 'PrivateKeyEntry')) {
-                $alias = trim(explode(',', $line)[0]);
-                break;
-            }
+            throw new \RuntimeException('Greška pri konverziji .p12 u JKS: ' . implode(' ', $out));
         }
 
         // 3. Dodaj Sectigo intermediate u JKS (CXF koristi JKS i kao truststore)
