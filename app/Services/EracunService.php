@@ -143,7 +143,7 @@ class EracunService
         $okolina = $postavke->eracun_demo ? 'prez' : 'prod';
         $idPoruke = (string) Str::uuid();
 
-        $jsonRacun = static::stripNulls(static::buildJsonRacun($racun));
+        $xml = static::buildCiusHrXml($racun);
 
         $tijelo = [
             'okolina'               => $okolina,
@@ -152,7 +152,7 @@ class EracunService
             'idKupca'               => $klijent->oib ? '9934:' . $klijent->oib : ($klijent->email ?? ''),
             'idSpecifikacije'       => 'urn:cen.eu:en16931:2017#compliant#urn:mfin.gov.hr:cius-2025:1.0#conformant#urn:mfin.gov.hr:ext-2025:1.0',
             'idDokumentaDobavljaca' => $racun->broj,
-            'jsonContentRacun'      => json_encode($jsonRacun),
+            'xmlDokumentaRacuna'    => base64_encode($xml),
         ];
 
         if ($postavke->eracun_jks_uuid) {
@@ -604,7 +604,7 @@ class EracunService
         throw new \RuntimeException('UUID nije pronađen u middleware odgovoru. Provjerite middleware logs.');
     }
 
-    public static function stripNulls(array $data): array
+    private static function stripNulls(array $data): array
     {
         $result = [];
         foreach ($data as $key => $value) {
@@ -630,7 +630,7 @@ class EracunService
     /**
      * Gradi FINA JSON strukturu računa (jsonContentRacun).
      */
-    public static function buildJsonRacun(Racun $racun): array
+    private static function buildJsonRacun(Racun $racun): array
     {
         $tvrtka  = $racun->tvrtka;
         $klijent = $racun->klijent;
@@ -674,9 +674,9 @@ class EracunService
                 'kategorijaPdvStavke'        => $katPdv,
                 'stopaPdvStavke'             => number_format($pdvStopa, 2, '.', ''),
                 'klasifikacijeArtikla'       => $tvrtka->nkd ? [[
-                    'idShemeKlasifikacijeArtikla'      => 'CG',
-                    'idKlasifikacijeArtikla'           => $tvrtka->nkd,
-                    'verzijaIdShemeKlasifikacijeArtikla' => null,
+                    'idShemeKlasifikacijeArtikla'        => 'CG',
+                    'idKlasifikacijeArtikla'             => $tvrtka->nkd,
+                    'verzijaIdShemeKlasifikacijeArtikla' => '2.1.1',
                 ]] : null,
                 'popustiStavke'              => null,
                 'troskoviStavke'             => null,
@@ -826,6 +826,405 @@ class EracunService
                 'uvjetiPlacanja'      => $racun->napomena ?? 'Transakcijski račun',
             ],
         ];
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // CIUS-HR 2025 UBL XML builder
+    // ────────────────────────────────────────────────────────────────────────
+
+    public static function buildCiusHrXml(Racun $racun): string
+    {
+        $racun->load(['stavke', 'tvrtka', 'klijent']);
+        $tvrtka  = $racun->tvrtka;
+        $klijent = $racun->klijent;
+
+        $cbcNs   = 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2';
+        $cacNs   = 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2';
+        $extNs   = 'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2';
+        $hrNs    = 'urn:mfin.gov.hr:schema:xsd:HRExtensionAggregateComponents-1';
+        $invoNs  = 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2';
+
+        // ── Per-line tax accumulation ────────────────────────────────────────
+        $pdvGrupe  = [];
+        $stavkeData = [];
+
+        foreach ($racun->stavke as $i => $stavka) {
+            $kolicina = (float) $stavka->kolicina;
+            $cijena   = (float) $stavka->cijena;
+            $rabatP   = (float) ($stavka->rabat_posto ?? 0);
+            $pdvStopa = (float) ($stavka->pdv_stopa ?? 0);
+
+            $bruto    = round($cijena * $kolicina, 2);
+            $rabatIzn = round($bruto * ($rabatP / 100), 2);
+            $neto     = round($bruto - $rabatIzn, 2);
+            $pdvIznos = round($neto * ($pdvStopa / 100), 2);
+            $katPdv   = $pdvStopa > 0 ? 'S' : ($tvrtka->u_sustavu_pdv ? 'Z' : 'E');
+
+            $kljuc = $pdvStopa . '_' . $katPdv;
+            if (!isset($pdvGrupe[$kljuc])) {
+                $pdvGrupe[$kljuc] = ['stopa' => $pdvStopa, 'kat' => $katPdv, 'osnovica' => 0.0, 'iznos' => 0.0];
+            }
+            $pdvGrupe[$kljuc]['osnovica'] += $neto;
+            $pdvGrupe[$kljuc]['iznos']    += $pdvIznos;
+
+            $stavkeData[] = compact('i', 'stavka', 'kolicina', 'cijena', 'rabatIzn', 'neto', 'pdvIznos', 'katPdv', 'pdvStopa');
+        }
+
+        $ukupnoPdv = (float) $racun->ukupno_pdv;
+        $ukupno    = (float) $racun->ukupno;
+        $ukupnoOsn = (float) $racun->ukupno_osnovica;
+        $ukupnoRab = (float) $racun->ukupno_rabat;
+        $netoUkupno = round($ukupnoOsn - $ukupnoRab, 2);
+
+        $outOfScopeAmount = 0.0;
+        foreach ($pdvGrupe as $g) {
+            if ($g['kat'] === 'O') {
+                $outOfScopeAmount += $g['osnovica'];
+            }
+        }
+
+        $vrijemeIzd = $racun->vrijeme_izdavanja
+            ? (is_string($racun->vrijeme_izdavanja) ? $racun->vrijeme_izdavanja : $racun->vrijeme_izdavanja->format('H:i:s'))
+            : '00:00:00';
+
+        // ── DOM ──────────────────────────────────────────────────────────────
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $dom->formatOutput = true;
+
+        $invoice = $dom->createElementNS($invoNs, 'Invoice');
+        $invoice->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:cac', $cacNs);
+        $invoice->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:cbc', $cbcNs);
+        $invoice->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:ext', $extNs);
+        $invoice->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:hrextac', $hrNs);
+        $dom->appendChild($invoice);
+
+        // ── UBLExtensions (HRFISK20Data) ─────────────────────────────────────
+        $ublExtensions = $dom->createElementNS($extNs, 'ext:UBLExtensions');
+        $ublExtension  = $dom->createElementNS($extNs, 'ext:UBLExtension');
+        $extContent    = $dom->createElementNS($extNs, 'ext:ExtensionContent');
+        $hrFisk        = $dom->createElementNS($hrNs,  'hrextac:HRFISK20Data');
+
+        // HRTaxTotal
+        $hrTaxTotal  = $dom->createElementNS($hrNs, 'hrextac:HRTaxTotal');
+        $taxTotalAmt = $dom->createElementNS($cbcNs, 'cbc:TaxAmount', number_format($ukupnoPdv, 2, '.', ''));
+        $taxTotalAmt->setAttribute('currencyID', 'EUR');
+        $hrTaxTotal->appendChild($taxTotalAmt);
+
+        foreach ($pdvGrupe as $g) {
+            $hrSub = $dom->createElementNS($hrNs, 'hrextac:HRTaxSubtotal');
+
+            $subTaxable = $dom->createElementNS($cbcNs, 'cbc:TaxableAmount', number_format(round($g['osnovica'], 2), 2, '.', ''));
+            $subTaxable->setAttribute('currencyID', 'EUR');
+            $hrSub->appendChild($subTaxable);
+
+            $subTaxAmt = $dom->createElementNS($cbcNs, 'cbc:TaxAmount', number_format(round($g['iznos'], 2), 2, '.', ''));
+            $subTaxAmt->setAttribute('currencyID', 'EUR');
+            $hrSub->appendChild($subTaxAmt);
+
+            $hrTaxCat = $dom->createElementNS($hrNs, 'hrextac:HRTaxCategory');
+            $hrTaxCat->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', $g['kat']));
+            $hrTaxCat->appendChild($dom->createElementNS($cbcNs, 'cbc:Name', static::hrTaxCategoryName($g['kat'], $g['stopa'])));
+            $hrTaxCat->appendChild($dom->createElementNS($cbcNs, 'cbc:Percent', (string) (int) $g['stopa']));
+            $hrScheme = $dom->createElementNS($hrNs, 'hrextac:HRTaxScheme');
+            $hrScheme->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', 'VAT'));
+            $hrTaxCat->appendChild($hrScheme);
+            $hrSub->appendChild($hrTaxCat);
+
+            $hrTaxTotal->appendChild($hrSub);
+        }
+
+        $hrFisk->appendChild($hrTaxTotal);
+
+        // HRLegalMonetaryTotal
+        $hrLegal = $dom->createElementNS($hrNs, 'hrextac:HRLegalMonetaryTotal');
+        $hrTaxExcl = $dom->createElementNS($cbcNs, 'cbc:TaxExclusiveAmount', number_format($netoUkupno, 2, '.', ''));
+        $hrTaxExcl->setAttribute('currencyID', 'EUR');
+        $hrLegal->appendChild($hrTaxExcl);
+        $hrOutOfScope = $dom->createElementNS($hrNs, 'hrextac:OutOfScopeOfVATAmount', number_format($outOfScopeAmount, 2, '.', ''));
+        $hrOutOfScope->setAttribute('currencyID', 'EUR');
+        $hrLegal->appendChild($hrOutOfScope);
+        $hrFisk->appendChild($hrLegal);
+
+        $extContent->appendChild($hrFisk);
+        $ublExtension->appendChild($extContent);
+        $ublExtensions->appendChild($ublExtension);
+        $invoice->appendChild($ublExtensions);
+
+        // ── Invoice header ────────────────────────────────────────────────────
+        $invoice->appendChild($dom->createElementNS($cbcNs, 'cbc:CustomizationID', 'urn:cen.eu:en16931:2017#compliant#urn:mfin.gov.hr:cius-2025:1.0#conformant#urn:mfin.gov.hr:ext-2025:1.0'));
+        $invoice->appendChild($dom->createElementNS($cbcNs, 'cbc:ProfileID', 'P1'));
+        $invoice->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', $racun->broj));
+        $invoice->appendChild($dom->createElementNS($cbcNs, 'cbc:IssueDate', $racun->datum_izdavanja->format('Y-m-d')));
+        $invoice->appendChild($dom->createElementNS($cbcNs, 'cbc:IssueTime', $vrijemeIzd));
+        if ($racun->datum_dospijeca) {
+            $invoice->appendChild($dom->createElementNS($cbcNs, 'cbc:DueDate', $racun->datum_dospijeca->format('Y-m-d')));
+        }
+        $invoice->appendChild($dom->createElementNS($cbcNs, 'cbc:InvoiceTypeCode', '380'));
+        if ($racun->napomena) {
+            $invoice->appendChild($dom->createElementNS($cbcNs, 'cbc:Note', $racun->napomena));
+        }
+        $invoice->appendChild($dom->createElementNS($cbcNs, 'cbc:DocumentCurrencyCode', 'EUR'));
+
+        // ── AccountingSupplierParty ───────────────────────────────────────────
+        $supplierParty = $dom->createElementNS($cacNs, 'cac:AccountingSupplierParty');
+        $supplierPartyEl = $dom->createElementNS($cacNs, 'cac:Party');
+
+        $supplierEndpoint = $dom->createElementNS($cbcNs, 'cbc:EndpointID', $tvrtka->oib);
+        $supplierEndpoint->setAttribute('schemeID', '9934');
+        $supplierPartyEl->appendChild($supplierEndpoint);
+
+        $supplierPartyName = $dom->createElementNS($cacNs, 'cac:PartyName');
+        $supplierPartyName->appendChild($dom->createElementNS($cbcNs, 'cbc:Name', $tvrtka->naziv));
+        $supplierPartyEl->appendChild($supplierPartyName);
+
+        $supplierAddr = $dom->createElementNS($cacNs, 'cac:PostalAddress');
+        if ($tvrtka->adresa) {
+            $supplierAddr->appendChild($dom->createElementNS($cbcNs, 'cbc:StreetName', $tvrtka->adresa));
+        }
+        if ($tvrtka->po_broj) {
+            $supplierAddr->appendChild($dom->createElementNS($cbcNs, 'cbc:PostalZone', $tvrtka->po_broj));
+        }
+        if ($tvrtka->mjesto) {
+            $supplierAddr->appendChild($dom->createElementNS($cbcNs, 'cbc:CityName', $tvrtka->mjesto));
+        }
+        $supplierCountry = $dom->createElementNS($cacNs, 'cac:Country');
+        $supplierCountry->appendChild($dom->createElementNS($cbcNs, 'cbc:IdentificationCode', 'HR'));
+        $supplierAddr->appendChild($supplierCountry);
+        $supplierPartyEl->appendChild($supplierAddr);
+
+        $supplierTaxScheme = $dom->createElementNS($cacNs, 'cac:PartyTaxScheme');
+        $supplierTaxScheme->appendChild($dom->createElementNS($cbcNs, 'cbc:CompanyID', 'HR' . $tvrtka->oib));
+        $supplierTaxSchemeEl = $dom->createElementNS($cacNs, 'cac:TaxScheme');
+        $supplierTaxSchemeEl->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', 'VAT'));
+        $supplierTaxScheme->appendChild($supplierTaxSchemeEl);
+        $supplierPartyEl->appendChild($supplierTaxScheme);
+
+        $supplierLegal = $dom->createElementNS($cacNs, 'cac:PartyLegalEntity');
+        $supplierLegal->appendChild($dom->createElementNS($cbcNs, 'cbc:RegistrationName', $tvrtka->naziv));
+        $supplierLegal->appendChild($dom->createElementNS($cbcNs, 'cbc:CompanyID', $tvrtka->oib));
+        $supplierPartyEl->appendChild($supplierLegal);
+
+        if ($tvrtka->vlasnik || $tvrtka->email || $tvrtka->kontakt_broj) {
+            $supplierContact = $dom->createElementNS($cacNs, 'cac:Contact');
+            if ($tvrtka->vlasnik) {
+                $supplierContact->appendChild($dom->createElementNS($cbcNs, 'cbc:Name', $tvrtka->vlasnik));
+            }
+            if ($tvrtka->kontakt_broj) {
+                $supplierContact->appendChild($dom->createElementNS($cbcNs, 'cbc:Telephone', $tvrtka->kontakt_broj));
+            }
+            if ($tvrtka->email) {
+                $supplierContact->appendChild($dom->createElementNS($cbcNs, 'cbc:ElectronicMail', $tvrtka->email));
+            }
+            $supplierPartyEl->appendChild($supplierContact);
+        }
+
+        $supplierParty->appendChild($supplierPartyEl);
+
+        // SellerContact — operator (HR-BT-4/HR-BT-5)
+        if ($tvrtka->oib_operatera || $tvrtka->vlasnik) {
+            $sellerContact = $dom->createElementNS($cacNs, 'cac:SellerContact');
+            if ($tvrtka->oib_operatera) {
+                $sellerContact->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', $tvrtka->oib_operatera));
+            }
+            if ($tvrtka->vlasnik) {
+                $sellerContact->appendChild($dom->createElementNS($cbcNs, 'cbc:Name', $tvrtka->vlasnik));
+            }
+            $supplierParty->appendChild($sellerContact);
+        }
+
+        $invoice->appendChild($supplierParty);
+
+        // ── AccountingCustomerParty ───────────────────────────────────────────
+        $customerParty   = $dom->createElementNS($cacNs, 'cac:AccountingCustomerParty');
+        $customerPartyEl = $dom->createElementNS($cacNs, 'cac:Party');
+
+        $customerEndpoint = $dom->createElementNS($cbcNs, 'cbc:EndpointID', $klijent->oib ?? ($klijent->email ?? ''));
+        $customerEndpoint->setAttribute('schemeID', $klijent->oib ? '9934' : '0184');
+        $customerPartyEl->appendChild($customerEndpoint);
+
+        $customerPartyName = $dom->createElementNS($cacNs, 'cac:PartyName');
+        $customerPartyName->appendChild($dom->createElementNS($cbcNs, 'cbc:Name', $klijent->naziv));
+        $customerPartyEl->appendChild($customerPartyName);
+
+        $customerAddr = $dom->createElementNS($cacNs, 'cac:PostalAddress');
+        if ($klijent->adresa) {
+            $customerAddr->appendChild($dom->createElementNS($cbcNs, 'cbc:StreetName', $klijent->adresa));
+        }
+        if ($klijent->po_broj) {
+            $customerAddr->appendChild($dom->createElementNS($cbcNs, 'cbc:PostalZone', $klijent->po_broj));
+        }
+        if ($klijent->mjesto) {
+            $customerAddr->appendChild($dom->createElementNS($cbcNs, 'cbc:CityName', $klijent->mjesto));
+        }
+        $customerCountry = $dom->createElementNS($cacNs, 'cac:Country');
+        $customerCountry->appendChild($dom->createElementNS($cbcNs, 'cbc:IdentificationCode', 'HR'));
+        $customerAddr->appendChild($customerCountry);
+        $customerPartyEl->appendChild($customerAddr);
+
+        if ($klijent->oib) {
+            $customerTaxScheme = $dom->createElementNS($cacNs, 'cac:PartyTaxScheme');
+            $customerTaxScheme->appendChild($dom->createElementNS($cbcNs, 'cbc:CompanyID', 'HR' . $klijent->oib));
+            $customerTaxSchemeEl = $dom->createElementNS($cacNs, 'cac:TaxScheme');
+            $customerTaxSchemeEl->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', 'VAT'));
+            $customerTaxScheme->appendChild($customerTaxSchemeEl);
+            $customerPartyEl->appendChild($customerTaxScheme);
+        }
+
+        $customerLegal = $dom->createElementNS($cacNs, 'cac:PartyLegalEntity');
+        $customerLegal->appendChild($dom->createElementNS($cbcNs, 'cbc:RegistrationName', $klijent->naziv));
+        if ($klijent->oib) {
+            $customerLegal->appendChild($dom->createElementNS($cbcNs, 'cbc:CompanyID', $klijent->oib));
+        }
+        $customerPartyEl->appendChild($customerLegal);
+
+        $customerParty->appendChild($customerPartyEl);
+        $invoice->appendChild($customerParty);
+
+        // ── PaymentMeans ──────────────────────────────────────────────────────
+        $paymentMeans = $dom->createElementNS($cacNs, 'cac:PaymentMeans');
+        $paymentMeans->appendChild($dom->createElementNS($cbcNs, 'cbc:PaymentMeansCode', '30'));
+        $paymentMeans->appendChild($dom->createElementNS($cbcNs, 'cbc:PaymentID', 'HR00 ' . $racun->broj));
+        if ($tvrtka->iban) {
+            $payeeAccount = $dom->createElementNS($cacNs, 'cac:PayeeFinancialAccount');
+            $payeeAccount->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', $tvrtka->iban));
+            if ($tvrtka->naziv) {
+                $payeeAccount->appendChild($dom->createElementNS($cbcNs, 'cbc:Name', $tvrtka->naziv));
+            }
+            if ($tvrtka->banka) {
+                $finBranch = $dom->createElementNS($cacNs, 'cac:FinancialInstitutionBranch');
+                $finBranch->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', $tvrtka->banka));
+                $payeeAccount->appendChild($finBranch);
+            }
+            $paymentMeans->appendChild($payeeAccount);
+        }
+        $invoice->appendChild($paymentMeans);
+
+        // ── TaxTotal ─────────────────────────────────────────────────────────
+        $taxTotal = $dom->createElementNS($cacNs, 'cac:TaxTotal');
+        $taxTotalAmtEl = $dom->createElementNS($cbcNs, 'cbc:TaxAmount', number_format($ukupnoPdv, 2, '.', ''));
+        $taxTotalAmtEl->setAttribute('currencyID', 'EUR');
+        $taxTotal->appendChild($taxTotalAmtEl);
+
+        foreach ($pdvGrupe as $g) {
+            $taxSubtotal = $dom->createElementNS($cacNs, 'cac:TaxSubtotal');
+
+            $subTaxable2 = $dom->createElementNS($cbcNs, 'cbc:TaxableAmount', number_format(round($g['osnovica'], 2), 2, '.', ''));
+            $subTaxable2->setAttribute('currencyID', 'EUR');
+            $taxSubtotal->appendChild($subTaxable2);
+
+            $subTaxAmt2 = $dom->createElementNS($cbcNs, 'cbc:TaxAmount', number_format(round($g['iznos'], 2), 2, '.', ''));
+            $subTaxAmt2->setAttribute('currencyID', 'EUR');
+            $taxSubtotal->appendChild($subTaxAmt2);
+
+            $taxCat = $dom->createElementNS($cacNs, 'cac:TaxCategory');
+            $taxCat->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', $g['kat']));
+            $taxCat->appendChild($dom->createElementNS($cbcNs, 'cbc:Percent', number_format($g['stopa'], 2, '.', '')));
+            if (in_array($g['kat'], ['E', 'Z'])) {
+                $exemptText = $racun->napomena ?? 'Nije u sustavu PDV-a';
+                $taxCat->appendChild($dom->createElementNS($cbcNs, 'cbc:TaxExemptionReason', $exemptText));
+            }
+            $taxCatScheme = $dom->createElementNS($cacNs, 'cac:TaxScheme');
+            $taxCatScheme->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', 'VAT'));
+            $taxCat->appendChild($taxCatScheme);
+            $taxSubtotal->appendChild($taxCat);
+
+            $taxTotal->appendChild($taxSubtotal);
+        }
+
+        $invoice->appendChild($taxTotal);
+
+        // ── LegalMonetaryTotal ────────────────────────────────────────────────
+        $legalMonetary = $dom->createElementNS($cacNs, 'cac:LegalMonetaryTotal');
+
+        $lineExtAmtEl = $dom->createElementNS($cbcNs, 'cbc:LineExtensionAmount', number_format($netoUkupno, 2, '.', ''));
+        $lineExtAmtEl->setAttribute('currencyID', 'EUR');
+        $legalMonetary->appendChild($lineExtAmtEl);
+
+        $taxExclAmtEl = $dom->createElementNS($cbcNs, 'cbc:TaxExclusiveAmount', number_format($netoUkupno, 2, '.', ''));
+        $taxExclAmtEl->setAttribute('currencyID', 'EUR');
+        $legalMonetary->appendChild($taxExclAmtEl);
+
+        $taxInclAmtEl = $dom->createElementNS($cbcNs, 'cbc:TaxInclusiveAmount', number_format($ukupno, 2, '.', ''));
+        $taxInclAmtEl->setAttribute('currencyID', 'EUR');
+        $legalMonetary->appendChild($taxInclAmtEl);
+
+        $payableAmtEl = $dom->createElementNS($cbcNs, 'cbc:PayableAmount', number_format($ukupno, 2, '.', ''));
+        $payableAmtEl->setAttribute('currencyID', 'EUR');
+        $legalMonetary->appendChild($payableAmtEl);
+
+        $invoice->appendChild($legalMonetary);
+
+        // ── InvoiceLines ──────────────────────────────────────────────────────
+        foreach ($stavkeData as $sd) {
+            $stavka = $sd['stavka'];
+            $unitCode = static::jedinicaMjereKod($stavka->jedinica_mjere ?? 'kom');
+
+            $line = $dom->createElementNS($cacNs, 'cac:InvoiceLine');
+            $line->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', (string) ($sd['i'] + 1)));
+
+            $lineQtyEl = $dom->createElementNS($cbcNs, 'cbc:InvoicedQuantity', number_format($sd['kolicina'], 3, '.', ''));
+            $lineQtyEl->setAttribute('unitCode', $unitCode);
+            $line->appendChild($lineQtyEl);
+
+            $lineExtAmtLineEl = $dom->createElementNS($cbcNs, 'cbc:LineExtensionAmount', number_format($sd['neto'], 2, '.', ''));
+            $lineExtAmtLineEl->setAttribute('currencyID', 'EUR');
+            $line->appendChild($lineExtAmtLineEl);
+
+            $item = $dom->createElementNS($cacNs, 'cac:Item');
+            if ($stavka->opis) {
+                $item->appendChild($dom->createElementNS($cbcNs, 'cbc:Description', $stavka->opis));
+            }
+            $item->appendChild($dom->createElementNS($cbcNs, 'cbc:Name', $stavka->naziv));
+
+            if ($tvrtka->nkd) {
+                $commClass = $dom->createElementNS($cacNs, 'cac:CommodityClassification');
+                $classCode = $dom->createElementNS($cbcNs, 'cbc:ItemClassificationCode', $tvrtka->nkd);
+                $classCode->setAttribute('listID', 'CG');
+                $commClass->appendChild($classCode);
+                $item->appendChild($commClass);
+            }
+
+            $classifiedTaxCat = $dom->createElementNS($cacNs, 'cac:ClassifiedTaxCategory');
+            $classifiedTaxCat->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', $sd['katPdv']));
+            $classifiedTaxCat->appendChild($dom->createElementNS($cbcNs, 'cbc:Percent', number_format($sd['pdvStopa'], 2, '.', '')));
+            $classifiedTaxScheme = $dom->createElementNS($cacNs, 'cac:TaxScheme');
+            $classifiedTaxScheme->appendChild($dom->createElementNS($cbcNs, 'cbc:ID', 'VAT'));
+            $classifiedTaxCat->appendChild($classifiedTaxScheme);
+            $item->appendChild($classifiedTaxCat);
+
+            $line->appendChild($item);
+
+            $price = $dom->createElementNS($cacNs, 'cac:Price');
+            $priceAmtEl = $dom->createElementNS($cbcNs, 'cbc:PriceAmount', number_format($sd['cijena'], 6, '.', ''));
+            $priceAmtEl->setAttribute('currencyID', 'EUR');
+            $price->appendChild($priceAmtEl);
+            $baseQtyEl = $dom->createElementNS($cbcNs, 'cbc:BaseQuantity', '1.000');
+            $baseQtyEl->setAttribute('unitCode', $unitCode);
+            $price->appendChild($baseQtyEl);
+            $line->appendChild($price);
+
+            $invoice->appendChild($line);
+        }
+
+        return $dom->saveXML();
+    }
+
+    private static function hrTaxCategoryName(string $kat, float $stopa): string
+    {
+        if ($kat === 'S') {
+            return match ((int) $stopa) {
+                25      => 'HR:PDV25',
+                13      => 'HR:PDV13',
+                5       => 'HR:PDV5',
+                default => 'HR:PDV' . (int) $stopa,
+            };
+        }
+        return match ($kat) {
+            'O'     => 'HR:PP',
+            'E'     => 'HR:OSL',
+            'Z'     => 'HR:NUL',
+            default => 'HR:PDV0',
+        };
     }
 
     private static function jedinicaMjereKod(string $jm): string
