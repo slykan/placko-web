@@ -725,8 +725,6 @@ class EracunService
                 'sifraVrsteRacuna'                    => '380',
                 'vrstaPoslovnogProcesa'               => 'P5',
                 'idSpecifikacije'                     => 'urn:cen.eu:en16931:2017#compliant#urn:mfin.gov.hr:cius-2025:1.0#conformant#urn:mfin.gov.hr:ext-2025:1.0',
-                'oznakaOperatera'                     => $tvrtka->oznaka_operatera ?? null,
-                'oibOperatera'                        => $tvrtka->oib_operatera ?? $tvrtka->oib,
             ],
             'reference' => [
                 'referencaNaKupca'         => null,
@@ -754,6 +752,8 @@ class EracunService
                     'postanskiBrojProdavatelja'           => $tvrtka->po_broj ?? null,
                     'sifraDrzaveProdavatelja'             => 'HR',
                     'nazivProdavatelja'                   => $tvrtka->naziv,
+                    'oznakaOperatera'                     => $tvrtka->oznaka_operatera ?? null,
+                    'oibOperatera'                        => $tvrtka->oib_operatera ?? $tvrtka->oib,
                 ],
                 'kupac' => [
                     'poreznaShema'          => 'VAT',
