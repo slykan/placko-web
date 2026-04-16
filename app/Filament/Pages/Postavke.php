@@ -538,15 +538,10 @@ class Postavke extends Page implements HasForms
 
         TvrtkaPostavke::updateOrCreate(['tvrtka_id' => $tvrtkaId], $update);
 
-        // Osvježi formu s novim podacima (uključujući auto-generirani UUID)
-        $svjezePostavke = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->first();
-        $this->eracunForm->fill([
-            'eracun_aktivan'        => $svjezePostavke->eracun_aktivan ?? false,
-            'eracun_demo'           => $svjezePostavke->eracun_demo ?? false,
-            'eracun_middleware_url' => $svjezePostavke->eracun_middleware_url,
-            'eracun_jks_uuid'       => $svjezePostavke->eracun_jks_uuid,
-            'eracun_cert_putanja'   => $svjezePostavke->eracun_cert_putanja,
-        ]);
+        // Osvježi UUID u formi bez refresha stranice
+        if (isset($update['eracun_jks_uuid'])) {
+            $this->eracunData['eracun_jks_uuid'] = $update['eracun_jks_uuid'];
+        }
 
         Notification::make()->title('eRačun postavke spremljene')->success()->send();
     }
