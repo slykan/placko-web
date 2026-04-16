@@ -12,8 +12,8 @@
     .header { display: table; width: 100%; margin-bottom: 8mm; }
     .header-left { display: table-cell; vertical-align: top; width: 65%; }
     .header-right { display: table-cell; vertical-align: top; text-align: right; }
-    .header-left .company-name { font-size: 11pt; font-weight: bold; margin-bottom: 2mm; }
-    .header-left p { line-height: 1.5; }
+    .header-left .company-name { font-size: 11pt; font-weight: bold; margin-bottom: 1mm; }
+    .header-left p { line-height: 1.3; }
     .logo { max-height: 22mm; max-width: 45mm; }
 
     /* TITLE */
@@ -24,8 +24,8 @@
     .info-block { display: table; width: 100%; margin-bottom: 6mm; }
     .info-left { display: table-cell; width: 50%; vertical-align: top; padding-right: 5mm; }
     .info-right { display: table-cell; width: 50%; vertical-align: top; padding-left: 5mm; }
-    .info-block h3 { font-size: 10pt; font-weight: bold; margin-bottom: 2mm; }
-    .info-block p { line-height: 1.6; }
+    .info-block h3 { font-size: 10pt; font-weight: bold; margin-bottom: 1mm; }
+    .info-block p { line-height: 1.3; }
 
     /* TABLE */
     .stavke-title { font-size: 10pt; font-weight: bold; margin-bottom: 2mm; }
