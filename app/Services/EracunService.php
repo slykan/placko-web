@@ -143,7 +143,7 @@ class EracunService
         $okolina = $postavke->eracun_demo ? 'prez' : 'prod';
         $idPoruke = (string) Str::uuid();
 
-        $jsonRacun = static::buildJsonRacun($racun);
+        $jsonRacun = static::stripNulls(static::buildJsonRacun($racun));
 
         $tijelo = [
             'okolina'               => $okolina,
@@ -602,6 +602,18 @@ class EracunService
         }
 
         throw new \RuntimeException('UUID nije pronađen u middleware odgovoru. Provjerite middleware logs.');
+    }
+
+    private static function stripNulls(array $data): array
+    {
+        $result = [];
+        foreach ($data as $key => $value) {
+            if ($value === null) {
+                continue;
+            }
+            $result[$key] = is_array($value) ? static::stripNulls($value) : $value;
+        }
+        return $result;
     }
 
     private static function provjeriMiddlewarePostavke(TvrtkaPostavke $postavke): void
