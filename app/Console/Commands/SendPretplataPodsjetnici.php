@@ -82,9 +82,8 @@ class SendPretplataPodsjetnici extends Command
                                 ]);
                             }
 
-                            $mailer = Mail::mailer($smtpKonfiguriran ? 'smtp' : config('mail.default'));
-
-                            Mail::to($klijent->email)
+                            Mail::mailer($smtpKonfiguriran ? 'smtp' : config('mail.default'))
+                                ->to($klijent->email)
                                 ->send(new PretplataPodsjetnikMail($poruka, $subject, $cc));
 
                             $poslano++;
