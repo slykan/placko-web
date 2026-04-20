@@ -70,13 +70,6 @@ class SendPretplataPodsjetnici extends Command
                         $cc = $postavke->pretplate_email_cc ?: null;
 
                         try {
-                            $mailer = $smtpKonfiguriran
-                                ? Mail::mailer('smtp')->withSymfonyMessage(function ($message) use ($postavke) {
-                                    $message->getHeaders()
-                                        ->addTextHeader('X-Mailer', 'Placko');
-                                })
-                                : Mail::mailer(config('mail.default'));
-
                             if ($smtpKonfiguriran) {
                                 config([
                                     'mail.mailers.smtp.host'       => $postavke->smtp_host,
@@ -88,6 +81,8 @@ class SendPretplataPodsjetnici extends Command
                                     'mail.from.name'               => $postavke->smtp_from_name ?? $tvrtka->naziv,
                                 ]);
                             }
+
+                            $mailer = Mail::mailer($smtpKonfiguriran ? 'smtp' : config('mail.default'));
 
                             Mail::to($klijent->email)
                                 ->send(new PretplataPodsjetnikMail($poruka, $subject, $cc));
