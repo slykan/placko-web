@@ -11,14 +11,14 @@ class PretplataPodsjetnikMail extends Mailable
 {
     public function __construct(
         public string $poruka,
-        public string $subject,
+        public string $naslov,
         public ?string $ccAdresa = null,
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->subject,
+            subject: $this->naslov,
             cc: $this->ccAdresa ? [new Address($this->ccAdresa)] : [],
         );
     }
