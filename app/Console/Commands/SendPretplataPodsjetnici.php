@@ -84,7 +84,7 @@ class SendPretplataPodsjetnici extends Command
 
                             Mail::mailer($smtpKonfiguriran ? 'smtp' : config('mail.default'))
                                 ->to($klijent->email)
-                                ->send(new PretplataPodsjetnikMail($poruka, $subject, $cc));
+                                ->send(new PretplataPodsjetnikMail($poruka, $subject, $cc ?: null));
 
                             $poslano++;
                             $this->line("Poslan podsjetnik: {$klijent->naziv} ({$klijent->email}) — za {$dan} dana");
