@@ -79,8 +79,10 @@ class RacunResource extends Resource
 
                 TextInput::make('vrijeme_izdavanja')
                     ->label('Vrijeme izdavanja')
-                    ->type('time')
                     ->default(now()->format('H:i'))
+                    ->placeholder('HH:MM')
+                    ->mask('99:99')
+                    ->rule('regex:/^([01]\d|2[0-3]):([0-5]\d)$/')
                     ->columnSpan(1),
 
                 DatePicker::make('datum_dospijeca')
