@@ -14,7 +14,6 @@ use App\Services\Hub3Service;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -129,8 +128,6 @@ class RacunResource extends Resource
                 Repeater::make('stavke')
                     ->relationship()
                     ->schema([
-                        Hidden::make('id'),
-
                         // Red 1: Usluga, Naziv, Opis
                         Select::make('usluga_id')
                             ->label('Usluga / Proizvod')
