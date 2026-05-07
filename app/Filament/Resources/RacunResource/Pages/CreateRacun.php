@@ -6,6 +6,7 @@ use App\Filament\Resources\RacunResource;
 use App\Models\Racun;
 use App\Models\RacunStavka;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Validation\ValidationException;
 
 class CreateRacun extends CreateRecord
 {
@@ -25,6 +26,13 @@ class CreateRacun extends CreateRecord
         $data['status']     = $data['status'] ?? 'final';
 
         $this->pendingStavke = $data['stavke'] ?? [];
+
+        if (empty($this->pendingStavke)) {
+            throw ValidationException::withMessages([
+                'stavke' => 'Račun mora imati barem jednu stavku.',
+            ]);
+        }
+
         unset($data['stavke']);
 
         return $data;

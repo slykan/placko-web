@@ -7,6 +7,7 @@ use App\Models\RacunStavka;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Validation\ValidationException;
 
 class EditRacun extends EditRecord
 {
@@ -41,6 +42,13 @@ class EditRacun extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $this->pendingStavke = $data['stavke'] ?? [];
+
+        if (empty($this->pendingStavke)) {
+            throw ValidationException::withMessages([
+                'stavke' => 'Račun mora imati barem jednu stavku.',
+            ]);
+        }
+
         unset($data['stavke']);
 
         return $data;
