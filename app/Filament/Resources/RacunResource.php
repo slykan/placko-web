@@ -224,8 +224,7 @@ class RacunResource extends Resource
                     ->reorderable()
                     ->cloneable()
                     ->deletable(true)
-                    ->defaultItems(0)
-                    ->minItems(1),
+                    ->defaultItems(0),
             ]),
 
             // Sažetak
