@@ -217,6 +217,7 @@ class RacunResource extends Resource
                     ->addActionLabel('+ Dodaj stavku')
                     ->reorderable()
                     ->cloneable()
+                    ->deletable(true)
                     ->defaultItems(0)
                     ->minItems(1)
                     ->live()
