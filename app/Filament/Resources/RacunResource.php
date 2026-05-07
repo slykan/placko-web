@@ -217,7 +217,8 @@ class RacunResource extends Resource
                     ->addActionLabel('+ Dodaj stavku')
                     ->reorderable()
                     ->cloneable()
-                    ->defaultItems(1)
+                    ->defaultItems(0)
+                    ->minItems(1)
                     ->live()
                     ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajUkupno($get, $set)),
             ]),

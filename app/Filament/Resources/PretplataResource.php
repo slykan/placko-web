@@ -162,7 +162,8 @@ class PretplataResource extends Resource
                     ])
                     ->columns(12)
                     ->addActionLabel('+ Dodaj stavku')
-                    ->defaultItems(1),
+                    ->defaultItems(0)
+                    ->minItems(1),
             ]),
         ]);
     }
