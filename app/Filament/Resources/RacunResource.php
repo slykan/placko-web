@@ -174,7 +174,7 @@ class RacunResource extends Resource
                             ->required()
                             ->default(1)
                             ->step(0.001)
-                            ->dehydrateStateUsing(fn ($v) => $v ?? 1)
+                            ->dehydrateStateUsing(fn ($state) => $state ?? 1)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))
                             ->columnSpan(2),
@@ -186,7 +186,7 @@ class RacunResource extends Resource
                             ->default(0)
                             ->step(0.01)
                             ->prefix('€')
-                            ->dehydrateStateUsing(fn ($v) => $v ?? 0)
+                            ->dehydrateStateUsing(fn ($state) => $state ?? 0)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))
                             ->columnSpan(2),
@@ -197,7 +197,7 @@ class RacunResource extends Resource
                             ->default(0)
                             ->step(0.01)
                             ->suffix('%')
-                            ->dehydrateStateUsing(fn ($v) => $v ?? 0)
+                            ->dehydrateStateUsing(fn ($state) => $state ?? 0)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))
                             ->columnSpan(2),
@@ -236,7 +236,7 @@ class RacunResource extends Resource
                     ->numeric()
                     ->disabled()
                     ->dehydrated()
-                    ->dehydrateStateUsing(fn ($v) => $v ?? 0)
+                    ->dehydrateStateUsing(fn ($state) => $state ?? 0)
                     ->prefix('€'),
 
                 TextInput::make('ukupno_rabat')
@@ -244,7 +244,7 @@ class RacunResource extends Resource
                     ->numeric()
                     ->disabled()
                     ->dehydrated()
-                    ->dehydrateStateUsing(fn ($v) => $v ?? 0)
+                    ->dehydrateStateUsing(fn ($state) => $state ?? 0)
                     ->prefix('€'),
 
                 TextInput::make('ukupno_pdv')
@@ -252,7 +252,7 @@ class RacunResource extends Resource
                     ->numeric()
                     ->disabled()
                     ->dehydrated()
-                    ->dehydrateStateUsing(fn ($v) => $v ?? 0)
+                    ->dehydrateStateUsing(fn ($state) => $state ?? 0)
                     ->prefix('€'),
 
                 TextInput::make('ukupno')
@@ -260,7 +260,7 @@ class RacunResource extends Resource
                     ->numeric()
                     ->disabled()
                     ->dehydrated()
-                    ->dehydrateStateUsing(fn ($v) => $v ?? 0)
+                    ->dehydrateStateUsing(fn ($state) => $state ?? 0)
                     ->prefix('€'),
             ])->columns(4),
         ]);
