@@ -81,6 +81,7 @@ class RacunResource extends Resource
                     ->label('Vrijeme izdavanja')
                     ->default(now()->format('H:i'))
                     ->seconds(false)
+                    ->time24(true)
                     ->columnSpan(1),
 
                 DatePicker::make('datum_dospijeca')
