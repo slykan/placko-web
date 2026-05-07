@@ -28,11 +28,11 @@ class TvrtkaResource extends Resource
 
     protected static ?string $modelLabel = 'Obrt / Tvrtka';
 
-    protected static ?string $pluralModelLabel = 'Obrts i Tvrtke';
+    protected static ?string $pluralModelLabel = 'Obrti i tvrtke';
 
     public static function getPluralModelLabel(): string
     {
-        return 'Obrts i Tvrtke';
+        return 'Obrti i tvrtke';
     }
 
     protected static ?int $navigationSort = 1;
