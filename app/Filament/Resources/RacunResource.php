@@ -169,8 +169,10 @@ class RacunResource extends Resource
                         TextInput::make('kolicina')
                             ->label('Količina')
                             ->numeric()
+                            ->required()
                             ->default(1)
                             ->step(0.001)
+                            ->dehydrateStateUsing(fn ($v) => $v ?? 1)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))
                             ->columnSpan(2),
@@ -178,9 +180,11 @@ class RacunResource extends Resource
                         TextInput::make('cijena')
                             ->label('Cijena (bez PDV)')
                             ->numeric()
+                            ->required()
                             ->default(0)
                             ->step(0.01)
                             ->prefix('€')
+                            ->dehydrateStateUsing(fn ($v) => $v ?? 0)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))
                             ->columnSpan(2),
@@ -191,6 +195,7 @@ class RacunResource extends Resource
                             ->default(0)
                             ->step(0.01)
                             ->suffix('%')
+                            ->dehydrateStateUsing(fn ($v) => $v ?? 0)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))
                             ->columnSpan(2),
@@ -219,9 +224,7 @@ class RacunResource extends Resource
                     ->cloneable()
                     ->deletable(true)
                     ->defaultItems(0)
-                    ->minItems(1)
-                    ->live()
-                    ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajUkupno($get, $set)),
+                    ->minItems(1),
             ]),
 
             // Sažetak
