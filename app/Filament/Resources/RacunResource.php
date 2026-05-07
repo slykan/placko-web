@@ -139,8 +139,9 @@ class RacunResource extends Resource
                             ->searchable()
                             ->nullable()
                             ->live()
-                            ->afterStateUpdated(function ($state, Set $set) {
+                            ->afterStateUpdated(function ($state, Get $get, Set $set) {
                                 if (! $state) {
+                                    static::izracunajStavkuIUkupno($get, $set);
                                     return;
                                 }
                                 $usluga = Usluga::find($state);
@@ -150,6 +151,7 @@ class RacunResource extends Resource
                                     $set('pdv_stopa', $usluga->pdv_stopa);
                                     $set('jedinica_mjere', $usluga->jedinica_mjere);
                                 }
+                                static::izracunajStavkuIUkupno($get, $set);
                             })
                             ->columnSpan(4),
 
@@ -176,7 +178,7 @@ class RacunResource extends Resource
                             ->step(0.001)
                             ->dehydrateStateUsing(fn ($state) => $state ?? 1)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))
+                            ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavkuIUkupno($get, $set))
                             ->columnSpan(2),
 
                         TextInput::make('cijena')
@@ -188,7 +190,7 @@ class RacunResource extends Resource
                             ->prefix('€')
                             ->dehydrateStateUsing(fn ($state) => $state ?? 0)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))
+                            ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavkuIUkupno($get, $set))
                             ->columnSpan(2),
 
                         TextInput::make('rabat_posto')
@@ -199,7 +201,7 @@ class RacunResource extends Resource
                             ->suffix('%')
                             ->dehydrateStateUsing(fn ($state) => $state ?? 0)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))
+                            ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavkuIUkupno($get, $set))
                             ->columnSpan(2),
 
                         Select::make('pdv_stopa')
@@ -209,7 +211,7 @@ class RacunResource extends Resource
                             ->default(null)
                             ->native(false)
                             ->live()
-                            ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))
+                            ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavkuIUkupno($get, $set))
                             ->columnSpan(2),
 
                         TextInput::make('ukupno')
@@ -282,6 +284,17 @@ class RacunResource extends Resource
         $set('ukupno', round($ukupno, 2));
     }
 
+    protected static function izracunajStavkuIUkupno(Get $get, Set $set): void
+    {
+        static::izracunajStavku($get, $set);
+        static::izracunajUkupnoRoditelja($get, $set);
+    }
+
+    protected static function izracunajUkupnoRoditelja(Get $get, Set $set): void
+    {
+        static::postaviUkupno($get('../../stavke') ?? [], $set, '../../');
+    }
+
     protected static function stavkaImaSadrzaj(Get $get): bool
     {
         return filled($get('usluga_id'))
@@ -310,7 +323,11 @@ class RacunResource extends Resource
 
     protected static function izracunajUkupno(Get $get, Set $set): void
     {
-        $stavke   = $get('stavke') ?? [];
+        static::postaviUkupno($get('stavke') ?? [], $set);
+    }
+
+    protected static function postaviUkupno(array $stavke, Set $set, string $pathPrefix = ''): void
+    {
         $osnovica = 0;
         $rabat    = 0;
         $pdv      = 0;
@@ -330,10 +347,10 @@ class RacunResource extends Resource
             $pdv      += $neto * ($pdvS / 100);
         }
 
-        $set('ukupno_osnovica', round($osnovica, 2));
-        $set('ukupno_rabat',    round($rabat, 2));
-        $set('ukupno_pdv',      round($pdv, 2));
-        $set('ukupno',          round($osnovica - $rabat + $pdv, 2));
+        $set($pathPrefix . 'ukupno_osnovica', round($osnovica, 2));
+        $set($pathPrefix . 'ukupno_rabat',    round($rabat, 2));
+        $set($pathPrefix . 'ukupno_pdv',      round($pdv, 2));
+        $set($pathPrefix . 'ukupno',          round($osnovica - $rabat + $pdv, 2));
     }
 
     public static function table(Table $table): Table
