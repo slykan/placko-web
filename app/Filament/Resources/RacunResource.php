@@ -77,11 +77,10 @@ class RacunResource extends Resource
                     ->displayFormat('d.m.Y.')
                     ->columnSpan(1),
 
-                TimePicker::make('vrijeme_izdavanja')
+                TextInput::make('vrijeme_izdavanja')
                     ->label('Vrijeme izdavanja')
+                    ->type('time')
                     ->default(now()->format('H:i'))
-                    ->seconds(false)
-                    ->displayFormat('H:i')
                     ->columnSpan(1),
 
                 DatePicker::make('datum_dospijeca')
