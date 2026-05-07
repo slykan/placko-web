@@ -32,6 +32,7 @@ class Tvrtka extends Model
         'logo',
         'napomena',
         'u_sustavu_pdv',
+        'pnb',
     ];
 
     protected $casts = [

@@ -42,7 +42,7 @@ class Hub3Service
             $primatelj_ulica,
             $primatelj_mjesto,
             $iban,
-            'HR99',
+            $tvrtka->pnb ?? 'HR00',
             $poziv,
             '',
             $opis,

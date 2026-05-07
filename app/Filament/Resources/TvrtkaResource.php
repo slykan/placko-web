@@ -102,6 +102,13 @@ class TvrtkaResource extends Resource
 
                 TextInput::make('banka')
                     ->label('Banka'),
+
+                TextInput::make('pnb')
+                    ->label('Standardizirani PNB (HRXX)')
+                    ->default('HR00')
+                    ->placeholder('HR00')
+                    ->helperText('Model plaćanja za HUB-3 barcode (npr. HR00, HR99). Default: HR00')
+                    ->columnSpanFull(),
             ])->columns(3),
 
             Section::make('Kontakt')->schema([
