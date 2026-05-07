@@ -32,7 +32,7 @@ class CreateRacun extends CreateRecord
 
     protected function afterCreate(): void
     {
-        foreach ($this->pendingStavke as $index => $stavka) {
+        foreach (array_values($this->pendingStavke) as $index => $stavka) {
             RacunStavka::create([
                 'racun_id'       => $this->record->id,
                 'usluga_id'      => $stavka['usluga_id'] ?? null,

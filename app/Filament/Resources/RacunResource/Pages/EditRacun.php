@@ -49,8 +49,9 @@ class EditRacun extends EditRecord
     protected function afterSave(): void
     {
         $keepIds = [];
+        $stavke = array_values($this->pendingStavke);
 
-        foreach ($this->pendingStavke as $index => $stavka) {
+        foreach ($stavke as $index => $stavka) {
             $id = $stavka['id'] ?? null;
 
             $stavkaData = [
