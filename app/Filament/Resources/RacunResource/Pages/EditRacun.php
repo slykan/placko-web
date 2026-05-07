@@ -7,11 +7,12 @@ use App\Models\RacunStavka;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Support\Carbon;
 
 class EditRacun extends EditRecord
 {
     protected static string $resource = RacunResource::class;
+
+    protected array $pendingStavke = [];
 
     protected function authorizeAccess(): void
     {
@@ -27,44 +28,67 @@ class EditRacun extends EditRecord
         }
     }
 
-    protected function getHeaderActions(): array
+    protected function mutateFormDataBeforeFill(array $data): array
     {
-        return [
-            Actions\DeleteAction::make()->label('Obriši račun'),
-        ];
-    }
+        $data['stavke'] = $this->record->stavke
+            ->map(fn ($s) => $s->toArray())
+            ->values()
+            ->toArray();
 
-    protected array $stavkeIdsBefore = [];
+        return $data;
+    }
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $this->stavkeIdsBefore = $this->record->stavke()->pluck('id')->toArray();
+        $this->pendingStavke = $data['stavke'] ?? [];
+        unset($data['stavke']);
+
         return $data;
     }
 
     protected function afterSave(): void
     {
-        // Pokušaj dobiti keepIds iz form state (Livewire 3 čuva cijeli state)
-        $keepIds = collect($this->data['stavke'] ?? [])
-            ->map(fn ($item) => $item['id'] ?? null)
-            ->filter()
-            ->values()
-            ->toArray();
+        $keepIds = [];
 
-        // Fallback: ako IDs nisu u state, obriši one koji nisu upravo touched
-        if (empty($keepIds) && !empty($this->stavkeIdsBefore)) {
-            $saveTime = Carbon::now()->subSeconds(2);
-            RacunStavka::where('racun_id', $this->record->id)
-                ->where('updated_at', '<', $saveTime)
-                ->delete();
-        } elseif (!empty($keepIds)) {
-            RacunStavka::where('racun_id', $this->record->id)
-                ->whereNotIn('id', $keepIds)
-                ->delete();
+        foreach ($this->pendingStavke as $index => $stavka) {
+            $id = $stavka['id'] ?? null;
+
+            $stavkaData = [
+                'racun_id'       => $this->record->id,
+                'usluga_id'      => $stavka['usluga_id'] ?? null,
+                'naziv'          => $stavka['naziv'] ?? '',
+                'opis'           => $stavka['opis'] ?? null,
+                'jedinica_mjere' => $stavka['jedinica_mjere'] ?? 'kom',
+                'kolicina'       => $stavka['kolicina'] ?? 1,
+                'cijena'         => $stavka['cijena'] ?? 0,
+                'rabat_posto'    => $stavka['rabat_posto'] ?? 0,
+                'pdv_stopa'      => $stavka['pdv_stopa'] ?? null,
+                'ukupno'         => $stavka['ukupno'] ?? 0,
+                'redni_broj'     => $index + 1,
+            ];
+
+            if ($id) {
+                RacunStavka::where('id', $id)->update($stavkaData);
+                $keepIds[] = (int) $id;
+            } else {
+                $new = RacunStavka::create($stavkaData);
+                $keepIds[] = $new->id;
+            }
         }
+
+        $this->record->stavke()
+            ->when(!empty($keepIds), fn ($q) => $q->whereNotIn('id', $keepIds))
+            ->delete();
 
         $this->record->load('stavke');
         $this->record->izracunajUkupno();
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\DeleteAction::make()->label('Obriši račun'),
+        ];
     }
 
     protected function getRedirectUrl(): string
