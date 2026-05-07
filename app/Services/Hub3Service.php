@@ -20,16 +20,16 @@ class Hub3Service
             STR_PAD_LEFT
         );
 
-        $primatelj_ime    = mb_substr($tvrtka->naziv ?? '', 0, 25);
-        $primatelj_ulica  = mb_substr($tvrtka->adresa ?? '', 0, 25);
-        $primatelj_mjesto = mb_substr(($tvrtka->po_broj ?? '') . ' ' . ($tvrtka->mjesto ?? ''), 0, 27);
+        $primatelj_ime    = mb_substr(static::ascii($tvrtka->naziv ?? ''), 0, 25);
+        $primatelj_ulica  = mb_substr(static::ascii($tvrtka->adresa ?? ''), 0, 25);
+        $primatelj_mjesto = mb_substr(static::ascii(trim(($tvrtka->po_broj ?? '') . ' ' . ($tvrtka->mjesto ?? ''))), 0, 27);
         $iban             = preg_replace('/\s+/', '', $tvrtka->iban ?? '');
         $poziv            = $racun->broj;
-        $opis             = mb_substr('Uplata prema racunu ' . $racun->broj, 0, 35);
+        $opis             = mb_substr(static::ascii('Uplata prema racunu ' . $racun->broj), 0, 35);
 
-        $platitelj_ime    = mb_substr($klijent->naziv ?? '', 0, 25);
-        $platitelj_ulica  = mb_substr($klijent->adresa ?? '', 0, 25);
-        $platitelj_mjesto = mb_substr(($klijent->po_broj ?? '') . ' ' . ($klijent->mjesto ?? ''), 0, 27);
+        $platitelj_ime    = mb_substr(static::ascii($klijent->naziv ?? ''), 0, 30);
+        $platitelj_ulica  = mb_substr(static::ascii($klijent->adresa ?? ''), 0, 27);
+        $platitelj_mjesto = mb_substr(static::ascii(trim(($klijent->po_broj ?? '') . ' ' . ($klijent->mjesto ?? ''))), 0, 27);
 
         return implode("\n", [
             'HRVHUB30',
@@ -46,6 +46,17 @@ class Hub3Service
             $poziv,
             '',
             $opis,
+        ]) . "\n";
+    }
+
+    private static function ascii(string $s): string
+    {
+        return strtr($s, [
+            'š' => 's', 'Š' => 'S',
+            'č' => 'c', 'Č' => 'C',
+            'ć' => 'c', 'Ć' => 'C',
+            'ž' => 'z', 'Ž' => 'Z',
+            'đ' => 'd', 'Đ' => 'D',
         ]);
     }
 
@@ -56,9 +67,9 @@ class Hub3Service
         $pdf417 = new PDF417();
         $data   = $pdf417->encode($hub3String);
         $render = new ImageRenderer([
-            'scale'   => 2,
+            'scale'   => 3,
             'ratio'   => 3,
-            'padding' => 5,
+            'padding' => 10,
         ]);
 
         $imageData = $render->render($data);
