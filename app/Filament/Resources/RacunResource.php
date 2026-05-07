@@ -14,6 +14,7 @@ use App\Services\Hub3Service;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -126,9 +127,9 @@ class RacunResource extends Resource
             // Stavke - Repeater s pretragom usluga
             Section::make('Stavke')->schema([
                 Repeater::make('stavke')
-                    ->relationship()
-                    ->orderColumn('redni_broj')
                     ->schema([
+                        Hidden::make('id'),
+
                         // Red 1: Usluga, Naziv, Opis
                         Select::make('usluga_id')
                             ->label('Usluga / Proizvod')
@@ -154,7 +155,7 @@ class RacunResource extends Resource
 
                         TextInput::make('naziv')
                             ->label('Naziv')
-                            ->required()
+                            ->required(fn (Get $get): bool => static::stavkaImaSadrzaj($get))
                             ->columnSpan(4),
 
                         TextInput::make('opis')
@@ -170,7 +171,7 @@ class RacunResource extends Resource
                         TextInput::make('kolicina')
                             ->label('Količina')
                             ->numeric()
-                            ->required()
+                            ->required(fn (Get $get): bool => static::stavkaImaSadrzaj($get))
                             ->default(1)
                             ->step(0.001)
                             ->dehydrateStateUsing(fn ($state) => $state ?? 1)
@@ -181,7 +182,7 @@ class RacunResource extends Resource
                         TextInput::make('cijena')
                             ->label('Cijena (bez PDV)')
                             ->numeric()
-                            ->required()
+                            ->required(fn (Get $get): bool => static::stavkaImaSadrzaj($get))
                             ->default(0)
                             ->step(0.01)
                             ->prefix('€')
@@ -277,6 +278,32 @@ class RacunResource extends Resource
         $ukupno    = $neto + ($neto * ($pdv / 100));
 
         $set('ukupno', round($ukupno, 2));
+    }
+
+    protected static function stavkaImaSadrzaj(Get $get): bool
+    {
+        return filled($get('usluga_id'))
+            || filled($get('naziv'))
+            || filled($get('opis'))
+            || static::brojImaVrijednost($get('cijena'));
+    }
+
+    public static function filtrirajPrazneStavke(array $stavke): array
+    {
+        return array_values(array_filter($stavke, fn (array $stavka): bool => static::stavkaArrayImaSadrzaj($stavka)));
+    }
+
+    protected static function stavkaArrayImaSadrzaj(array $stavka): bool
+    {
+        return filled($stavka['usluga_id'] ?? null)
+            || filled($stavka['naziv'] ?? null)
+            || filled($stavka['opis'] ?? null)
+            || static::brojImaVrijednost($stavka['cijena'] ?? null);
+    }
+
+    protected static function brojImaVrijednost(mixed $state): bool
+    {
+        return $state !== null && $state !== '' && (float) $state !== 0.0;
     }
 
     protected static function izracunajUkupno(Get $get, Set $set): void

@@ -4,11 +4,15 @@ namespace App\Filament\Resources\RacunResource\Pages;
 
 use App\Filament\Resources\RacunResource;
 use App\Models\Racun;
+use App\Models\RacunStavka;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Validation\ValidationException;
 
 class CreateRacun extends CreateRecord
 {
     protected static string $resource = RacunResource::class;
+
+    protected array $pendingStavke = [];
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
@@ -21,11 +25,37 @@ class CreateRacun extends CreateRecord
         $data['broj']       = $generirani['broj'];
         $data['status']     = $data['status'] ?? 'final';
 
+        $this->pendingStavke = RacunResource::filtrirajPrazneStavke($data['stavke'] ?? []);
+
+        if (empty($this->pendingStavke)) {
+            throw ValidationException::withMessages([
+                'stavke' => 'Račun mora imati barem jednu stavku.',
+            ]);
+        }
+
+        unset($data['stavke']);
+
         return $data;
     }
 
     protected function afterCreate(): void
     {
+        foreach ($this->pendingStavke as $index => $stavka) {
+            RacunStavka::create([
+                'racun_id'       => $this->record->id,
+                'usluga_id'      => $stavka['usluga_id'] ?? null,
+                'naziv'          => $stavka['naziv'] ?? '',
+                'opis'           => $stavka['opis'] ?? null,
+                'jedinica_mjere' => $stavka['jedinica_mjere'] ?? 'kom',
+                'kolicina'       => $stavka['kolicina'] ?? 1,
+                'cijena'         => $stavka['cijena'] ?? 0,
+                'rabat_posto'    => $stavka['rabat_posto'] ?? 0,
+                'pdv_stopa'      => $stavka['pdv_stopa'] ?? null,
+                'ukupno'         => $stavka['ukupno'] ?? 0,
+                'redni_broj'     => $index + 1,
+            ]);
+        }
+
         $this->record->load('stavke');
         $this->record->izracunajUkupno();
     }
