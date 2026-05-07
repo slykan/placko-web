@@ -225,7 +225,9 @@ class RacunResource extends Resource
                     ->reorderable()
                     ->cloneable()
                     ->deletable(true)
-                    ->defaultItems(0),
+                    ->defaultItems(0)
+                    ->live()
+                    ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajUkupno($get, $set)),
             ]),
 
             // Sažetak
