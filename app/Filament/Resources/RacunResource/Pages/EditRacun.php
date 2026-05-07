@@ -3,17 +3,13 @@
 namespace App\Filament\Resources\RacunResource\Pages;
 
 use App\Filament\Resources\RacunResource;
-use App\Models\RacunStavka;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Validation\ValidationException;
 
 class EditRacun extends EditRecord
 {
     protected static string $resource = RacunResource::class;
-
-    protected array $pendingStavke = [];
 
     protected function authorizeAccess(): void
     {
@@ -29,66 +25,8 @@ class EditRacun extends EditRecord
         }
     }
 
-    protected function mutateFormDataBeforeFill(array $data): array
-    {
-        $data['stavke'] = $this->record->stavke
-            ->map(fn ($s) => $s->toArray())
-            ->values()
-            ->toArray();
-
-        return $data;
-    }
-
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        $this->pendingStavke = $data['stavke'] ?? [];
-
-        if (empty($this->pendingStavke)) {
-            throw ValidationException::withMessages([
-                'stavke' => 'Račun mora imati barem jednu stavku.',
-            ]);
-        }
-
-        unset($data['stavke']);
-
-        return $data;
-    }
-
     protected function afterSave(): void
     {
-        $keepIds = [];
-        $stavke = array_values($this->pendingStavke);
-
-        foreach ($stavke as $index => $stavka) {
-            $id = $stavka['id'] ?? null;
-
-            $stavkaData = [
-                'racun_id'       => $this->record->id,
-                'usluga_id'      => $stavka['usluga_id'] ?? null,
-                'naziv'          => $stavka['naziv'] ?? '',
-                'opis'           => $stavka['opis'] ?? null,
-                'jedinica_mjere' => $stavka['jedinica_mjere'] ?? 'kom',
-                'kolicina'       => $stavka['kolicina'] ?? 1,
-                'cijena'         => $stavka['cijena'] ?? 0,
-                'rabat_posto'    => $stavka['rabat_posto'] ?? 0,
-                'pdv_stopa'      => $stavka['pdv_stopa'] ?? null,
-                'ukupno'         => $stavka['ukupno'] ?? 0,
-                'redni_broj'     => $index + 1,
-            ];
-
-            if ($id) {
-                RacunStavka::where('id', $id)->update($stavkaData);
-                $keepIds[] = (int) $id;
-            } else {
-                $new = RacunStavka::create($stavkaData);
-                $keepIds[] = $new->id;
-            }
-        }
-
-        $this->record->stavke()
-            ->when(!empty($keepIds), fn ($q) => $q->whereNotIn('id', $keepIds))
-            ->delete();
-
         $this->record->load('stavke');
         $this->record->izracunajUkupno();
     }
