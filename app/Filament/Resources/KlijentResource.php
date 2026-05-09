@@ -63,7 +63,12 @@ class KlijentResource extends Resource
 
             Section::make('Bankovni podaci')->schema([
                 TextInput::make('iban')
-                    ->label('IBAN'),
+                    ->label('IBAN')
+                    ->placeholder('HR1234567890123456789')
+                    ->maxLength(34)
+                    ->rule('nullable|regex:/^[A-Z]{2}[0-9A-Z]{13,32}$/')
+                    ->validationMessages(['regex' => 'IBAN mora počinjati s 2 slova države i sadržavati samo brojeve i velika slova (bez razmaka).'])
+                    ->helperText('HR IBAN: 21 znak (HR + 19 znamenki). Strani: do 34 znaka, bez razmaka.'),
 
                 TextInput::make('swift')
                     ->label('SWIFT'),
