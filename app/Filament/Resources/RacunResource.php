@@ -175,8 +175,10 @@ class RacunResource extends Resource
                             ->numeric()
                             ->required(fn (Get $get): bool => static::stavkaImaSadrzaj($get))
                             ->default(1)
-                            ->step(0.001)
-                            ->dehydrateStateUsing(fn ($state) => $state ?? 1)
+                            ->step(1)
+                            ->minValue(1)
+                            ->integer()
+                            ->dehydrateStateUsing(fn ($state) => (int) ($state ?? 1))
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavkuIUkupno($get, $set))
                             ->columnSpan(2),
@@ -272,7 +274,7 @@ class RacunResource extends Resource
     protected static function izracunajStavku(Get $get, Set $set): void
     {
         $cijena   = (float) ($get('cijena') ?? 0);
-        $kolicina = (float) ($get('kolicina') ?? 1);
+        $kolicina = (int) ($get('kolicina') ?? 1);
         $rabat    = (float) ($get('rabat_posto') ?? 0);
         $pdv      = (float) ($get('pdv_stopa') ?? 0);
 
@@ -334,7 +336,7 @@ class RacunResource extends Resource
 
         foreach ($stavke as $stavka) {
             $cijena   = (float) ($stavka['cijena'] ?? 0);
-            $kolicina = (float) ($stavka['kolicina'] ?? 1);
+            $kolicina = (int) ($stavka['kolicina'] ?? 1);
             $rabatP   = (float) ($stavka['rabat_posto'] ?? 0);
             $pdvS     = (float) ($stavka['pdv_stopa'] ?? 0);
 

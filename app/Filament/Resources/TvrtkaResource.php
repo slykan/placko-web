@@ -95,7 +95,12 @@ class TvrtkaResource extends Resource
 
             Section::make('Bankovni podaci')->schema([
                 TextInput::make('iban')
-                    ->label('IBAN'),
+                    ->label('IBAN')
+                    ->placeholder('HR1234567890123456789')
+                    ->length(21)
+                    ->rule('regex:/^HR[0-9]{19}$/')
+                    ->validationMessages(['regex' => 'IBAN mora biti u formatu HR + 19 znamenki (ukupno 21 znak).'])
+                    ->helperText('Format: HR + 19 znamenki (ukupno 21 znak)'),
 
                 TextInput::make('swift')
                     ->label('SWIFT'),
