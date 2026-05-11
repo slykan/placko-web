@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3054841074530422" crossorigin="anonymous"></script>
 
     <title>plačko.app — Fakturiranje i računovodstvo za obrtnike u Hrvatskoj</title>
     <meta name="description" content="plačko.app je moderna web aplikacija za izdavanje računa, fiskalizaciju, eRačun (UBL 2.1), praćenje pretplata i porezne obrasce za paušalne obrtnike i male tvrtke u Hrvatskoj.">
