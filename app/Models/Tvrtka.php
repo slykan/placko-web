@@ -77,6 +77,11 @@ class Tvrtka extends Model
         return $this->hasMany(Racun::class);
     }
 
+    public function ponude(): HasMany
+    {
+        return $this->hasMany(Ponuda::class);
+    }
+
     public function pretplate(): HasMany
     {
         return $this->hasMany(Pretplata::class);
