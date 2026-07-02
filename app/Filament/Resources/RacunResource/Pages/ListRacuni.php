@@ -19,7 +19,7 @@ class ListRacuni extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()->label('+ Nova faktura'),
+            Actions\CreateAction::make()->label('+ Novi račun'),
             Actions\Action::make('iz_ponude')
                 ->label('Račun iz ponude')
                 ->icon('heroicon-o-document-duplicate')
