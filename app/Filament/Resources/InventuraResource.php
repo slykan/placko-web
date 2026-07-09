@@ -35,6 +35,8 @@ class InventuraResource extends Resource
 
     protected static ?string $slug = 'inventure';
 
+    protected static ?string $navigationGroup = 'Skladište';
+
     protected static ?int $navigationSort = 10;
 
     protected static ?string $tenantRelationshipName = 'inventure';

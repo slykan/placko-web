@@ -26,6 +26,8 @@ class DobavljacResource extends Resource
 
     protected static ?string $slug = 'dobavljaci';
 
+    protected static ?string $navigationGroup = 'Skladište';
+
     protected static ?int $navigationSort = 7;
 
     protected static ?string $tenantRelationshipName = 'dobavljaci';

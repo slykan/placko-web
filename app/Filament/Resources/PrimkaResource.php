@@ -38,6 +38,8 @@ class PrimkaResource extends Resource
 
     protected static ?string $slug = 'primke';
 
+    protected static ?string $navigationGroup = 'Skladište';
+
     protected static ?int $navigationSort = 8;
 
     protected static ?string $tenantRelationshipName = 'primke';

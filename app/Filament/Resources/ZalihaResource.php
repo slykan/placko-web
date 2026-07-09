@@ -26,6 +26,8 @@ class ZalihaResource extends Resource
 
     protected static ?string $slug = 'zalihe';
 
+    protected static ?string $navigationGroup = 'Skladište';
+
     protected static ?int $navigationSort = 9;
 
     public static function table(Table $table): Table

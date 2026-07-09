@@ -26,6 +26,8 @@ class SkladisteResource extends Resource
 
     protected static ?string $slug = 'skladista';
 
+    protected static ?string $navigationGroup = 'Skladište';
+
     protected static ?int $navigationSort = 6;
 
     protected static ?string $tenantRelationshipName = 'skladista';
