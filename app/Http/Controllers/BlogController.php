@@ -11,6 +11,13 @@ class BlogController extends Controller
     {
         return [
             [
+                'slug' => 'skladiste-zalihe-uskoro',
+                'title' => 'Uskoro stiže: Skladište i praćenje zaliha',
+                'excerpt' => 'Radimo na modulu Skladište — praćenje zaliha po proizvodu, automatsko oduzimanje pri izdavanju računa, upozorenja kod niske zalihe i još mnogo toga.',
+                'date' => '2026-07-09',
+                'read' => '4 min čitanja',
+            ],
+            [
                 'slug' => 'ponude-izrada-slanje-i-racun',
                 'title' => 'Ponude u plačko.app: izrada, slanje mailom i pretvaranje u račun',
                 'excerpt' => 'Kako brzo izraditi profesionalnu ponudu, poslati je klijentu e-mailom i pretvoriti u račun jednim klikom čim je klijent prihvati.',
