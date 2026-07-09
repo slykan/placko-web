@@ -16,6 +16,7 @@ class PonudaMail extends Mailable
         public string $pdfNaziv,
         public array $dodatniPrivitci = [],
         public ?Tvrtka $tvrtka = null,
+        public ?string $prihvatiUrl = null,
     ) {}
 
     public function envelope(): Envelope
@@ -29,7 +30,7 @@ class PonudaMail extends Mailable
     {
         return new Content(
             view: 'mail.ponuda',
-            with: ['poruka' => $this->poruka, 'tvrtka' => $this->tvrtka],
+            with: ['poruka' => $this->poruka, 'tvrtka' => $this->tvrtka, 'prihvatiUrl' => $this->prihvatiUrl],
         );
     }
 

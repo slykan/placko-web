@@ -13,11 +13,11 @@ class Ponuda extends Model
     protected $fillable = [
         'tvrtka_id', 'klijent_id', 'broj', 'redni_broj', 'godina',
         'datum_izdavanja', 'vrijeme_izdavanja', 'mjesto_izdavanja',
-        'valjanost_dana', 'rok_ispostave', 'napomena',
+        'valjanost_dana', 'rok_ispostave', 'napomena', 'prihvacena_at',
         'ukupno_osnovica', 'ukupno_rabat', 'ukupno_pdv', 'ukupno',
     ];
 
-    protected $casts = ['datum_izdavanja' => 'date'];
+    protected $casts = ['datum_izdavanja' => 'date', 'prihvacena_at' => 'datetime'];
 
     public static function generiraBroj(int $tvrtkaId): array
     {

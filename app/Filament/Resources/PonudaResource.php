@@ -27,6 +27,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class PonudaResource extends Resource
 {
@@ -158,6 +159,15 @@ class PonudaResource extends Resource
             Tables\Columns\TextColumn::make('valjanost_dana')->label('Valjanost')->suffix(' dana')->sortable(),
             Tables\Columns\TextColumn::make('rok_ispostave')->label('Rok ispostave')->searchable(),
             Tables\Columns\TextColumn::make('ukupno')->label('Ukupno')->money('EUR')->sortable(),
+            Tables\Columns\IconColumn::make('prihvacena_at')->label('Prihvaćena')
+                ->boolean()
+                ->trueIcon('heroicon-o-check-badge')
+                ->falseIcon('heroicon-o-clock')
+                ->trueColor('success')
+                ->falseColor('gray')
+                ->tooltip(fn (Ponuda $ponuda) => $ponuda->prihvacena_at
+                    ? 'Prihvaćena '.$ponuda->prihvacena_at->format('d.m.Y. H:i')
+                    : 'Klijent još nije prihvatio ponudu'),
         ])->defaultSort('datum_izdavanja', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('godina')->label('Godina')
@@ -245,7 +255,9 @@ class PonudaResource extends Resource
                             $dodatniPrivitci[] = Storage::disk('local')->path($file);
                         }
 
-                        $mailable = (new PonudaMail($data['poruka'], $pdfOutput, $pdfNaziv, $dodatniPrivitci, $ponuda->tvrtka))
+                        $prihvatiUrl = URL::signedRoute('ponuda.prihvati', ['ponuda' => $ponuda->id]);
+
+                        $mailable = (new PonudaMail($data['poruka'], $pdfOutput, $pdfNaziv, $dodatniPrivitci, $ponuda->tvrtka, $prihvatiUrl))
                             ->subject('Ponuda '.$ponuda->broj.' - '.($ponuda->tvrtka->naziv ?? ''));
 
                         try {
