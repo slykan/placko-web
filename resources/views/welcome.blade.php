@@ -555,6 +555,7 @@
     <div class="nav-links">
         <a href="#znacajke" class="nav-link">Značajke</a>
         <a href="#cijene" class="nav-link">Cijene</a>
+        <a href="/novosti" class="nav-link">Novosti</a>
         <a href="#faq" class="nav-link">FAQ</a>
         <a href="/admin" class="btn-nav-outline">Prijava</a>
         <a href="/admin/register" class="btn-nav-solid">Isprobaj</a>
@@ -905,6 +906,7 @@
                 <ul>
                     <li><a href="#znacajke">Značajke</a></li>
                     <li><a href="#cijene">Cijene</a></li>
+                    <li><a href="/novosti">Novosti</a></li>
                     <li><a href="#faq">FAQ</a></li>
                     <li><a href="/admin/register">Registracija</a></li>
                 </ul>

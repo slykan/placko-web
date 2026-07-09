@@ -3,11 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PonudaResource\Pages;
+use App\Mail\PonudaMail;
 use App\Models\Klijent;
 use App\Models\Ponuda;
+use App\Models\TvrtkaPostavke;
 use App\Models\Usluga;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
@@ -17,10 +20,13 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class PonudaResource extends Resource
 {
@@ -164,6 +170,110 @@ class PonudaResource extends Resource
                     ->action(fn (Ponuda $ponuda) => response()->streamDownload(
                         fn () => print (static::generirajPdf($ponuda)), 'Ponuda_'.$ponuda->broj.'.pdf'
                     )),
+
+                Tables\Actions\Action::make('posalji')
+                    ->label('Pošalji')
+                    ->icon('heroicon-o-envelope')
+                    ->color('primary')
+                    ->iconButton()
+                    ->tooltip('Pošalji e-mailom')
+                    ->form(function (Ponuda $ponuda): array {
+                        $ponuda->load(['tvrtka', 'klijent']);
+
+                        $defaultPredlozak = "Poštovani {klijent},\n\nu privitku se nalazi ponuda broj {broj}, s rokom valjanosti {valjanost} dana.\n\nSrdačan pozdrav,\n{tvrtka}, vl. {vlasnik}";
+
+                        $poruka = str_replace(
+                            ['{klijent}', '{broj}', '{datum}', '{valjanost}', '{ukupno}', '{tvrtka}', '{vlasnik}'],
+                            [
+                                $ponuda->klijent->naziv ?? '',
+                                $ponuda->broj,
+                                $ponuda->datum_izdavanja->format('d.m.Y.'),
+                                $ponuda->valjanost_dana,
+                                number_format((float) $ponuda->ukupno, 2, ',', '.').' €',
+                                $ponuda->tvrtka->naziv ?? '',
+                                $ponuda->tvrtka->vlasnik ?? '',
+                            ],
+                            $defaultPredlozak
+                        );
+
+                        $postavke = TvrtkaPostavke::where('tvrtka_id', $ponuda->tvrtka_id)->first();
+
+                        return [
+                            TextInput::make('od')->label('Pošiljatelj')
+                                ->default($postavke?->smtp_from_email ?? '')->required(),
+                            TextInput::make('prima')->label('Prima')->email()
+                                ->default($ponuda->klijent->email ?? '')->required(),
+                            TextInput::make('cc')->label('CC')->email()->placeholder('kopija@mail.hr'),
+                            Textarea::make('poruka')->label('Poruka')->default($poruka)->rows(8)
+                                ->helperText('Dostupni tagovi: {klijent}, {broj}, {datum}, {valjanost}, {ukupno}, {tvrtka}, {vlasnik}'),
+                            FileUpload::make('dodatni_privitci')->label('Dodatni privitci')
+                                ->multiple()->disk('local')->directory('tmp-privitci')->preserveFilenames(),
+                        ];
+                    })
+                    ->modalHeading(fn (Ponuda $ponuda) => 'Pošalji ponudu '.$ponuda->broj)
+                    ->modalSubmitActionLabel('Pošalji')
+                    ->action(function (Ponuda $ponuda, array $data) {
+                        $ponuda->load(['stavke', 'tvrtka', 'klijent']);
+                        $postavke = TvrtkaPostavke::where('tvrtka_id', $ponuda->tvrtka_id)->first();
+
+                        if ($postavke?->smtp_host) {
+                            config([
+                                'mail.mailers.tvrtka' => [
+                                    'transport' => 'smtp',
+                                    'host' => $postavke->smtp_host,
+                                    'port' => $postavke->smtp_port ?? 587,
+                                    'encryption' => $postavke->smtp_sigurnost === 'none' ? null : $postavke->smtp_sigurnost,
+                                    'username' => $postavke->smtp_user,
+                                    'password' => $postavke->smtp_pass,
+                                    'timeout' => null,
+                                ],
+                                'mail.from' => [
+                                    'address' => $data['od'],
+                                    'name' => $postavke->smtp_from_name ?? $ponuda->tvrtka->naziv,
+                                ],
+                            ]);
+                            $mailer = Mail::mailer('tvrtka');
+                        } else {
+                            $mailer = Mail::mailer();
+                        }
+
+                        $pdfOutput = static::generirajPdf($ponuda);
+                        $pdfNaziv = 'Ponuda_'.$ponuda->broj.'.pdf';
+                        $dodatniPrivitci = [];
+
+                        foreach ($data['dodatni_privitci'] ?? [] as $file) {
+                            $dodatniPrivitci[] = Storage::disk('local')->path($file);
+                        }
+
+                        $mailable = (new PonudaMail($data['poruka'], $pdfOutput, $pdfNaziv, $dodatniPrivitci))
+                            ->subject('Ponuda '.$ponuda->broj.' - '.($ponuda->tvrtka->naziv ?? ''));
+
+                        try {
+                            $send = $mailer->to($data['prima']);
+                            if (! empty($data['cc'])) {
+                                $send = $send->cc($data['cc']);
+                            }
+                            $send->send($mailable);
+
+                            Notification::make()
+                                ->title('E-mail poslan')
+                                ->body('Ponuda '.$ponuda->broj.' poslana na '.$data['prima'])
+                                ->success()
+                                ->send();
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->title('Greška pri slanju e-maila')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->persistent()
+                                ->send();
+                        }
+
+                        foreach ($data['dodatni_privitci'] ?? [] as $file) {
+                            Storage::disk('local')->delete($file);
+                        }
+                    }),
+
                 Tables\Actions\EditAction::make()->label('Uredi')->iconButton(),
                 Tables\Actions\DeleteAction::make()->label('Obriši')->iconButton(),
             ])
