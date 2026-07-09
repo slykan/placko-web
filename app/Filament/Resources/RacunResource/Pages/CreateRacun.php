@@ -14,6 +14,8 @@ class CreateRacun extends CreateRecord
 
     protected array $pendingStavke = [];
 
+    protected array $prodanoPoUsluzi = [];
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $tvrtkaId = filament()->getTenant()->id;
@@ -32,6 +34,15 @@ class CreateRacun extends CreateRecord
                 'stavke' => 'Račun mora imati barem jednu stavku.',
             ]);
         }
+
+        foreach ($this->pendingStavke as $stavka) {
+            if (empty($stavka['usluga_id'])) {
+                continue;
+            }
+            $uslugaId = $stavka['usluga_id'];
+            $this->prodanoPoUsluzi[$uslugaId] = ($this->prodanoPoUsluzi[$uslugaId] ?? 0) + (float) ($stavka['kolicina'] ?? 0);
+        }
+        RacunResource::provjeriDovoljnoZalihe($tvrtkaId, $this->prodanoPoUsluzi);
 
         unset($data['stavke']);
 
@@ -58,6 +69,8 @@ class CreateRacun extends CreateRecord
 
         $this->record->load('stavke');
         $this->record->izracunajUkupno();
+
+        RacunResource::primijeniProdajuNaZalihu($this->record, $this->prodanoPoUsluzi, 'izlaz');
     }
 
     protected function getRedirectUrl(): string

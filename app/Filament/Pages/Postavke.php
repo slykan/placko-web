@@ -39,6 +39,7 @@ class Postavke extends Page implements HasForms
     public ?array $pretplateData      = [];
     public ?array $fiskalizacijaData  = [];
     public ?array $eracunData         = [];
+    public ?array $zalihaData         = [];
 
     public function mount(): void
     {
@@ -88,11 +89,15 @@ class Postavke extends Page implements HasForms
             'eracun_jks_uuid'       => $postavke->eracun_jks_uuid,
             'eracun_cert_putanja'   => $postavke->eracun_cert_putanja,
         ]);
+
+        $this->zalihaForm->fill([
+            'zaliha_dozvoli_negativnu' => $postavke->zaliha_dozvoli_negativnu ?? true,
+        ]);
     }
 
     protected function getForms(): array
     {
-        return ['korisnikForm', 'smtpForm', 'emailForm', 'pretplateForm', 'fiskalizacijaForm', 'eracunForm'];
+        return ['korisnikForm', 'smtpForm', 'emailForm', 'pretplateForm', 'fiskalizacijaForm', 'eracunForm', 'zalihaForm'];
     }
 
     public function korisnikForm(Form $form): Form
@@ -690,5 +695,33 @@ class Postavke extends Page implements HasForms
         } catch (\Throwable $e) {
             Notification::make()->title('Greška pri testiranju FINA veze')->body($e->getMessage())->danger()->send();
         }
+    }
+
+    public function zalihaForm(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Section::make('Skladište')
+                    ->description('Ponašanje sustava zaliha kod izdavanja računa')
+                    ->schema([
+                        Toggle::make('zaliha_dozvoli_negativnu')
+                            ->label('Dopusti negativnu zalihu')
+                            ->helperText('Uključeno (preporučeno): račun se izdaje i kad nema dovoljno zalihe, samo se prikazuje upozorenje. Isključeno: izdavanje računa se blokira dok se zaliha ne uskladi.')
+                            ->columnSpanFull(),
+                    ]),
+            ])
+            ->statePath('zalihaData');
+    }
+
+    public function spremiZalihu(): void
+    {
+        $data = $this->zalihaForm->getState();
+
+        TvrtkaPostavke::updateOrCreate(
+            ['tvrtka_id' => filament()->getTenant()->id],
+            ['zaliha_dozvoli_negativnu' => $data['zaliha_dozvoli_negativnu'] ?? true]
+        );
+
+        Notification::make()->title('Postavke skladišta spremljene')->success()->send();
     }
 }

@@ -3,10 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UslugaResource\Pages;
+use App\Filament\Resources\UslugaResource\RelationManagers\TransakcijeRelationManager;
 use App\Models\Usluga;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -54,6 +57,18 @@ class UslugaResource extends Resource
                 ->default(0)
                 ->step(0.01)
                 ->prefix('€'),
+
+            Toggle::make('prati_zalihu')
+                ->label('Prati zalihu')
+                ->helperText('Uključi za fizičke proizvode — omogućuje primke, automatsko oduzimanje pri izdavanju računa i upozorenja na nisku zalihu.')
+                ->live()
+                ->columnSpanFull(),
+
+            TextInput::make('minimalna_zaliha')
+                ->label('Minimalna zaliha (upozorenje)')
+                ->numeric()
+                ->step(0.001)
+                ->visible(fn (Get $get) => (bool) $get('prati_zalihu')),
         ])->columns(2);
     }
 
@@ -88,6 +103,16 @@ class UslugaResource extends Resource
                     ->label('Cijena s PDV (€)')
                     ->money('EUR')
                     ->getStateUsing(fn (Usluga $record) => $record->cijena_s_pdvom),
+
+                Tables\Columns\TextColumn::make('zaliha')
+                    ->label('Zaliha')
+                    ->getStateUsing(fn (Usluga $record) => $record->prati_zalihu
+                        ? number_format($record->ukupnaKolicina(), 2, ',', '.').' '.($record->jedinica_mjere ?? 'kom')
+                        : '—')
+                    ->color(fn (Usluga $record) => $record->prati_zalihu
+                        && $record->minimalna_zaliha !== null
+                        && $record->ukupnaKolicina() <= (float) $record->minimalna_zaliha
+                        ? 'danger' : null),
             ])
             ->defaultSort('naziv')
             ->filters([
@@ -125,6 +150,13 @@ class UslugaResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->where('tvrtka_id', filament()->getTenant()->id);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            TransakcijeRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

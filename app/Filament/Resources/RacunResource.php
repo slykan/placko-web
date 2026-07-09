@@ -11,6 +11,7 @@ use App\Models\Usluga;
 use App\Services\EracunService;
 use App\Services\FiskalizacijaService;
 use App\Services\Hub3Service;
+use App\Services\ZalihaService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -33,6 +34,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class RacunResource extends Resource
 {
@@ -308,6 +310,74 @@ class RacunResource extends Resource
     public static function filtrirajPrazneStavke(array $stavke): array
     {
         return array_values(array_filter($stavke, fn (array $stavka): bool => static::stavkaArrayImaSadrzaj($stavka)));
+    }
+
+    /**
+     * @param  array<int|string, float>  $dodatnoProdanoPoUsluzi  usluga_id => koliko se DODATNO prodaje u odnosu na trenutno stanje računa
+     */
+    public static function provjeriDovoljnoZalihe(int $tvrtkaId, array $dodatnoProdanoPoUsluzi): void
+    {
+        $postavke = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->first();
+        if ($postavke?->zaliha_dozvoli_negativnu ?? true) {
+            return;
+        }
+
+        $skladiste = ZalihaService::zadanoSkladiste($tvrtkaId);
+
+        foreach ($dodatnoProdanoPoUsluzi as $uslugaId => $dodatnoProdano) {
+            if (! $uslugaId || $dodatnoProdano <= 0) {
+                continue;
+            }
+
+            $usluga = Usluga::find($uslugaId);
+            if (! $usluga || ! $usluga->prati_zalihu) {
+                continue;
+            }
+
+            $trenutna = (float) ($usluga->zalihe()->where('skladiste_id', $skladiste->id)->value('kolicina') ?? 0);
+
+            if ($trenutna - $dodatnoProdano < 0) {
+                throw ValidationException::withMessages([
+                    'stavke' => 'Nedovoljno zalihe za "'.$usluga->naziv.'" (dostupno: '.number_format($trenutna, 2, ',', '.').', potrebno: '.number_format($dodatnoProdano, 2, ',', '.').').',
+                ]);
+            }
+        }
+    }
+
+    /**
+     * @param  array<int|string, float>  $prodanoDeltaPoUsluzi  usluga_id => promjena prodane kolicine (+ vise prodano, - manje prodano)
+     */
+    public static function primijeniProdajuNaZalihu(Racun $racun, array $prodanoDeltaPoUsluzi, string $tip): void
+    {
+        $skladiste = ZalihaService::zadanoSkladiste($racun->tvrtka_id);
+        $upozorenja = [];
+
+        foreach ($prodanoDeltaPoUsluzi as $uslugaId => $prodanoDelta) {
+            if (! $uslugaId || abs($prodanoDelta) < 0.001) {
+                continue;
+            }
+
+            $usluga = Usluga::find($uslugaId);
+            if (! $usluga || ! $usluga->prati_zalihu) {
+                continue;
+            }
+
+            ZalihaService::zabiljezi($usluga, $skladiste, $tip, -$prodanoDelta, null, ['racun_id' => $racun->id]);
+
+            $novoStanje = (float) ($usluga->zalihe()->where('skladiste_id', $skladiste->id)->value('kolicina') ?? 0);
+
+            if ($novoStanje < 0 || ($usluga->minimalna_zaliha !== null && $novoStanje <= (float) $usluga->minimalna_zaliha)) {
+                $upozorenja[] = $usluga->naziv.' ('.number_format($novoStanje, 2, ',', '.').' '.($usluga->jedinica_mjere ?? 'kom').')';
+            }
+        }
+
+        if ($upozorenja !== []) {
+            Notification::make()
+                ->title('Niska ili negativna zaliha')
+                ->body(implode("\n", $upozorenja))
+                ->warning()
+                ->send();
+        }
     }
 
     protected static function stavkaArrayImaSadrzaj(array $stavka): bool

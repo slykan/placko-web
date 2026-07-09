@@ -36,6 +36,7 @@ class TvrtkaPostavke extends Model
         'eracun_cert_putanja',
         'eracun_cert_lozinka',
         'eracun_api_url',
+        'zaliha_dozvoli_negativnu',
     ];
 
     protected $casts = [
@@ -45,6 +46,7 @@ class TvrtkaPostavke extends Model
         'eracun_cert_lozinka' => 'encrypted',
         'eracun_aktivan'      => 'boolean',
         'eracun_demo'         => 'boolean',
+        'zaliha_dozvoli_negativnu' => 'boolean',
     ];
 
     protected $hidden = ['smtp_pass'];

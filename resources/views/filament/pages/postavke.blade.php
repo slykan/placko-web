@@ -51,4 +51,11 @@
         </div>
     </form>
 
+    <form wire:submit="spremiZalihu" class="mt-6">
+        {{ $this->zalihaForm }}
+        <div class="mt-4 flex justify-end">
+            <x-filament::button type="submit">Spremi postavke skladišta</x-filament::button>
+        </div>
+    </form>
+
 </x-filament-panels::page>

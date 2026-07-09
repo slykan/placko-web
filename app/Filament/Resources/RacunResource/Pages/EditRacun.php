@@ -15,6 +15,8 @@ class EditRacun extends EditRecord
 
     protected array $pendingStavke = [];
 
+    protected array $deltaPoUsluzi = [];
+
     protected function authorizeAccess(): void
     {
         parent::authorizeAccess();
@@ -41,6 +43,11 @@ class EditRacun extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        $staroPoUsluzi = $this->record->stavke
+            ->groupBy('usluga_id')
+            ->map(fn ($grupa) => (float) $grupa->sum('kolicina'))
+            ->toArray();
+
         $this->pendingStavke = RacunResource::filtrirajPrazneStavke($data['stavke'] ?? []);
 
         if (empty($this->pendingStavke)) {
@@ -48,6 +55,20 @@ class EditRacun extends EditRecord
                 'stavke' => 'Račun mora imati barem jednu stavku.',
             ]);
         }
+
+        $novoPoUsluzi = [];
+        foreach ($this->pendingStavke as $stavka) {
+            if (empty($stavka['usluga_id'])) {
+                continue;
+            }
+            $uslugaId = $stavka['usluga_id'];
+            $novoPoUsluzi[$uslugaId] = ($novoPoUsluzi[$uslugaId] ?? 0) + (float) ($stavka['kolicina'] ?? 0);
+        }
+
+        foreach (array_unique(array_merge(array_keys($staroPoUsluzi), array_keys($novoPoUsluzi))) as $uslugaId) {
+            $this->deltaPoUsluzi[$uslugaId] = ($novoPoUsluzi[$uslugaId] ?? 0) - ($staroPoUsluzi[$uslugaId] ?? 0);
+        }
+        RacunResource::provjeriDovoljnoZalihe(filament()->getTenant()->id, $this->deltaPoUsluzi);
 
         unset($data['stavke']);
 
@@ -92,6 +113,8 @@ class EditRacun extends EditRecord
 
         $this->record->load('stavke');
         $this->record->izracunajUkupno();
+
+        RacunResource::primijeniProdajuNaZalihu($this->record, $this->deltaPoUsluzi, 'korekcija');
     }
 
     protected function getHeaderActions(): array
