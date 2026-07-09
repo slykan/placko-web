@@ -160,6 +160,7 @@ class PonudaResource extends Resource
             Tables\Columns\TextColumn::make('rok_ispostave')->label('Rok ispostave')->searchable(),
             Tables\Columns\TextColumn::make('ukupno')->label('Ukupno')->money('EUR')->sortable(),
             Tables\Columns\IconColumn::make('prihvacena_at')->label('Prihvaćena')
+                ->getStateUsing(fn (Ponuda $ponuda) => (bool) $ponuda->prihvacena_at)
                 ->boolean()
                 ->trueIcon('heroicon-o-check-badge')
                 ->falseIcon('heroicon-o-clock')
