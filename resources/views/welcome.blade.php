@@ -27,6 +27,9 @@
     <!-- Favicon -->
     <link rel="icon" href="/img/placko-icon.svg" type="image/svg+xml">
 
+    <!-- PWA -->
+    @include('partials.pwa-head')
+
     <!-- Schema.org -->
     <script type="application/ld+json">
     @verbatim
