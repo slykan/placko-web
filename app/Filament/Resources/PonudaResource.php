@@ -245,7 +245,7 @@ class PonudaResource extends Resource
                             $dodatniPrivitci[] = Storage::disk('local')->path($file);
                         }
 
-                        $mailable = (new PonudaMail($data['poruka'], $pdfOutput, $pdfNaziv, $dodatniPrivitci))
+                        $mailable = (new PonudaMail($data['poruka'], $pdfOutput, $pdfNaziv, $dodatniPrivitci, $ponuda->tvrtka))
                             ->subject('Ponuda '.$ponuda->broj.' - '.($ponuda->tvrtka->naziv ?? ''));
 
                         try {

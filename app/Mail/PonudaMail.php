@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\Tvrtka;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
@@ -14,6 +15,7 @@ class PonudaMail extends Mailable
         public string $pdfSadrzaj,
         public string $pdfNaziv,
         public array $dodatniPrivitci = [],
+        public ?Tvrtka $tvrtka = null,
     ) {}
 
     public function envelope(): Envelope
@@ -27,7 +29,7 @@ class PonudaMail extends Mailable
     {
         return new Content(
             view: 'mail.ponuda',
-            with: ['poruka' => $this->poruka],
+            with: ['poruka' => $this->poruka, 'tvrtka' => $this->tvrtka],
         );
     }
 
