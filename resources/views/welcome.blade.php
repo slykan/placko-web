@@ -444,31 +444,12 @@
             max-width: 680px; margin: 20px auto 0; text-align: center;
             font-size: .8rem; color: var(--light); line-height: 1.5;
         }
-        .price-table-wrap { margin-top: 48px; }
-        .price-table-head {
-            display: flex; align-items: center; justify-content: space-between;
-            flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
-        }
-        .price-table-head h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); }
         .price-table-download {
             display: inline-flex; align-items: center; gap: 6px;
             font-size: .85rem; font-weight: 700; color: var(--p);
-            border: 1.5px solid var(--border); border-radius: 8px;
-            padding: 8px 14px; transition: all .2s; white-space: nowrap;
         }
-        .price-table-download:hover { border-color: var(--p); background: var(--bg); }
-        .price-table-scroll { overflow-x: auto; border: 1.5px solid var(--border); border-radius: 14px; }
-        .price-table { width: 100%; border-collapse: collapse; background: var(--white); font-size: .9rem; }
-        .price-table caption { display: none; }
-        .price-table th, .price-table td { padding: 12px 18px; text-align: left; white-space: nowrap; }
-        .price-table thead th {
-            background: var(--bg); color: var(--light); font-weight: 700;
-            font-size: .75rem; text-transform: uppercase; letter-spacing: .5px;
-            border-bottom: 1.5px solid var(--border);
-        }
-        .price-table tbody tr:not(:last-child) td { border-bottom: 1px solid var(--border); }
-        .price-table tbody td:first-child { font-weight: 700; color: var(--text); }
-        .price-table-updated { margin-top: 10px; font-size: .78rem; color: var(--light); }
+        .price-table-download:hover { text-decoration: underline; }
+        .price-table-updated { margin-top: 24px; text-align: center; font-size: .8rem; color: var(--light); }
 
         /* ── FAQ ────────────────────────────────────────── */
         .faq-bg { background: var(--white); }
@@ -847,36 +828,10 @@
             Trenutno ne provodimo nikakva sniženja niti akcijske cijene, pa je sidrena cijena jednaka prikazanoj cijeni za svaki plan.
         </p>
 
-        <div class="price-table-wrap">
-            <div class="price-table-head">
-                <h3>Cjenik (online tablica)</h3>
-                <a href="{{ route('cjenik.csv') }}" class="price-table-download" download>⬇ Preuzmi CSV</a>
-            </div>
-            <div class="price-table-scroll">
-                <table class="price-table">
-                    <caption>Cjenik plačko.app planova sa sidrenom cijenom</caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">Plan</th>
-                            <th scope="col">Cijena</th>
-                            <th scope="col">Jedinica</th>
-                            <th scope="col">Sidrena cijena</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($cjenik as $plan)
-                            <tr>
-                                <td>{{ $plan['naziv'] }}</td>
-                                <td>{{ $plan['cijena_prikaz'] }}</td>
-                                <td>{{ $plan['jedinica'] }}</td>
-                                <td>{{ $plan['cijena_prikaz'] }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <p class="price-table-updated">Cjenik ažuriran: {{ \Illuminate\Support\Carbon::parse(config('cjenik.azurirano'))->translatedFormat('d.m.Y.') }}</p>
-        </div>
+        <p class="price-table-updated">
+            <a href="{{ route('cjenik.csv') }}" class="price-table-download" download>⬇ Cjenik (CSV)</a>
+            — ažurirano {{ \Illuminate\Support\Carbon::parse(config('cjenik.azurirano'))->translatedFormat('d.m.Y.') }}
+        </p>
     </div>
 </section>
 
