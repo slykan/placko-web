@@ -415,6 +415,7 @@
             font-size: 1rem; font-weight: 400; color: var(--muted);
             vertical-align: baseline;
         }
+        .plan-anchor-price { font-size: .8rem; color: var(--light); margin-bottom: 4px; }
         .plan-desc { color: var(--muted); font-size: .88rem; margin: 10px 0 22px; }
         .plan-divider { height: 1px; background: var(--border); margin-bottom: 22px; }
         .plan-features { list-style: none; display: flex; flex-direction: column; gap: 10px; }
@@ -439,6 +440,35 @@
             box-shadow: 0 3px 14px rgba(43,169,155,.38);
         }
         .plan-cta-solid:hover { background: var(--pd); transform: translateY(-1px); }
+        .pricing-legal-note {
+            max-width: 680px; margin: 20px auto 0; text-align: center;
+            font-size: .8rem; color: var(--light); line-height: 1.5;
+        }
+        .price-table-wrap { margin-top: 48px; }
+        .price-table-head {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+        }
+        .price-table-head h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+        .price-table-download {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: .85rem; font-weight: 700; color: var(--p);
+            border: 1.5px solid var(--border); border-radius: 8px;
+            padding: 8px 14px; transition: all .2s; white-space: nowrap;
+        }
+        .price-table-download:hover { border-color: var(--p); background: var(--bg); }
+        .price-table-scroll { overflow-x: auto; border: 1.5px solid var(--border); border-radius: 14px; }
+        .price-table { width: 100%; border-collapse: collapse; background: var(--white); font-size: .9rem; }
+        .price-table caption { display: none; }
+        .price-table th, .price-table td { padding: 12px 18px; text-align: left; white-space: nowrap; }
+        .price-table thead th {
+            background: var(--bg); color: var(--light); font-weight: 700;
+            font-size: .75rem; text-transform: uppercase; letter-spacing: .5px;
+            border-bottom: 1.5px solid var(--border);
+        }
+        .price-table tbody tr:not(:last-child) td { border-bottom: 1px solid var(--border); }
+        .price-table tbody td:first-child { font-weight: 700; color: var(--text); }
+        .price-table-updated { margin-top: 10px; font-size: .78rem; color: var(--light); }
 
         /* ── FAQ ────────────────────────────────────────── */
         .faq-bg { background: var(--white); }
@@ -748,10 +778,16 @@
             <h2 class="section-title">Jednostavne cijene, bez iznenađenja</h2>
             <p class="section-sub">Starter plan je besplatan zauvijek za paušalne obrtnike s manjim opsegom rada.</p>
         </div>
+        @php
+            $planStarter = collect($cjenik)->firstWhere('naziv', 'Starter');
+            $planPro = collect($cjenik)->firstWhere('naziv', 'Pro');
+            $planBusiness = collect($cjenik)->firstWhere('naziv', 'Business');
+        @endphp
         <div class="plans">
             <div class="plan">
                 <div class="plan-name">Starter</div>
-                <div class="plan-price">0 € <sub>/ zauvijek</sub></div>
+                <div class="plan-price">{{ $planStarter['cijena_prikaz'] }} <sub>/ zauvijek</sub></div>
+                <div class="plan-anchor-price">Sidrena cijena: {{ $planStarter['cijena_prikaz'] }}</div>
                 <div class="plan-desc">Za paušalne obrtnike koji tek kreću.</div>
                 <div class="plan-divider"></div>
                 <ul class="plan-features">
@@ -770,7 +806,8 @@
             <div class="plan featured">
                 <div class="plan-badge">Najpopularniji</div>
                 <div class="plan-name">Pro</div>
-                <div class="plan-price">4,99 € <sub>/ mj</sub></div>
+                <div class="plan-price">{{ $planPro['cijena_prikaz'] }} <sub>/ mj</sub></div>
+                <div class="plan-anchor-price">Sidrena cijena: {{ $planPro['cijena_prikaz'] }}</div>
                 <div class="plan-desc">Za aktivne obrtnike i male tvrtke.</div>
                 <div class="plan-divider"></div>
                 <ul class="plan-features">
@@ -788,7 +825,8 @@
 
             <div class="plan">
                 <div class="plan-name">Business</div>
-                <div class="plan-price">12,99 € <sub>/ mj</sub></div>
+                <div class="plan-price">{{ $planBusiness['cijena_prikaz'] }} <sub>/ mj</sub></div>
+                <div class="plan-anchor-price">Sidrena cijena: {{ $planBusiness['cijena_prikaz'] }}</div>
                 <div class="plan-desc">Za veće timove i računovođe.</div>
                 <div class="plan-divider"></div>
                 <ul class="plan-features">
@@ -802,6 +840,42 @@
                 </ul>
                 <a href="/admin/register" class="plan-cta plan-cta-outline">Kontaktiraj nas</a>
             </div>
+        </div>
+
+        <p class="pricing-legal-note">
+            Sidrena cijena je najniža cijena koju smo primjenjivali u posljednjih 30 dana (sukladno Zakonu o zaštiti potrošača).
+            Trenutno ne provodimo nikakva sniženja niti akcijske cijene, pa je sidrena cijena jednaka prikazanoj cijeni za svaki plan.
+        </p>
+
+        <div class="price-table-wrap">
+            <div class="price-table-head">
+                <h3>Cjenik (online tablica)</h3>
+                <a href="{{ route('cjenik.csv') }}" class="price-table-download" download>⬇ Preuzmi CSV</a>
+            </div>
+            <div class="price-table-scroll">
+                <table class="price-table">
+                    <caption>Cjenik plačko.app planova sa sidrenom cijenom</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Plan</th>
+                            <th scope="col">Cijena</th>
+                            <th scope="col">Jedinica</th>
+                            <th scope="col">Sidrena cijena</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($cjenik as $plan)
+                            <tr>
+                                <td>{{ $plan['naziv'] }}</td>
+                                <td>{{ $plan['cijena_prikaz'] }}</td>
+                                <td>{{ $plan['jedinica'] }}</td>
+                                <td>{{ $plan['cijena_prikaz'] }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <p class="price-table-updated">Cjenik ažuriran: {{ \Illuminate\Support\Carbon::parse(config('cjenik.azurirano'))->translatedFormat('d.m.Y.') }}</p>
         </div>
     </div>
 </section>
