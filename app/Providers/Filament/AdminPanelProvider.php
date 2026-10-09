@@ -33,6 +33,8 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::hex('#2ba99b'),
             ])
+            // Naslov taba ("Klijenti - Plačko"); bez ovoga Filament uzme APP_NAME ("Laravel").
+            ->brandName('Plačko')
             ->brandLogo(asset('img/placko-logo.svg'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('img/placko-icon.svg'))

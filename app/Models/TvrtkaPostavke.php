@@ -37,6 +37,8 @@ class TvrtkaPostavke extends Model
         'eracun_cert_lozinka',
         'eracun_api_url',
         'zaliha_dozvoli_negativnu',
+        'racun_pocetni_broj',
+        'racun_pocetni_godina',
     ];
 
     protected $casts = [
@@ -47,6 +49,8 @@ class TvrtkaPostavke extends Model
         'eracun_aktivan'      => 'boolean',
         'eracun_demo'         => 'boolean',
         'zaliha_dozvoli_negativnu' => 'boolean',
+        'racun_pocetni_broj'   => 'integer',
+        'racun_pocetni_godina' => 'integer',
     ];
 
     protected $hidden = ['smtp_pass'];

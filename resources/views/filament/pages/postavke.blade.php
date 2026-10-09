@@ -28,6 +28,13 @@
         </div>
     </form>
 
+    <form wire:submit="spremiNumeraciju" class="mt-6">
+        {{ $this->numeracijaForm }}
+        <div class="mt-4 flex justify-end">
+            <x-filament::button type="submit">Spremi numeraciju</x-filament::button>
+        </div>
+    </form>
+
     <form wire:submit="spreminiFiskalizaciju" class="mt-6">
         {{ $this->fiskalizacijaForm }}
         <div class="mt-4 flex justify-end gap-3">

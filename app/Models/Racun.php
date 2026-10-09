@@ -54,13 +54,26 @@ class Racun extends Model
             ->where('godina', $godina)
             ->max('redni_broj') ?? 0;
 
-        $redni = $zadnji + 1;
+        $redni = max($zadnji + 1, static::pocetniBroj($tvrtkaId, $godina));
 
         return [
             'redni_broj' => $redni,
             'godina'     => $godina,
             'broj'       => "{$redni}-1-{$godina}",
         ];
+    }
+
+    /**
+     * Početni broj iz Postavki (nastavak numeracije iz drugog programa) — vrijedi
+     * samo za godinu za koju je upisan; inače 1.
+     */
+    public static function pocetniBroj(int $tvrtkaId, int $godina): int
+    {
+        $postavke = TvrtkaPostavke::where('tvrtka_id', $tvrtkaId)->first();
+
+        return $postavke && $postavke->racun_pocetni_godina === $godina
+            ? max(1, (int) $postavke->racun_pocetni_broj)
+            : 1;
     }
 
     public function izracunajUkupno(): void

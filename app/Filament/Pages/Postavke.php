@@ -2,11 +2,13 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Racun;
 use App\Models\TvrtkaPostavke;
 use App\Services\EracunService;
 use Filament\Forms\Components\Actions as FormActions;
 use Filament\Forms\Components\Actions\Action as FormAction;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -40,6 +42,7 @@ class Postavke extends Page implements HasForms
     public ?array $fiskalizacijaData  = [];
     public ?array $eracunData         = [];
     public ?array $zalihaData         = [];
+    public ?array $numeracijaData     = [];
 
     public function mount(): void
     {
@@ -90,6 +93,10 @@ class Postavke extends Page implements HasForms
             'eracun_cert_putanja'   => $postavke->eracun_cert_putanja,
         ]);
 
+        $this->numeracijaForm->fill([
+            'racun_pocetni_broj' => $postavke->racun_pocetni_godina === now()->year ? $postavke->racun_pocetni_broj : null,
+        ]);
+
         $this->zalihaForm->fill([
             'zaliha_dozvoli_negativnu' => $postavke->zaliha_dozvoli_negativnu ?? true,
         ]);
@@ -97,7 +104,7 @@ class Postavke extends Page implements HasForms
 
     protected function getForms(): array
     {
-        return ['korisnikForm', 'smtpForm', 'emailForm', 'pretplateForm', 'fiskalizacijaForm', 'eracunForm', 'zalihaForm'];
+        return ['korisnikForm', 'smtpForm', 'emailForm', 'pretplateForm', 'fiskalizacijaForm', 'eracunForm', 'zalihaForm', 'numeracijaForm'];
     }
 
     public function korisnikForm(Form $form): Form
@@ -695,6 +702,75 @@ class Postavke extends Page implements HasForms
         } catch (\Throwable $e) {
             Notification::make()->title('Greška pri testiranju FINA veze')->body($e->getMessage())->danger()->send();
         }
+    }
+
+    public function numeracijaForm(Form $form): Form
+    {
+        $godina = now()->year;
+
+        return $form
+            ->schema([
+                Section::make('Numeracija računa')
+                    ->description('Nastavak numeracije ako ste ove godine već izdavali račune u drugom programu')
+                    ->schema([
+                        TextInput::make('racun_pocetni_broj')
+                            ->label("Početni broj računa za {$godina}.")
+                            ->numeric()
+                            ->integer()
+                            ->minValue(1)
+                            ->placeholder('1')
+                            ->helperText("Npr. ako je zadnji račun izdan u drugom programu bio 57-1-{$godina}, upišite 58. Vrijedi samo za {$godina}. godinu — od 1. siječnja numeracija ponovno kreće od 1. Ostavite prazno za numeraciju od 1."),
+                        Placeholder::make('racun_sljedeci')
+                            ->label('Sljedeći račun')
+                            ->content(function () {
+                                $sljedeci = Racun::generiraBroj(filament()->getTenant()->id)['broj'];
+                                $zadnji = $this->zadnjiRedniBroj();
+
+                                return $zadnji > 0 ? "{$sljedeci} (zadnji izdani u Plačku: {$zadnji})" : $sljedeci;
+                            }),
+                    ])
+                    ->columns(2),
+            ])
+            ->statePath('numeracijaData');
+    }
+
+    private function zadnjiRedniBroj(): int
+    {
+        return (int) Racun::where('tvrtka_id', filament()->getTenant()->id)
+            ->where('godina', now()->year)
+            ->max('redni_broj');
+    }
+
+    public function spremiNumeraciju(): void
+    {
+        $data = $this->numeracijaForm->getState();
+        $pocetni = filled($data['racun_pocetni_broj'] ?? null) ? (int) $data['racun_pocetni_broj'] : null;
+
+        // Ne dopuštamo broj koji je već iskorišten — numeracija mora ostati bez duplikata.
+        $zadnji = $this->zadnjiRedniBroj();
+        if ($pocetni !== null && $pocetni <= $zadnji) {
+            Notification::make()
+                ->title('Broj je već iskorišten')
+                ->body("U Plačku je ove godine već izdan račun s rednim brojem {$zadnji}. Početni broj mora biti veći od {$zadnji}.")
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        TvrtkaPostavke::updateOrCreate(
+            ['tvrtka_id' => filament()->getTenant()->id],
+            [
+                'racun_pocetni_broj'   => $pocetni,
+                'racun_pocetni_godina' => $pocetni !== null ? now()->year : null,
+            ]
+        );
+
+        Notification::make()
+            ->title('Numeracija računa spremljena')
+            ->body('Sljedeći račun: ' . Racun::generiraBroj(filament()->getTenant()->id)['broj'])
+            ->success()
+            ->send();
     }
 
     public function zalihaForm(Form $form): Form
