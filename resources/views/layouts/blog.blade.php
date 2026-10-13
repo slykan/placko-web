@@ -16,6 +16,14 @@
     <meta property="og:locale" content="hr_HR">
 
     <link rel="icon" href="/img/placko-icon.svg" type="image/svg+xml">
+    <meta name="google-adsense-account" content="ca-pub-3054841074530422">
+    @if ($ads ?? false)
+        {{-- Oglasi samo na stranicama sa sadržajem (vodiči, novosti, alati) --}}
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3054841074530422" crossorigin="anonymous"></script>
+    @endif
+    @isset($jsonLd)
+        <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+    @endisset
 
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -138,6 +146,58 @@
         }
         .btn-primary:hover { background: var(--pd); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(43,169,155,.48); }
 
+        /* ── KATEGORIJE, TABLICE ─────────────────────────── */
+        .badge { display: inline-block; font-size: .72rem; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; padding: 3px 10px; border-radius: 99px; }
+        .badge-novosti { background: var(--pl); color: var(--pd); }
+        .badge-vodic { background: #fff1d6; color: #9a6400; }
+        .post-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 28px; }
+        .post-filter a { padding: 7px 16px; border-radius: 99px; border: 1.5px solid var(--border); font-size: .9rem; font-weight: 600; color: var(--muted); background: var(--white); }
+        .post-filter a.on, .post-filter a:hover { border-color: var(--p); color: var(--pd); }
+        article.post-body table, .tool table { width: 100%; border-collapse: collapse; margin: 8px 0 20px; font-size: .95rem; }
+        article.post-body th, article.post-body td, .tool th, .tool td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+        article.post-body th, .tool th { background: var(--bg); font-weight: 700; color: var(--pd); }
+        article.post-body td.num, .tool td.num, .tool th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        article.post-body ol { margin: 0 0 16px 22px; }
+        article.post-body .warn { background: #fff7e6; color: #7a5200; border-radius: 12px; padding: 18px 22px; margin: 24px 0; font-size: .95rem; }
+        .sources { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--border); font-size: .85rem; color: var(--light); }
+        .sources a { color: var(--pd); text-decoration: underline; }
+        .table-wrap { overflow-x: auto; }
+
+        /* ── ALATI ───────────────────────────────────────── */
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 40px; }
+        .tool-card { display: block; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; transition: transform .2s, box-shadow .2s, border-color .2s; }
+        .tool-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: rgba(43,169,155,.3); }
+        .tool-card .ico { font-size: 1.8rem; margin-bottom: 12px; }
+        .tool-card h2 { font-size: 1.15rem; font-weight: 800; margin-bottom: 8px; }
+        .tool-card p { color: var(--muted); font-size: .94rem; }
+        .tool { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 36px; margin-top: 32px; }
+        .tool .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+        .tool label { display: block; font-size: .82rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+        .tool input, .tool select, .tool textarea {
+            width: 100%; padding: 11px 13px; border: 1.5px solid var(--border); border-radius: 10px;
+            font: inherit; font-size: 1rem; color: var(--text); background: var(--bg);
+        }
+        .tool input:focus, .tool select:focus, .tool textarea:focus { outline: none; border-color: var(--p); background: var(--white); }
+        .tool .hint { font-size: .8rem; color: var(--light); margin-top: 5px; }
+        .tool .result { margin-top: 24px; padding: 22px 24px; border-radius: 14px; background: var(--pl); }
+        .tool .result .big { font-size: 1.9rem; font-weight: 900; color: var(--pd); letter-spacing: -.5px; }
+        .tool .result .lbl { font-size: .85rem; color: var(--pd); font-weight: 600; }
+        .tool .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+        .ok { color: #13795b; font-weight: 800; }
+        .bad { color: #b42318; font-weight: 800; }
+        .tool-text { margin-top: 40px; }
+        .tool-text h2 { font-size: 1.35rem; font-weight: 800; margin: 32px 0 12px; }
+        .tool-text p, .tool-text li { color: var(--text); font-size: 1rem; margin-bottom: 12px; }
+        .tool-text ul, .tool-text ol { margin: 0 0 16px 22px; }
+        .btn-tool { padding: 11px 22px; background: var(--p); color: #fff; border: 0; border-radius: 10px; font: inherit; font-weight: 700; cursor: pointer; }
+        .btn-tool:hover { background: var(--pd); }
+        .btn-tool.secondary { background: var(--white); color: var(--pd); border: 1.5px solid var(--border); }
+        @media print {
+            nav, footer, .no-print, .article-cta { display: none !important; }
+            main { padding: 0; }
+            .tool { border: 0; padding: 0; }
+        }
+
         footer { background: #10201e; color: #b8ccc8; padding: 56px 6% 28px; margin-top: 40px; }
         .footer-inner { max-width: 1120px; margin: 0 auto; }
         .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; margin-bottom: 40px; }
@@ -159,6 +219,7 @@
             .nav-link { display: none; }
             main { padding: 110px 5% 60px; }
             article.post-body { padding: 28px 22px; }
+            .tool { padding: 24px 18px; }
             .footer-top { grid-template-columns: 1fr; gap: 28px; }
             .footer-bottom { flex-direction: column; text-align: center; }
         }
@@ -173,7 +234,8 @@
     <div class="nav-links">
         <a href="/#znacajke" class="nav-link">Značajke</a>
         <a href="/#cijene" class="nav-link">Cijene</a>
-        <a href="/novosti" class="nav-link active">Novosti</a>
+        <a href="/alati" class="nav-link {{ ($nav ?? '') === 'alati' ? 'active' : '' }}">Alati</a>
+        <a href="/novosti" class="nav-link {{ ($nav ?? 'novosti') === 'novosti' ? 'active' : '' }}">Novosti</a>
         <a href="/#faq" class="nav-link">FAQ</a>
         <a href="/admin" class="btn-nav-outline">Prijava</a>
         <a href="/admin/register" class="btn-nav-solid">Isprobaj</a>
@@ -196,23 +258,27 @@
                 <ul>
                     <li><a href="/#znacajke">Značajke</a></li>
                     <li><a href="/#cijene">Cijene</a></li>
-                    <li><a href="/novosti">Novosti</a></li>
+                    <li><a href="/novosti">Novosti i vodiči</a></li>
                     <li><a href="/admin/register">Registracija</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Aplikacija</h4>
-                <ul>
                     <li><a href="/admin">Prijava</a></li>
-                    <li><a href="/admin/register">Novi račun</a></li>
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>Pravno</h4>
+                <h4>Besplatni alati</h4>
                 <ul>
-                    <li><a href="/#">Uvjeti korištenja</a></li>
-                    <li><a href="/#">Politika privatnosti</a></li>
-                    <li><a href="/#">GDPR</a></li>
+                    <li><a href="/alati/kalkulator-pausalnog-obrta">Kalkulator paušalnog obrta</a></li>
+                    <li><a href="/alati/hub3-uplatnica">HUB-3 uplatnica</a></li>
+                    <li><a href="/alati/provjera-oib-iban">Provjera OIB-a i IBAN-a</a></li>
+                    <li><a href="/alati/pdv-kalkulator">PDV kalkulator</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>O nama</h4>
+                <ul>
+                    <li><a href="/o-nama">O plačko.app</a></li>
+                    <li><a href="/kontakt">Kontakt</a></li>
+                    <li><a href="/uvjeti-koristenja">Uvjeti korištenja</a></li>
+                    <li><a href="/privatnost">Politika privatnosti</a></li>
                 </ul>
             </div>
         </div>
@@ -223,5 +289,6 @@
     </div>
 </footer>
 
+@stack('scripts')
 </body>
 </html>

@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3054841074530422" crossorigin="anonymous"></script>
+    {{-- AdSense: samo potvrda vlasništva; oglasi se prikazuju na sadržajnim stranicama (alati, novosti, vodiči) --}}
+    <meta name="google-adsense-account" content="ca-pub-3054841074530422">
 
     <title>plačko.app — Fakturiranje i računovodstvo za obrtnike u Hrvatskoj</title>
     <meta name="description" content="plačko.app je moderna web aplikacija za izdavanje računa, fiskalizaciju, eRačun (UBL 2.1), praćenje pretplata i porezne obrasce za paušalne obrtnike i male tvrtke u Hrvatskoj.">
@@ -569,6 +570,7 @@
     <div class="nav-links">
         <a href="#znacajke" class="nav-link">Značajke</a>
         <a href="#cijene" class="nav-link">Cijene</a>
+        <a href="/alati" class="nav-link">Alati</a>
         <a href="/novosti" class="nav-link">Novosti</a>
         <a href="#faq" class="nav-link">FAQ</a>
         <a href="/admin" class="btn-nav-outline">Prijava</a>
@@ -938,24 +940,27 @@
                 <ul>
                     <li><a href="#znacajke">Značajke</a></li>
                     <li><a href="#cijene">Cijene</a></li>
-                    <li><a href="/novosti">Novosti</a></li>
+                    <li><a href="/novosti">Novosti i vodiči</a></li>
                     <li><a href="#faq">FAQ</a></li>
                     <li><a href="/admin/register">Registracija</a></li>
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>Aplikacija</h4>
+                <h4>Besplatni alati</h4>
                 <ul>
-                    <li><a href="/admin">Prijava</a></li>
-                    <li><a href="/admin/register">Novi račun</a></li>
+                    <li><a href="/alati/kalkulator-pausalnog-obrta">Kalkulator paušalnog obrta</a></li>
+                    <li><a href="/alati/hub3-uplatnica">HUB-3 uplatnica</a></li>
+                    <li><a href="/alati/provjera-oib-iban">Provjera OIB-a i IBAN-a</a></li>
+                    <li><a href="/alati/pdv-kalkulator">PDV kalkulator</a></li>
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>Pravno</h4>
+                <h4>O nama</h4>
                 <ul>
-                    <li><a href="#">Uvjeti korištenja</a></li>
-                    <li><a href="#">Politika privatnosti</a></li>
-                    <li><a href="#">GDPR</a></li>
+                    <li><a href="/o-nama">O plačko.app</a></li>
+                    <li><a href="/kontakt">Kontakt</a></li>
+                    <li><a href="/uvjeti-koristenja">Uvjeti korištenja</a></li>
+                    <li><a href="/privatnost">Politika privatnosti</a></li>
                 </ul>
             </div>
         </div>
