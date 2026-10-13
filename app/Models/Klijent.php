@@ -12,6 +12,7 @@ class Klijent extends Model
     protected $fillable = [
         'tvrtka_id',
         'naziv',
+        'fizicka_osoba',
         'adresa',
         'mjesto',
         'po_broj',
@@ -24,6 +25,10 @@ class Klijent extends Model
         'djelatnost',
         'kontakt_broj',
         'web_mjesto',
+    ];
+
+    protected $casts = [
+        'fizicka_osoba' => 'boolean',
     ];
 
     public function tvrtka(): BelongsTo

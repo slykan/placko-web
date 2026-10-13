@@ -134,21 +134,29 @@ class FiskalizacijaService
      */
     public static function trebaMFiskalizirati(Racun $racun): bool
     {
-        if (! in_array($racun->nacin_placanja, ['gotovina', 'kartica'])) {
+        $postavke = TvrtkaPostavke::where('tvrtka_id', $racun->tvrtka_id)->first();
+        if (! ($postavke?->fiskalizacija_aktivna ?? false)) {
             return false;
         }
 
-        $postavke = TvrtkaPostavke::where('tvrtka_id', $racun->tvrtka_id)->first();
-        return $postavke?->fiskalizacija_aktivna ?? false;
+        // Gotovina i kartica — uvijek.
+        if (in_array($racun->nacin_placanja, ['gotovina', 'kartica'], true)) {
+            return true;
+        }
+
+        // Fiskalizacija 2.0 (od 1.1.2026.): i računi građanima (krajnja potrošnja) plaćeni na
+        // transakcijski račun. Računi tvrtkama/obrtima uz bezgotovinsko plaćanje idu kao eRačun.
+        return in_array($racun->nacin_placanja, ['transakcijski', 'virman'], true)
+            && (bool) $racun->klijent?->fizicka_osoba;
     }
 
-    private static function nacinPlacanja(string $nacin): string
+    public static function nacinPlacanja(string $nacin): string
     {
         return match ($nacin) {
-            'gotovina' => 'G',
-            'kartica'  => 'K',
-            'virman'   => 'T',
-            default    => 'O', // ostalo
+            'gotovina'                => 'G',
+            'kartica'                 => 'K',
+            'transakcijski', 'virman' => 'T',
+            default                   => 'O', // ostalo
         };
     }
 

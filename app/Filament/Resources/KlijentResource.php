@@ -6,6 +6,7 @@ use App\Filament\Resources\KlijentResource\Pages;
 use App\Models\Klijent;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -36,6 +37,11 @@ class KlijentResource extends Resource
                 TextInput::make('naziv')
                     ->label('Naziv')
                     ->required()
+                    ->columnSpanFull(),
+
+                Toggle::make('fizicka_osoba')
+                    ->label('Građanin (fizička osoba)')
+                    ->helperText('Uključi ako kupac nije tvrtka ni obrt. Računi građanima fiskaliziraju se i kad se plaćaju na transakcijski račun (Fiskalizacija 2.0).')
                     ->columnSpanFull(),
 
                 TextInput::make('vlasnik')
