@@ -759,7 +759,7 @@
         <div class="section-header center">
             <span class="section-tag">Cijene</span>
             <h2 class="section-title">Jednostavne cijene, bez iznenađenja</h2>
-            <p class="section-sub">Starter plan je besplatan zauvijek za paušalne obrtnike s manjim opsegom rada.</p>
+            <p class="section-sub">Starter je besplatan zauvijek i ima sve mogućnosti aplikacije za jednu tvrtku ili obrt.</p>
         </div>
         @php
             $planStarter = collect($cjenik)->firstWhere('naziv', 'Starter');
@@ -771,17 +771,20 @@
                 <div class="plan-name">Starter</div>
                 <div class="plan-price">{{ $planStarter['cijena_prikaz'] }} <sub>/ zauvijek</sub></div>
                 <div class="plan-anchor-price">Sidrena cijena: {{ $planStarter['cijena_prikaz'] }}</div>
-                <div class="plan-desc">Za paušalne obrtnike koji tek kreću.</div>
+                <div class="plan-desc">Sve mogućnosti aplikacije za jednu tvrtku ili obrt.</div>
                 <div class="plan-divider"></div>
                 <ul class="plan-features">
                     <li><span class="check">✓</span> 1 tvrtka / obrt</li>
-                    <li><span class="check">✓</span> Neograničeni računi</li>
+                    <li><span class="check">✓</span> Neograničeni računi i ponude</li>
                     <li><span class="check">✓</span> PDF + HUB-3 barkod</li>
-                    <li><span class="check">✓</span> PO-SD obrazac</li>
-                    <li><span class="check">✓</span> IRA knjiga</li>
-                    <li class="no"><span class="cross">○</span> Slanje e-mailom</li>
+                    <li><span class="check">✓</span> Slanje e-mailom (SMTP)</li>
+                    <li><span class="check">✓</span> Fiskalizacija</li>
+                    <li><span class="check">✓</span> eRačun (UBL 2.1 XML)</li>
+                    <li><span class="check">✓</span> PO-SD obrazac i IRA knjiga</li>
+                    <li><span class="check">✓</span> Pretplate klijenata</li>
+                    <li><span class="check">✓</span> Skladište i zalihe</li>
                     <li class="no"><span class="cross">○</span> Više tvrtki</li>
-                    <li class="no"><span class="cross">○</span> eRačun</li>
+                    <li class="no"><span class="cross">○</span> Podrška</li>
                 </ul>
                 <a href="/admin/register" class="plan-cta plan-cta-outline">Počni besplatno</a>
             </div>
@@ -791,17 +794,12 @@
                 <div class="plan-name">Pro</div>
                 <div class="plan-price">{{ $planPro['cijena_prikaz'] }} <sub>/ mj</sub></div>
                 <div class="plan-anchor-price">Sidrena cijena: {{ $planPro['cijena_prikaz'] }}</div>
-                <div class="plan-desc">Za aktivne obrtnike i male tvrtke.</div>
+                <div class="plan-desc">Za one koji vode više tvrtki ili obrta.</div>
                 <div class="plan-divider"></div>
                 <ul class="plan-features">
-                    <li><span class="check">✓</span> Više tvrtki</li>
-                    <li><span class="check">✓</span> Neograničeni računi</li>
-                    <li><span class="check">✓</span> Slanje e-mailom (SMTP)</li>
-                    <li><span class="check">✓</span> Pretplate klijenata</li>
-                    <li><span class="check">✓</span> Svi obrasci</li>
-                    <li><span class="check">✓</span> Arhiviranje PDF-a</li>
-                    <li><span class="check">✓</span> eRačun XML download</li>
-                    <li class="no"><span class="cross">○</span> FINA API slanje (Q4 2026)</li>
+                    <li><span class="check">✓</span> Sve iz Starter plana</li>
+                    <li><span class="check">✓</span> Više tvrtki / obrta na jednom računu</li>
+                    <li><span class="check">✓</span> Podrška e-mailom</li>
                 </ul>
                 <a href="/admin/register" class="plan-cta plan-cta-solid">Isprobaj Pro</a>
             </div>
@@ -810,24 +808,20 @@
                 <div class="plan-name">Business</div>
                 <div class="plan-price">{{ $planBusiness['cijena_prikaz'] }} <sub>/ mj</sub></div>
                 <div class="plan-anchor-price">Sidrena cijena: {{ $planBusiness['cijena_prikaz'] }}</div>
-                <div class="plan-desc">Za veće timove i računovođe.</div>
+                <div class="plan-desc">Za tvrtke kojima je važna brza podrška i prilagodbe.</div>
                 <div class="plan-divider"></div>
                 <ul class="plan-features">
                     <li><span class="check">✓</span> Sve iz Pro plana</li>
-                    <li><span class="check">✓</span> eRačun B2B + B2G slanje</li>
-                    <li><span class="check">✓</span> Više korisnika / timova</li>
-                    <li><span class="check">✓</span> Računovođa pristup</li>
-                    <li><span class="check">✓</span> API pristup</li>
                     <li><span class="check">✓</span> Prioritetna podrška (SLA)</li>
-                    <li><span class="check">✓</span> Fiskalizacija</li>
+                    <li><span class="check">✓</span> Zahtjevi za nadogradnju — nove mogućnosti po vašoj potrebi</li>
                 </ul>
-                <a href="/admin/register" class="plan-cta plan-cta-outline">Kontaktiraj nas</a>
+                <a href="/kontakt" class="plan-cta plan-cta-outline">Kontaktiraj nas</a>
             </div>
         </div>
 
         <p class="pricing-legal-note">
-            Sidrena cijena je najniža cijena koju smo primjenjivali u posljednjih 30 dana (sukladno Zakonu o zaštiti potrošača).
-            Trenutno ne provodimo nikakva sniženja niti akcijske cijene, pa je sidrena cijena jednaka prikazanoj cijeni za svaki plan.
+            Sidrena cijena je cijena usluge na dan 10. rujna 2026. (Odluka o isticanju dodatne cijene, NN 101/2026).
+            Od tada cijene nismo mijenjali i ne provodimo akcije, pa je sidrena cijena jednaka prikazanoj cijeni za svaki plan.
         </p>
 
         <p class="price-table-updated">
@@ -853,7 +847,7 @@
                     <span class="faq-icon">+</span>
                 </label>
                 <div class="faq-body">
-                    <p>Da — Starter plan je besplatan zauvijek i uključuje sve što paušalni obrtnik s manjim opsegom rada treba: neograničene račune, PDF s HUB-3 barkodom i PO-SD obrazac. Pro plan (4,99 €/mj) donosi slanje e-mailom, pretplate klijenata i eRačun XML export.</p>
+                    <p>Da — Starter plan je besplatan zauvijek i ima sve mogućnosti aplikacije za jednu tvrtku ili obrt: neograničene račune i ponude, PDF s HUB-3 barkodom, slanje e-mailom, fiskalizaciju, eRačun XML, PO-SD, IRA knjigu, pretplate i skladište. Pro plan (4,99 €/mj) dodaje više tvrtki na jednom računu i podršku e-mailom, a Business (12,99 €/mj) prioritetnu podršku i zahtjeve za nadogradnju.</p>
                 </div>
             </div>
 
