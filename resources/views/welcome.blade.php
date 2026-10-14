@@ -382,12 +382,13 @@
         .plans {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 24px; align-items: start;
+            gap: 24px; align-items: stretch;
         }
         .plan {
             background: var(--white); border: 1.5px solid var(--border);
             border-radius: 20px; padding: 32px 28px;
             transition: transform .2s, box-shadow .2s;
+            display: flex; flex-direction: column;
         }
         .plan:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
         .plan.featured {
@@ -417,7 +418,9 @@
             vertical-align: baseline;
         }
         .plan-anchor-price { font-size: .8rem; color: var(--light); margin-bottom: 4px; }
-        .plan-desc { color: var(--muted); font-size: .88rem; margin: 10px 0 22px; }
+        .plan-desc { color: var(--muted); font-size: .88rem; margin: 10px 0 22px; min-height: 5.7em; }
+        .plan-includes { display: inline-block; margin-top: 6px; font-size: .75rem; font-weight: 700; color: var(--pd); background: var(--pl); padding: 3px 10px; border-radius: 99px; }
+        .plan .plan-features { flex: 1; }
         .plan-divider { height: 1px; background: var(--border); margin-bottom: 22px; }
         .plan-features { list-style: none; display: flex; flex-direction: column; gap: 10px; }
         .plan-features li {
@@ -765,58 +768,52 @@
             $planStarter = collect($cjenik)->firstWhere('naziv', 'Starter');
             $planPro = collect($cjenik)->firstWhere('naziv', 'Pro');
             $planBusiness = collect($cjenik)->firstWhere('naziv', 'Business');
+
+            // Isti popis u svim karticama: [naziv, Starter, Pro, Business] — uključeno tamno, ostalo sivo
+            $mogucnosti = [
+                ['Neograničeni računi i ponude', true, true, true],
+                ['PDF + HUB-3 barkod', true, true, true],
+                ['Slanje e-mailom (SMTP)', true, true, true],
+                ['Fiskalizacija', true, true, true],
+                ['eRačun (UBL 2.1 XML)', true, true, true],
+                ['PO-SD obrazac i IRA knjiga', true, true, true],
+                ['Pretplate klijenata', true, true, true],
+                ['Skladište i zalihe', true, true, true],
+                ['Više tvrtki / obrta', false, true, true],
+                ['Podrška e-mailom', false, true, true],
+                ['Prioritetna podrška (SLA)', false, false, true],
+                ['Zahtjevi za nadogradnju', false, false, true],
+            ];
+            $kartice = [
+                ['plan' => $planStarter, 'i' => 1, 'naziv' => 'Starter', 'jed' => 'zauvijek', 'opis' => 'Sve mogućnosti aplikacije za jednu tvrtku ili obrt.', 'uklj' => null, 'cta' => 'Počni besplatno', 'href' => '/admin/register', 'klasa' => 'plan-cta-outline', 'featured' => false],
+                ['plan' => $planPro, 'i' => 2, 'naziv' => 'Pro', 'jed' => 'mj', 'opis' => 'Za one koji vode više tvrtki ili obrta.', 'uklj' => 'Sve iz Starter plana + više tvrtki i podrška', 'cta' => 'Isprobaj Pro', 'href' => '/admin/register', 'klasa' => 'plan-cta-solid', 'featured' => true],
+                ['plan' => $planBusiness, 'i' => 3, 'naziv' => 'Business', 'jed' => 'mj', 'opis' => 'Za tvrtke kojima je važna brza podrška i prilagodbe.', 'uklj' => 'Sve iz Pro plana + SLA i nadogradnje', 'cta' => 'Kontaktiraj nas', 'href' => '/kontakt', 'klasa' => 'plan-cta-outline', 'featured' => false],
+            ];
         @endphp
         <div class="plans">
-            <div class="plan">
-                <div class="plan-name">Starter</div>
-                <div class="plan-price">{{ $planStarter['cijena_prikaz'] }} <sub>/ zauvijek</sub></div>
-                <div class="plan-anchor-price">Sidrena cijena: {{ $planStarter['cijena_prikaz'] }}</div>
-                <div class="plan-desc">Sve mogućnosti aplikacije za jednu tvrtku ili obrt.</div>
+            @foreach ($kartice as $k)
+            <div class="plan {{ $k['featured'] ? 'featured' : '' }}">
+                @if ($k['featured'])<div class="plan-badge">Najpopularniji</div>@endif
+                <div class="plan-name">{{ $k['naziv'] }}</div>
+                <div class="plan-price">{{ $k['plan']['cijena_prikaz'] }} <sub>/ {{ $k['jed'] }}</sub></div>
+                <div class="plan-anchor-price">Sidrena cijena: {{ $k['plan']['cijena_prikaz'] }}</div>
+                <div class="plan-desc">
+                    {{ $k['opis'] }}
+                    @if ($k['uklj'])<br><span class="plan-includes">{{ $k['uklj'] }}</span>@endif
+                </div>
                 <div class="plan-divider"></div>
                 <ul class="plan-features">
-                    <li><span class="check">✓</span> 1 tvrtka / obrt</li>
-                    <li><span class="check">✓</span> Neograničeni računi i ponude</li>
-                    <li><span class="check">✓</span> PDF + HUB-3 barkod</li>
-                    <li><span class="check">✓</span> Slanje e-mailom (SMTP)</li>
-                    <li><span class="check">✓</span> Fiskalizacija</li>
-                    <li><span class="check">✓</span> eRačun (UBL 2.1 XML)</li>
-                    <li><span class="check">✓</span> PO-SD obrazac i IRA knjiga</li>
-                    <li><span class="check">✓</span> Pretplate klijenata</li>
-                    <li><span class="check">✓</span> Skladište i zalihe</li>
-                    <li class="no"><span class="cross">○</span> Više tvrtki</li>
-                    <li class="no"><span class="cross">○</span> Podrška</li>
+                    @foreach ($mogucnosti as $m)
+                        @if ($m[$k['i']])
+                            <li><span class="check">✓</span> {{ $m[0] }}</li>
+                        @else
+                            <li class="no"><span class="cross">○</span> {{ $m[0] }}</li>
+                        @endif
+                    @endforeach
                 </ul>
-                <a href="/admin/register" class="plan-cta plan-cta-outline">Počni besplatno</a>
+                <a href="{{ $k['href'] }}" class="plan-cta {{ $k['klasa'] }}">{{ $k['cta'] }}</a>
             </div>
-
-            <div class="plan featured">
-                <div class="plan-badge">Najpopularniji</div>
-                <div class="plan-name">Pro</div>
-                <div class="plan-price">{{ $planPro['cijena_prikaz'] }} <sub>/ mj</sub></div>
-                <div class="plan-anchor-price">Sidrena cijena: {{ $planPro['cijena_prikaz'] }}</div>
-                <div class="plan-desc">Za one koji vode više tvrtki ili obrta.</div>
-                <div class="plan-divider"></div>
-                <ul class="plan-features">
-                    <li><span class="check">✓</span> Sve iz Starter plana</li>
-                    <li><span class="check">✓</span> Više tvrtki / obrta na jednom računu</li>
-                    <li><span class="check">✓</span> Podrška e-mailom</li>
-                </ul>
-                <a href="/admin/register" class="plan-cta plan-cta-solid">Isprobaj Pro</a>
-            </div>
-
-            <div class="plan">
-                <div class="plan-name">Business</div>
-                <div class="plan-price">{{ $planBusiness['cijena_prikaz'] }} <sub>/ mj</sub></div>
-                <div class="plan-anchor-price">Sidrena cijena: {{ $planBusiness['cijena_prikaz'] }}</div>
-                <div class="plan-desc">Za tvrtke kojima je važna brza podrška i prilagodbe.</div>
-                <div class="plan-divider"></div>
-                <ul class="plan-features">
-                    <li><span class="check">✓</span> Sve iz Pro plana</li>
-                    <li><span class="check">✓</span> Prioritetna podrška (SLA)</li>
-                    <li><span class="check">✓</span> Zahtjevi za nadogradnju — nove mogućnosti po vašoj potrebi</li>
-                </ul>
-                <a href="/kontakt" class="plan-cta plan-cta-outline">Kontaktiraj nas</a>
-            </div>
+            @endforeach
         </div>
 
         <p class="pricing-legal-note">
