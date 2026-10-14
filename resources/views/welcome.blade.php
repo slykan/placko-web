@@ -542,9 +542,10 @@
         .footer-bottom a { color: #7dd8d1; }
         .footer-bottom a:hover { color: white; }
         .footer-hr-badge {
-            display: flex; align-items: center; gap: 6px;
+            display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
             color: #4b7772; font-size: .83rem;
         }
+        .footer-hr-badge a { text-decoration: none; }
 
         /* ── RESPONSIVE ─────────────────────────────────── */
         @@media (max-width: 900px) {
@@ -560,6 +561,7 @@
             .cta-card { padding: 44px 24px; }
             .footer-top { grid-template-columns: 1fr; gap: 28px; }
             .footer-bottom { flex-direction: column; text-align: center; }
+            .footer-hr-badge { align-items: center; }
         }
     </style>
 </head>
@@ -958,7 +960,8 @@
         <div class="footer-bottom">
             <p>© {{ date('Y') }} <strong style="color:#7dd8d1;">plačko.app</strong> — Sva prava pridržana</p>
             <div class="footer-hr-badge">
-                🇭🇷 Napravljeno u Hrvatskoj
+                <span>🇭🇷 Napravljeno u Hrvatskoj</span>
+                <a href="https://on-click.hr" target="_blank" rel="noopener">@@on-click.hr</a>
             </div>
         </div>
     </div>

@@ -213,7 +213,9 @@
             padding-top: 24px; border-top: 1px solid rgba(255,255,255,.08);
             font-size: .85rem; color: #7d928e; flex-wrap: wrap; gap: 12px;
         }
-        .footer-hr-badge { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; }
+        .footer-hr-badge { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: .85rem; }
+        .footer-hr-badge a { color: #7dd8d1; text-decoration: none; }
+        .footer-hr-badge a:hover { color: #fff; }
 
         @media (max-width: 720px) {
             .nav-link { display: none; }
@@ -222,6 +224,7 @@
             .tool { padding: 24px 18px; }
             .footer-top { grid-template-columns: 1fr; gap: 28px; }
             .footer-bottom { flex-direction: column; text-align: center; }
+            .footer-hr-badge { align-items: center; }
         }
     </style>
 </head>
@@ -284,7 +287,10 @@
         </div>
         <div class="footer-bottom">
             <p>© {{ date('Y') }} <strong style="color:#7dd8d1;">plačko.app</strong> — Sva prava pridržana</p>
-            <div class="footer-hr-badge">🇭🇷 Napravljeno u Hrvatskoj</div>
+            <div class="footer-hr-badge">
+                <span>🇭🇷 Napravljeno u Hrvatskoj</span>
+                <a href="https://on-click.hr" target="_blank" rel="noopener">@@on-click.hr</a>
+            </div>
         </div>
     </div>
 </footer>
