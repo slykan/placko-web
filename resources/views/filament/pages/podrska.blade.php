@@ -59,7 +59,7 @@
                 <x-heroicon-o-arrow-top-right-on-square style="width:1rem; height:1rem;" />
                 FINA — Certifikat za fiskalizaciju
             </a>
-            <a href="https://www.fina.hr/lokacije" target="_blank"
+            <a href="https://www.fina.hr/poslovnice" target="_blank"
                style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem;
                       background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:0.5rem; text-decoration:none; font-size:0.875rem; font-weight:500;">
                 <x-heroicon-o-map-pin style="width:1rem; height:1rem;" />
@@ -103,17 +103,17 @@
         </div>
 
         <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
-            <a href="https://www.fina.hr/eracun" target="_blank"
+            <a href="https://www.fina.hr/digitalizacija-poslovanja/e-racun" target="_blank"
                style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem;
                       background:#2563eb; color:#fff; border-radius:0.5rem; text-decoration:none; font-size:0.875rem; font-weight:500;">
                 <x-heroicon-o-arrow-top-right-on-square style="width:1rem; height:1rem;" />
                 FINA — eRačun portal
             </a>
-            <a href="https://www.fina.hr/documents/52452/75497/Upute_eRacun.pdf" target="_blank"
+            <a href="https://www.fina.hr/digitalizacija-poslovanja/e-racun/vodici-za-ugovaranje-usluge-fina-e-racun" target="_blank"
                style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem;
                       background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:0.5rem; text-decoration:none; font-size:0.875rem; font-weight:500;">
                 <x-heroicon-o-document-text style="width:1rem; height:1rem;" />
-                Upute (PDF)
+                Vodič za ugovaranje
             </a>
         </div>
     </div>
