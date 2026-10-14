@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\Plan;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasTenants;
@@ -36,7 +37,31 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'plan_do' => 'date',
+            'is_admin' => 'boolean',
         ];
+    }
+
+    /** Paket koji trenutno vrijedi — nakon isteka plan_do korisnik je Starter. */
+    public function paket(): Plan
+    {
+        $plan = Plan::tryFrom((string) $this->plan) ?? Plan::Starter;
+
+        if ($plan !== Plan::Starter && $this->plan_do && $this->plan_do->endOfDay()->isPast()) {
+            return Plan::Starter;
+        }
+
+        return $plan;
+    }
+
+    public function mozeDodatiTvrtku(): bool
+    {
+        return $this->paket()->viseTvrtki() || ! $this->tvrtke()->exists();
+    }
+
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
     }
 
     public function tvrtke(): BelongsToMany

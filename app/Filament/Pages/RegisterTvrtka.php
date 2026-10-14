@@ -22,6 +22,33 @@ class RegisterTvrtka extends RegisterTenant
         return 'Dodaj obrt / tvrtku';
     }
 
+    /** Starter paket ima jednu tvrtku; više tvrtki imaju Pro i Business. */
+    public static function canView(): bool
+    {
+        return (bool) auth()->user()?->mozeDodatiTvrtku();
+    }
+
+    public function mount(): void
+    {
+        $user = auth()->user();
+
+        if ($user && ! $user->mozeDodatiTvrtku()) {
+            \Filament\Notifications\Notification::make()
+                ->title('Više tvrtki dostupno je u Pro paketu')
+                ->body('Starter paket uključuje jednu tvrtku ili obrt. Za nadogradnju nam se javite putem stranice Pomoć i podrška.')
+                ->warning()
+                ->persistent()
+                ->send();
+
+            $prva = $user->tvrtke()->first();
+            $this->redirect($prva ? '/admin/'.$prva->id : '/admin');
+
+            return;
+        }
+
+        parent::mount();
+    }
+
     public function form(Form $form): Form
     {
         return $form->schema([

@@ -118,25 +118,51 @@
         </div>
     </div>
 
-    {{-- KONTAKT --}}
+    {{-- KONTAKT — ovisno o paketu --}}
+    @php($paket = auth()->user()->paket())
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:0.75rem; padding:1.5rem 2rem;">
         <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
             <div style="background:#fef9c3; border-radius:0.5rem; padding:0.5rem;">
                 <x-heroicon-o-chat-bubble-left-ellipsis style="width:1.5rem; height:1.5rem; color:#ca8a04;" />
             </div>
             <h2 style="font-size:1.1rem; font-weight:700; margin:0;">Podrška Placko</h2>
+            <span style="margin-left:auto; font-size:0.75rem; font-weight:700; padding:0.2rem 0.65rem; border-radius:999px; background:#d1f5f0; color:#1f8a7e;">
+                Vaš paket: {{ $paket->label() }}
+            </span>
         </div>
 
-        <p style="color:#374151; margin-bottom:1rem; line-height:1.7;">
-            Imate pitanje ili problem s aplikacijom? Slobodno nas kontaktirajte — odgovaramo u roku 24 sata radnim danom.
-        </p>
+        @if($paket->podrska())
+            <p style="color:#374151; margin-bottom:1rem; line-height:1.7;">
+                @if($paket->prioritetnaPodrska())
+                    Kao korisnik paketa <strong>Business</strong> imate <strong>prioritetnu podršku (SLA)</strong> — vaši upiti rješavaju se prvi.
+                    Ovdje nam možete poslati i <strong>zahtjev za nadogradnju</strong>: novu mogućnost ili prilagodbu koja vam treba u poslovanju.
+                @else
+                    Imate pitanje ili problem s aplikacijom? Slobodno nas kontaktirajte — odgovaramo u roku 24 sata radnim danom.
+                @endif
+            </p>
 
-        <a href="mailto:placko@placko.app"
-           style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem;
-                  background:#2ba99b; color:#fff; border-radius:0.5rem; text-decoration:none; font-size:0.875rem; font-weight:500;">
-            <x-heroicon-o-envelope style="width:1rem; height:1rem;" />
-            placko@placko.app
-        </a>
+            <a href="mailto:placko@placko.app?subject={{ rawurlencode(($paket->prioritetnaPodrska() ? '[Business] ' : '[Pro] ').'Podrška plačko.app') }}"
+               style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem;
+                      background:#2ba99b; color:#fff; border-radius:0.5rem; text-decoration:none; font-size:0.875rem; font-weight:500;">
+                <x-heroicon-o-envelope style="width:1rem; height:1rem;" />
+                placko@placko.app
+            </a>
+        @else
+            <p style="color:#374151; margin-bottom:1rem; line-height:1.7;">
+                Starter paket uključuje sve mogućnosti aplikacije za jednu tvrtku, ali ne i podršku. Odgovore na najčešća
+                pitanja potražite u uputama iznad i u <a href="/novosti?kategorija=vodic" target="_blank" style="color:#2ba99b; font-weight:600;">vodičima</a>.
+            </p>
+            <p style="color:#374151; margin-bottom:1rem; line-height:1.7;">
+                Podrška e-mailom i rad s više tvrtki dostupni su u paketu <strong>Pro</strong> (4,99 €/mj), a prioritetna podrška
+                i zahtjevi za nadogradnju u paketu <strong>Business</strong> (12,99 €/mj).
+            </p>
+            <a href="mailto:placko@placko.app?subject={{ rawurlencode('Nadogradnja paketa — '.auth()->user()->email) }}"
+               style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem;
+                      background:#2ba99b; color:#fff; border-radius:0.5rem; text-decoration:none; font-size:0.875rem; font-weight:500;">
+                <x-heroicon-o-arrow-up-circle style="width:1rem; height:1rem;" />
+                Zatraži nadogradnju paketa
+            </a>
+        @endif
     </div>
 
 </div>
