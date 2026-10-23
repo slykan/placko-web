@@ -159,6 +159,7 @@
         article.post-body td.num, .tool td.num, .tool th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
         article.post-body ol { margin: 0 0 16px 22px; }
         article.post-body .warn { background: #fff7e6; color: #7a5200; border-radius: 12px; padding: 18px 22px; margin: 24px 0; font-size: .95rem; }
+        article.post-body blockquote { margin: 20px 0; padding: 14px 20px; border-left: 4px solid var(--p); background: #f6f7fb; border-radius: 0 10px 10px 0; font-size: .95rem; color: var(--text, inherit); }
         .sources { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--border); font-size: .85rem; color: var(--light); }
         .sources a { color: var(--pd); text-decoration: underline; }
         .table-wrap { overflow-x: auto; }

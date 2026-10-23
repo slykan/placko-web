@@ -26,7 +26,7 @@
             <li><a href="{{ route('novosti.show', 'pausalni-obrt-2026-porez-doprinosi-rokovi') }}" style="color:var(--p);font-weight:700;">Paušalni obrt 2026.: porezni razredi, doprinosi i rokovi</a></li>
             <li><a href="{{ route('novosti.show', 'sto-mora-pisati-na-racunu-pausalni-obrt') }}" style="color:var(--p);font-weight:700;">Što mora pisati na računu paušalnog obrta</a></li>
             <li><a href="{{ route('novosti.show', 'fiskalizacija-2-0-eracun-pausalni-obrt') }}" style="color:var(--p);font-weight:700;">Fiskalizacija 2.0 i eRačun za paušaliste</a></li>
-            <li><a href="{{ route('novosti.show', 'sidrena-cijena-i-cjenik-usluga-2026') }}" style="color:var(--p);font-weight:700;">Sidrena cijena od 1. listopada 2026.</a></li>
+            <li><a href="{{ route('novosti.show', 'bazna-cijena-od-17-studenoga-2026') }}" style="color:var(--p);font-weight:700;">Bazna (sidrena) cijena od 17. studenoga 2026.</a></li>
         </ul>
     </div>
 @endsection

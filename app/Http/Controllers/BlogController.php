@@ -21,10 +21,18 @@ class BlogController extends Controller
     {
         return [
             [
+                'slug' => 'bazna-cijena-od-17-studenoga-2026',
+                'kategorija' => 'vodic',
+                'title' => 'Bazna cijena od 17. studenoga 2026. — sidrena cijena odgođena i ulazi u Zakon o zaštiti potrošača',
+                'excerpt' => 'Obveza isticanja sidrene cijene pomaknuta je s 1. listopada na 17. studenoga 2026., a od tada se po Zakonu o zaštiti potrošača zove bazna cijena. Što se mijenja, kazne i svi službeni dokumenti na jednom mjestu.',
+                'date' => '2026-10-23',
+                'read' => '5 min čitanja',
+            ],
+            [
                 'slug' => 'sidrena-cijena-i-cjenik-usluga-2026',
                 'kategorija' => 'vodic',
-                'title' => 'Sidrena cijena od 1. listopada 2026.: što moraju napraviti obrtnici i pružatelji usluga',
-                'excerpt' => 'Od 1. listopada 2026. dodatnu (sidrenu) cijenu moraju isticati i pružatelji usluga, a tko ima web stranicu mora objavljivati i strojno čitljiv cjenik. Što to znači u praksi i kako smo to riješili na plačko.app.',
+                'title' => 'Sidrena (bazna) cijena i cjenik usluga: što moraju napraviti obrtnici i pružatelji usluga',
+                'excerpt' => 'Od 17. studenoga 2026. (odgođeno s 1. listopada) dodatnu (sidrenu, odnosno baznu) cijenu moraju isticati i pružatelji usluga, a tko ima web stranicu mora objavljivati i strojno čitljiv cjenik. Što to znači u praksi i kako smo to riješili na plačko.app.',
                 'date' => '2026-10-13',
                 'read' => '6 min čitanja',
             ],

@@ -1,6 +1,6 @@
 @extends('layouts.blog', [
     'title' => $kategorija === 'vodic' ? 'Vodiči za paušaliste i obrtnike' : 'Novosti i vodiči',
-    'description' => 'Vodiči za paušalne obrtnike (porez, doprinosi, fiskalizacija, eRačun, sidrene cijene) i novosti iz plačko.app aplikacije za fakturiranje.',
+    'description' => 'Vodiči za paušalne obrtnike (porez, doprinosi, fiskalizacija, eRačun, sidrene i bazne cijene) i novosti iz plačko.app aplikacije za fakturiranje.',
     'nav' => 'novosti',
 ])
 

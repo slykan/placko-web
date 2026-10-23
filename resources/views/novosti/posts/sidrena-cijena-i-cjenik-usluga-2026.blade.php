@@ -1,5 +1,12 @@
+<div class="warn">
+    <strong>Ažurirano 23. listopada 2026.:</strong> Vlada je početak primjene odgodila na <strong>17. studenoga 2026.</strong>
+    (NN 110/2026), a od istog dana izmijenjeni Zakon o zaštiti potrošača tu cijenu naziva <strong>bazna cijena</strong>.
+    Referentni dani ostaju isti. Sve novo, uz službene dokumente, je u vodiču
+    <a href="{{ route('novosti.show', 'bazna-cijena-od-17-studenoga-2026') }}" style="color:inherit;font-weight:700;">Bazna cijena od 17. studenoga 2026.</a>
+</div>
+
 <p>
-    Od <strong>1. listopada 2026.</strong> obveza isticanja <strong>dodatne, tzv. sidrene cijene</strong> više
+    Od <strong>17. studenoga 2026.</strong> (prvotno 1. listopada) obveza isticanja <strong>dodatne, tzv. sidrene cijene</strong> više
     se ne odnosi samo na hranu i drogeriju u trgovinama. Prema odlukama Vlade objavljenima u
     <strong>Narodnim novinama br. 101/2026</strong>, obuhvaćeni su <strong>svi proizvodi i — prvi put — sve usluge</strong>.
     To znači da se tiče i frizera, servisera, majstora, IT obrtnika, fotografa, kozmetičara i većine
