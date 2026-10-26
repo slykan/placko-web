@@ -2,7 +2,7 @@
     'title' => $post['title'],
     'description' => $post['excerpt'],
     'nav' => 'novosti',
-    'ads' => true,
+    'ads' => $post['kategorija'] === 'vodic', // ads only next to guides, not app news
     'jsonLd' => [
         '@context' => 'https://schema.org',
         '@type' => 'Article',

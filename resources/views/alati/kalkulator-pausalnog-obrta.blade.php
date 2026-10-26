@@ -62,6 +62,59 @@
             <li>Za 2027. najavljene su promjene za 6. i 7. razred — vidi
                 <a href="{{ route('novosti.show', 'pausalni-obrt-2026-porez-doprinosi-rokovi') }}" style="color:var(--p);font-weight:700;">vodič za paušalni obrt 2026.</a></li>
         </ul>
+
+        <h2>Primjer izračuna</h2>
+        <p>
+            Grafička dizajnerica ima paušalni obrt kao jedinu djelatnost i u godini naplati
+            <strong>25.000 €</strong>. Primici su između 19.900,01 i 30.600 €, pa je u <strong>4. razredu</strong>
+            s paušalnim dohotkom od 4.590 €.
+        </p>
+        <ul>
+            <li>Porez: 4.590 € × 12 % = <strong>550,80 €</strong> godišnje, odnosno 137,70 € tromjesečno.</li>
+            <li>Doprinosi: 290,98 € × 12 = <strong>3.491,76 €</strong> godišnje.</li>
+            <li>Ukupno državi: <strong>4.042,56 €</strong>, što je oko 16 % prometa.</li>
+            <li>Ostaje joj (bez vlastitih troškova): 25.000 − 4.042,56 = <strong>20.957,44 €</strong>, oko 1.746 € mjesečno.</li>
+        </ul>
+        <p>
+            Primijeti koliko razred utječe na porez, a koliko malo doprinosi ovise o prometu: kod niskih
+            primitaka doprinosi su najveći dio davanja, a kod visokih postotak „državi" pada. Zato je paušal
+            najisplativiji obrtnicima s malo troškova i srednjim do višim prometom.
+        </p>
+
+        <h2>Paušalist uz stalni posao ili mirovinu</h2>
+        <p>
+            Ako ti je obrt <strong>dopunska djelatnost</strong> (uz radni odnos ili mirovinu), ne plaćaš
+            mjesečne doprinose od 290,98 €, nego se doprinosi za mirovinsko osiguranje obračunavaju godišnje,
+            rješenjem Porezne uprave nakon predaje PO-SD obrasca. Zato ih kalkulator u toj opciji ne prikazuje —
+            računaj da ćeš dio primitaka ipak platiti kroz to rješenje. Zdravstveno osiguranje imaš po
+            osnovi posla ili mirovine.
+        </p>
+
+        <h2>Česta pitanja</h2>
+        <h3>Računa li se razred prema izdanim ili naplaćenim računima?</h3>
+        <p>
+            Prema <strong>naplaćenim</strong> primicima — onome što je stvarno sjelo na račun ili u blagajnu
+            tijekom kalendarske godine. Račun izdan u prosincu, a plaćen u siječnju, ulazi u iduću godinu.
+            Zato je uredna <a href="{{ route('novosti.show', 'knjiga-prometa-kpr-pausalni-obrt') }}" style="color:var(--p);font-weight:700;">knjiga prometa</a> temelj svakog izračuna.
+        </p>
+        <h3>Kada se mijenja razred?</h3>
+        <p>
+            Razred se utvrđuje iz godišnjeg <a href="{{ route('novosti.show', 'po-sd-obrazac-pausalni-obrt') }}" style="color:var(--p);font-weight:700;">PO-SD obrasca</a>,
+            koji se predaje do 15. siječnja. Ako si prošle godine prešao u viši razred, od nove godine plaćaš
+            veći tromjesečni porez. U prvoj godini poslovanja razred se određuje prema primicima koje očekuješ.
+        </p>
+        <h3>Mogu li odbiti troškove?</h3>
+        <p>
+            Ne. Paušalist ne dokazuje troškove — porez je isti bez obzira na to koliko si potrošio. Zato je
+            polje „troškovi" u kalkulatoru samo za tvoju računicu koliko ti ostaje. Ako su ti troškovi visoki
+            (npr. trgovina ili materijal), isplati se usporediti paušal s obrtom na dohodak.
+        </p>
+        <h3>Što ako u godini prijeđem 60.000 €?</h3>
+        <p>
+            Tada više ne ispunjavaš uvjete za paušal i ulaziš u sustav PDV-a od dana nakon prelaska praga.
+            Detalje imaš u vodiču
+            <a href="{{ route('novosti.show', 'pausalni-obrt-i-pdv-prag-60000') }}" style="color:var(--p);font-weight:700;">paušalni obrt i PDV</a>.
+        </p>
         <p class="sources">Izračun je informativan. Za konačne obveze mjerodavna su rješenja Porezne uprave.</p>
     </div>
 

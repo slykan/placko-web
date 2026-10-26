@@ -2,7 +2,7 @@
     'title' => 'Besplatni alati za obrtnike',
     'description' => 'Besplatni online alati za paušaliste i obrtnike: kalkulator paušalnog obrta 2026., HUB-3 uplatnica s barkodom, provjera OIB-a i IBAN-a, PDV kalkulator.',
     'nav' => 'alati',
-    'ads' => true,
+    'ads' => false, // short index page — ads only on the tools themselves
 ])
 
 @section('content')

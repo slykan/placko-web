@@ -71,6 +71,48 @@
             <li><strong>Opis</strong> — do 35 znakova, npr. „Uplata prema računu 12-1-2026".</li>
             <li><strong>Šifra namjene</strong> — neobavezna četveroslovna oznaka (npr. OTHR za ostala plaćanja).</li>
         </ul>
+
+        <h2>Primjer: uplatnica uz račun</h2>
+        <p>
+            Obrtnik izda račun broj <code>12-1-1</code> na 450 € i klijentu uz račun pošalje uplatnicu:
+        </p>
+        <ul>
+            <li>Primatelj: naziv obrta, adresa i mjesto, IBAN obrta</li>
+            <li>Iznos: 450,00</li>
+            <li>Model i poziv na broj: HR00, poziv <code>12-1-1</code> (broj računa)</li>
+            <li>Opis plaćanja: „Račun 12-1-1"</li>
+        </ul>
+        <p>
+            Klijent skenira barkod u aplikaciji banke i samo potvrdi plaćanje. Kad uplata stigne, u izvatku
+            odmah vidiš poziv na broj, pa točno znaš koji je račun plaćen — a to ti olakšava i upis u
+            <a href="{{ route('novosti.show', 'knjiga-prometa-kpr-pausalni-obrt') }}" style="color:var(--p);font-weight:700;">knjigu prometa</a>.
+        </p>
+
+        <h2>Modeli plaćanja ukratko</h2>
+        <ul>
+            <li><strong>HR99</strong> — bez poziva na broj; polje ostaje prazno.</li>
+            <li><strong>HR00</strong> — poziv na broj slobodnog oblika (do 3 dijela odvojena crticom), bez kontrolne znamenke. Najjednostavnije za broj računa.</li>
+            <li><strong>HR01</strong> — poziv na broj s kontrolnom znamenkom, za primatelje koji automatski sparuju uplate.</li>
+            <li><strong>HR68</strong> — za uplate poreza i doprinosa u državni proračun. Za te uplate točan IBAN i poziv na broj (koji sadrži tvoj OIB) preuzmi iz ePorezne.</li>
+        </ul>
+
+        <h2>Česta pitanja</h2>
+        <h3>Zašto barkod ne prihvaća č, ć, š, ž i đ?</h3>
+        <p>
+            HUB-3 standard predviđa osnovni skup znakova, a dio bankarskih aplikacija ne čita hrvatske
+            dijakritike. Alat ih zato automatski pretvara u c, s, z i d — na barkodu piše „Kovacevic",
+            a na uplati je sve ispravno.
+        </p>
+        <h3>Mora li biti upisan iznos?</h3>
+        <p>
+            Ne mora, ali je preporučljivo. Bez iznosa platitelj ga upisuje sam, a to je čest izvor pogrešaka
+            i djelomičnih uplata.
+        </p>
+        <h3>Spremaju li se podaci?</h3>
+        <p>
+            Ne. Barkod se crta u tvom pregledniku i ništa od upisanog ne šalje se na poslužitelj. Gotovu
+            uplatnicu možeš ispisati ili spremiti barkod kao sliku.
+        </p>
         <h2>Barkod na svakom računu, automatski</h2>
         <p>
             Ako izdaješ račune u plačko.app, HUB-3 barkod se automatski generira na PDF-u svakog računa iz

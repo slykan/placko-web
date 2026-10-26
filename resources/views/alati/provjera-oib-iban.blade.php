@@ -46,6 +46,51 @@
             OIB kupca obvezan je na računu kad je kupac poduzetnik, a IBAN primatelja na svakoj uplatnici. Gotovu
             uplatnicu s barkodom možeš napraviti u alatu <a href="/alati/hub3-uplatnica" style="color:var(--p);font-weight:700;">HUB-3 uplatnica</a>.
         </p>
+
+        <h2>Kako se računa kontrolna znamenka OIB-a</h2>
+        <p>
+            Algoritam (ISO 7064, MOD 11,10) prolazi kroz prvih 10 znamenki redom. Počinje s međuvrijednošću 10, a
+            za svaku znamenku:
+        </p>
+        <ol>
+            <li>međuvrijednosti se pribroji znamenka i uzme ostatak dijeljenja s 10 (ako je ostatak 0, uzima se 10),</li>
+            <li>rezultat se pomnoži s 2 i uzme ostatak dijeljenja s 11 — to je nova međuvrijednost.</li>
+        </ol>
+        <p>
+            Nakon desete znamenke kontrolna znamenka je 11 minus međuvrijednost (a ako izađe 10, kontrolna je 0).
+            Ako se ta znamenka poklapa s jedanaestom znamenkom OIB-a, OIB je valjano složen. Zato slučajno
+            upisan niz od 11 znamenki prolazi provjeru tek u otprilike jednom od deset slučajeva.
+        </p>
+
+        <h2>Kako se provjerava IBAN</h2>
+        <ol>
+            <li>Prva četiri znaka (oznaka države i kontrolne znamenke, npr. <code>HR12</code>) premjeste se na kraj.</li>
+            <li>Slova se zamijene brojevima: A = 10, B = 11 … H = 17, R = 27, pa <code>HR</code> postaje 1727.</li>
+            <li>Dobiveni dugi broj podijeli se s 97 — IBAN je ispravan ako je ostatak točno <strong>1</strong>.</li>
+        </ol>
+        <p>
+            MOD 97 hvata sve zamjene jedne znamenke i gotovo sve zamjene dviju susjednih znamenki, što su
+            najčešće pogreške pri prepisivanju. U hrvatskom IBAN-u 7 znamenki nakon kontrolnih označava banku
+            (vodeći broj banke), pa po njima možeš prepoznati u kojoj je banci račun otvoren.
+        </p>
+
+        <h2>Česta pitanja</h2>
+        <h3>Šalje li alat OIB ili IBAN nekamo?</h3>
+        <p>
+            Ne. Provjera se radi isključivo u tvom pregledniku, JavaScriptom na ovoj stranici — ništa od
+            upisanog ne šalje se na poslužitelj i ne sprema se.
+        </p>
+        <h3>OIB je ispravan, ali tvrtka ne postoji — kako?</h3>
+        <p>
+            Kontrolna znamenka potvrđuje samo da je broj pravilno složen. Postoji puno valjano složenih
+            brojeva koji nikome nisu dodijeljeni ili pripadaju nekome drugome. Prije izdavanja računa novom
+            klijentu provjeri naziv i OIB u sudskom registru (tvrtke) ili obrtnom registru (obrti).
+        </p>
+        <h3>Što mora pisati na računu?</h3>
+        <p>
+            OIB izdavatelja uvijek, a OIB kupca kad je kupac poduzetnik. Popis svih obveznih elemenata imaš u
+            vodiču <a href="{{ route('novosti.show', 'sto-mora-pisati-na-racunu-pausalni-obrt') }}" style="color:var(--p);font-weight:700;">što mora pisati na računu paušalnog obrta</a>.
+        </p>
     </div>
 
     @include('alati._ostali')

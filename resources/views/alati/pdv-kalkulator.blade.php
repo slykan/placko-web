@@ -9,7 +9,7 @@
     <a href="/alati" class="article-back">← Svi alati</a>
     <span class="page-eyebrow">Besplatni alat</span>
     <h1 class="page-title">PDV kalkulator</h1>
-    <p class="page-sub">Dodaj PDV na iznos ili ga izdvoji iz ukupnog iznosa — po hrvatskim stopama ili po svojoj.</p>
+    <p class="page-sub">Dodaj PDV na iznos ili ga izdvoji iz ukupnog iznosa — po hrvatskim stopama od 25 %, 13 % i 5 %.</p>
 
     <div class="tool">
         <div class="row">
@@ -56,6 +56,55 @@
             određene proizvode i usluge propisane Zakonom o PDV-u. Koja stopa vrijedi za tvoju robu ili uslugu
             provjeri u zakonu ili s knjigovođom.
         </p>
+        <p>
+            Okvirno: sniženu stopu od 13 % imaju npr. usluge smještaja i dio ugostiteljskih usluga, a 5 %
+            dio osnovnih namirnica, knjige i lijekovi. Popisi se povremeno mijenjaju izmjenama zakona, pa za
+            konkretni artikl uvijek provjeri aktualni tekst Zakona o PDV-u.
+        </p>
+
+        <h2>Primjeri izračuna</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Zadano</th><th>Stopa</th><th class="num">Osnovica</th><th class="num">PDV</th><th class="num">Ukupno</th></tr></thead>
+                <tbody>
+                    <tr><td>800 € bez PDV-a</td><td>25 %</td><td class="num">800,00</td><td class="num">200,00</td><td class="num">1.000,00</td></tr>
+                    <tr><td>1.000 € s PDV-om</td><td>25 %</td><td class="num">800,00</td><td class="num">200,00</td><td class="num">1.000,00</td></tr>
+                    <tr><td>113 € s PDV-om</td><td>13 %</td><td class="num">100,00</td><td class="num">13,00</td><td class="num">113,00</td></tr>
+                    <tr><td>50 € s PDV-om</td><td>5 %</td><td class="num">47,62</td><td class="num">2,38</td><td class="num">50,00</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p>
+            U zadnjem primjeru osnovica je 50 ÷ 1,05 = 47,619… i zaokružuje se na 47,62 €, a PDV je razlika do
+            ukupnog iznosa (2,38 €). Tako zbroj osnovice i PDV-a uvijek odgovara iznosu koji kupac plaća.
+        </p>
+
+        <h2>Zaokruživanje i računi s više stavki</h2>
+        <p>
+            Iznosi se zaokružuju na dvije decimale (cente). Kod računa s puno stavki redoslijed zaokruživanja
+            može dati razliku od centa ili dva: ako PDV računaš po svakoj stavci pa zbrojiš, rezultat se može
+            neznatno razlikovati od PDV-a izračunatog na ukupnu osnovicu. Važno je da na računu PDV bude
+            iskazan zbirno po svakoj stopi i da se iznosi slažu. Programi za račune to rade automatski.
+        </p>
+
+        <h2>Česta pitanja</h2>
+        <h3>Koliko je PDV-a u cijeni od 100 €?</h3>
+        <p>
+            Uz stopu od 25 % u 100 € s PDV-om je 20 € PDV-a (100 ÷ 1,25 = 80 € osnovice). Udio PDV-a u
+            bruto cijeni je dakle 20 %, a ne 25 % — stopa se uvijek primjenjuje na osnovicu.
+        </p>
+        <h3>Kada moram obračunavati PDV?</h3>
+        <p>
+            Kad si u sustavu PDV-a — obvezno ako ti godišnji promet prijeđe 60.000 €, ili dobrovoljno.
+            Više u vodiču <a href="{{ route('novosti.show', 'pausalni-obrt-i-pdv-prag-60000') }}" style="color:var(--p);font-weight:700;">paušalni obrt i PDV — prag od 60.000 €</a>.
+        </p>
+        <h3>Čemu služi opcija 0 %?</h3>
+        <p>
+            Neke isporuke su oslobođene PDV-a ili PDV obračunava kupac (prijenos porezne obveze, npr. kod
+            usluga tvrtkama iz drugih država EU-a). Tada je na računu osnovica jednaka ukupnom iznosu, a umjesto
+            PDV-a navodi se zakonska napomena. Formule su inače iste u svim državama EU-a — razlikuju se samo stope.
+        </p>
+
         <h2>A paušalisti?</h2>
         <p>
             Paušalni obrtnici nisu u sustavu PDV-a i PDV ne obračunavaju — na računu umjesto PDV-a stoji napomena
