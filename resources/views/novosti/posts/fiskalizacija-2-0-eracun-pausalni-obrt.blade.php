@@ -47,9 +47,11 @@
 </p>
 <p>
     eRačun nije PDF poslan mailom, nego XML u formatu <strong>UBL 2.1</strong> (PEPPOL BIS Billing 3.0, EN 16931)
-    koji se šalje kroz sustav razmjene. plačko.app već danas generira valjani UBL 2.1 XML za svaki račun,
-    a izravno slanje kroz sustav razmjene pripremamo prije početka obveze. Porezna uprava najavila je i
-    nadogradnju aplikacije MIKROeRAČUN za izdavanje eRačuna.
+    koji se šalje kroz sustav razmjene. plačko.app za svaki račun izrađuje eRačun u hrvatskoj specifikaciji
+    CIUS-HR (preuzimanje XML-a), a uz aktiviran eRačun servis u Postavkama šalje ga i izravno. Porezna
+    uprava nadogradila je i besplatnu aplikaciju MIKROeRAČUN, koja uz zaprimanje sada omogućuje i
+    izdavanje eRačuna. Korak po korak:
+    <a href="{{ route('novosti.show', 'eracun-od-2027-kako-ga-izdati-pausalist') }}" style="color:var(--p);font-weight:700;">kako paušalist izdaje eRačun od 2027.</a>
 </p>
 
 <div class="callout">
@@ -80,5 +82,5 @@
     <a href="https://porezna-uprava.gov.hr/hr/mikroeracun/8190" rel="nofollow noopener" target="_blank">Porezna uprava — MIKROeRAČUN</a>;
     <a href="https://porezna-uprava.gov.hr/hr/nadogradnja-mikroeracuna-besplatno-i-jednostavno-rjesenje-za-izdavanje-eracuna/8911" rel="nofollow noopener" target="_blank">Porezna uprava — nadogradnja MIKROeRAČUNA</a>;
     <a href="https://www.rrif.hr/obveza_fiskalizacije_racuna_prema_novom_zakonu_o_f-4155-misljenje/" rel="nofollow noopener" target="_blank">RRiF — fiskalizacija za paušaliste</a>.
-    Stanje na dan 13. listopada 2026.
+    Stanje na dan 3. studenoga 2026.
 </p>

@@ -21,6 +21,22 @@ class BlogController extends Controller
     {
         return [
             [
+                'slug' => 'eracun-od-2027-kako-ga-izdati-pausalist',
+                'kategorija' => 'vodic',
+                'title' => 'eRačun od 1. siječnja 2027.: kako će paušalist izdavati eRačune',
+                'excerpt' => 'Od 2027. račun tvrtki ili obrtu u Hrvatskoj mora biti eRačun, a građanima i stranim kupcima ide običan račun. Tri načina izdavanja (MIKROeRAČUN, posrednik, program), kontrolna lista za prosinac i česta pitanja.',
+                'date' => '2026-11-03',
+                'read' => '6 min čitanja',
+            ],
+            [
+                'slug' => 'kalendar-obveza-pausalista-kraj-2026',
+                'kategorija' => 'vodic',
+                'title' => 'Kalendar obveza paušalista: studeni 2026. – siječanj 2027.',
+                'excerpt' => 'Bazna cijena od 17. studenoga, porez za 4. tromjesečje, zaključenje godine, eRačun od 1. siječnja i PO-SD do 15. siječnja — svi datumi redom, s onim što treba napraviti i što se (možda) mijenja u 2027.',
+                'date' => '2026-11-03',
+                'read' => '5 min čitanja',
+            ],
+            [
                 'slug' => 'kako-otvoriti-pausalni-obrt',
                 'kategorija' => 'vodic',
                 'title' => 'Kako otvoriti paušalni obrt u 2026. — korak po korak',

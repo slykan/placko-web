@@ -798,7 +798,7 @@
                 @if ($k['featured'])<div class="plan-badge">Najpopularniji</div>@endif
                 <div class="plan-name">{{ $k['naziv'] }}</div>
                 <div class="plan-price">{{ $k['plan']['cijena_prikaz'] }} <sub>/ {{ $k['jed'] }}</sub></div>
-                <div class="plan-anchor-price">Sidrena cijena: {{ $k['plan']['cijena_prikaz'] }}</div>
+                <div class="plan-anchor-price">Bazna (sidrena) cijena: {{ $k['plan']['cijena_prikaz'] }}</div>
                 <div class="plan-desc">
                     {{ $k['opis'] }}
                     @if ($k['uklj'])<br><span class="plan-includes">{{ $k['uklj'] }}</span>@endif
@@ -819,8 +819,9 @@
         </div>
 
         <p class="pricing-legal-note">
-            Sidrena cijena je cijena usluge na dan 10. rujna 2026. (Odluka o isticanju dodatne cijene, NN 101/2026).
-            Od tada cijene nismo mijenjali i ne provodimo akcije, pa je sidrena cijena jednaka prikazanoj cijeni za svaki plan.
+            Bazna (sidrena) cijena je cijena usluge na dan 10. rujna 2026. (Zakon o zaštiti potrošača, čl. 7., NN 59/2026, od 17. 11. 2026.;
+            Odluka o isticanju dodatne cijene, NN 101/2026 i NN 110/2026).
+            Od tada cijene nismo mijenjali i ne provodimo akcije, pa je bazna cijena jednaka prikazanoj cijeni za svaki plan.
         </p>
 
         <p class="price-table-updated">

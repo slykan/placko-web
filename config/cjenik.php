@@ -2,7 +2,7 @@
 
 // Jedini izvor istine za cijene planova na javnoj stranici (#cijene).
 // Koristi ga i welcome.blade.php (kartice + online cjenik tablica) i ruta /cjenik.csv,
-// tako da prikazana cijena i sidrena cijena nikad ne mogu izaći iz sinkronizacije.
+// tako da prikazana cijena i bazna (sidrena) cijena nikad ne mogu izaći iz sinkronizacije.
 return [
     'azurirano' => '2026-09-22',
 

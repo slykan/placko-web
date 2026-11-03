@@ -67,9 +67,9 @@
     I plačko.app je pružatelj usluge, pa smo pravila primijenili na vlastiti cjenik:
 </p>
 <ul>
-    <li>na <a href="/#cijene" style="color:var(--p);font-weight:700;">stranici s cijenama</a> uz svaki paket piše i <strong>sidrena cijena</strong>,</li>
-    <li>cjenik je dostupan i kao CSV datoteka na stalnoj adresi <a href="/cjenik.csv" style="color:var(--p);font-weight:700;">placko.app/cjenik.csv</a>, s nazivom, cijenom, jedinicom i sidrenom cijenom,</li>
-    <li>prikazana cijena i sidrena cijena dolaze iz istog izvora, pa ne mogu „pobjeći" jedna od druge kad se cjenik promijeni.</li>
+    <li>na <a href="/#cijene" style="color:var(--p);font-weight:700;">stranici s cijenama</a> uz svaki paket piše i <strong>bazna (sidrena) cijena</strong>,</li>
+    <li>cjenik je dostupan i kao CSV datoteka na stalnoj adresi <a href="/cjenik.csv" style="color:var(--p);font-weight:700;">placko.app/cjenik.csv</a>, s nazivom, cijenom, jedinicom i baznom (sidrenom) cijenom,</li>
+    <li>prikazana i bazna cijena dolaze iz istog izvora, pa ne mogu „pobjeći" jedna od druge kad se cjenik promijeni.</li>
 </ul>
 <p>
     Za mali obrt s desetak usluga najjednostavnije je isto: tablica s četiri stupca (naziv, cijena,

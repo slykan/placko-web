@@ -28,7 +28,7 @@
             <li><strong>Hrvatski propisi su ugrađeni</strong> — OIB, HUB-3 barkod, numeracija računa, PO-SD, knjiga izlaznih računa, fiskalizacija i UBL 2.1 eRačun.</li>
             <li><strong>Besplatno za paušaliste</strong> — osnovni plan nema rok trajanja i nema ograničenja broja računa.</li>
             <li><strong>Bez instalacije</strong> — radi u pregledniku i može se instalirati na mobitel kao aplikacija.</li>
-            <li><strong>Transparentne cijene</strong> — cjenik je javan, uz sidrene cijene i CSV verziju.</li>
+            <li><strong>Transparentne cijene</strong> — cjenik je javan, uz bazne (sidrene) cijene i CSV verziju.</li>
         </ul>
 
         <h2>Besplatni sadržaj</h2>

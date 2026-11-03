@@ -13,10 +13,10 @@ Route::get('/', function () {
 Route::get('/cjenik.csv', function () {
     $planovi = config('cjenik.planovi');
 
-    // Stupci prema odluci o objavi cjenika (NN 101/2026): naziv usluge, cijena, akcija, sidrena cijena.
-    $redovi = ["Plan,Cijena (EUR),Jedinica,Akcijska cijena,Sidrena cijena (EUR)"];
+    // Stupci prema odluci o objavi cjenika (NN 101/2026) i ZZP čl. 7. (NN 59/2026): naziv usluge, cijena, akcija, bazna (sidrena) cijena.
+    $redovi = ["Plan,Cijena (EUR),Jedinica,Akcijska cijena,Bazna (sidrena) cijena (EUR)"];
     foreach ($planovi as $plan) {
-        // Sidrena cijena = ista vrijednost kao prikazana cijena (nema aktivnog sniženja/akcije).
+        // Bazna cijena = ista vrijednost kao prikazana cijena (nema aktivnog sniženja/akcije).
         $redovi[] = sprintf(
             '%s,%s,%s,%s,%s',
             $plan['naziv'],

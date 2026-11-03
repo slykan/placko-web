@@ -89,10 +89,13 @@
 
 <h2>5. Što se najavljuje za 2027.</h2>
 <div class="warn">
-    Vlada je u srpnju 2026. predstavila izmjene poreznih propisa koje bi se primjenjivale od
-    <strong>1. siječnja 2027.</strong> Prema prijedlogu, za paušaliste s primicima do 40.000 € sve ostaje
-    isto, a u 6. i 7. razredu porez i doprinosi rastu (godišnje otprilike +1.336 € u 6. i +3.033 € u 7.
-    razredu). Izmjene su u zakonodavnoj proceduri — iznose za 2027. objavit ćemo kad budu konačni.
+    Vlada je u srpnju 2026. predstavila, a 10. rujna 2026. uputila Saboru izmjene poreznih propisa koje bi
+    se primjenjivale od <strong>1. siječnja 2027.</strong> Prema prijedlogu, za paušaliste s primicima do
+    40.000 € sve ostaje isto, a u 6. i 7. razredu raste paušalni dohodak (6. razred sa 7.500 € na 15.000 €,
+    7. razred s 9.000 € na 27.000 €), pa s porezom i doprinosima godišnje plaćaju otprilike 1.336 € (6.)
+    odnosno 3.033 € (7. razred) više. Do 3. studenoga 2026. nismo našli objavu konačnog teksta u Narodnim
+    novinama — iznose za 2027. objavit ćemo kad budu konačni. Svi rokovi do kraja godine:
+    <a href="{{ route('novosti.show', 'kalendar-obveza-pausalista-kraj-2026') }}" style="color:var(--p);font-weight:700;">kalendar obveza paušalista</a>.
 </div>
 
 <h2>Sažetak</h2>
@@ -108,6 +111,7 @@
     <a href="https://porezna-uprava.gov.hr/en/obrtnici-pausalisti/4564" rel="nofollow noopener" target="_blank">Porezna uprava — vodič za obrtnike paušaliste</a>;
     Naredba o iznosima osnovica za obračun doprinosa za 2026. (NN 150/2025);
     <a href="https://fiskalopedija.hr/pausalni-obrt-razredi" rel="nofollow noopener" target="_blank">Fiskalopedija — razredi</a>;
-    <a href="https://www.index.hr/clanak.aspx?id=2818046" rel="nofollow noopener" target="_blank">Index.hr — najava izmjena za 2027.</a>
-    Stanje na dan 13. listopada 2026.
+    <a href="https://www.index.hr/clanak.aspx?id=2818046" rel="nofollow noopener" target="_blank">Index.hr — najava izmjena za 2027.</a>;
+    <a href="https://financije.hr/sve-porezne-izmijene-koje-je-vlada-uputila-u-saborsku-proceduru/" rel="nofollow noopener" target="_blank">financije.hr — izmjene u saborskoj proceduri</a>.
+    Stanje na dan 3. studenoga 2026.
 </p>
