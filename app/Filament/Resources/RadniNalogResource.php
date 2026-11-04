@@ -85,7 +85,7 @@ class RadniNalogResource extends Resource
                         if ($state && blank($get('lokacija')) && ($k = Klijent::find($state))) {
                             $set('lokacija', trim($k->adresa.', '.trim($k->po_broj.' '.$k->mjesto), ', '));
                         }
-                    })->columnSpan(2),
+                    })->columnSpan(['lg' => 2]),
                 TextInput::make('broj')->label('Broj naloga')->disabled()->dehydrated()
                     ->placeholder('dodjeljuje se kod spremanja'),
                 Select::make('status')->label('Status')->options(RadniNalog::statusi())
@@ -94,8 +94,8 @@ class RadniNalogResource extends Resource
                     ->default(today())->required()->native(false)->displayFormat('d.m.Y.')->locale('hr')->firstDayOfWeek(1),
                 DatePicker::make('rok')->label('Rok izvršenja')->native(false)->displayFormat('d.m.Y.')->locale('hr')->firstDayOfWeek(1),
                 TextInput::make('predmet')->label('Predmet')
-                    ->placeholder('uređaj, vozilo, objekt… npr. Bosch perilica WAN28, ZG-1234-AB')->columnSpan(2),
-                TextInput::make('lokacija')->label('Lokacija / adresa izvršenja')->columnSpan(2),
+                    ->placeholder('uređaj, vozilo, objekt… npr. Bosch perilica WAN28, ZG-1234-AB')->columnSpan(['lg' => 2]),
+                TextInput::make('lokacija')->label('Lokacija / adresa izvršenja')->columnSpan(['lg' => 2]),
             ])->columns(4),
 
             Section::make('Izvršitelji')->schema([
@@ -126,9 +126,9 @@ class RadniNalogResource extends Resource
             Section::make('Evidencija rada')->schema([
                 Repeater::make('radovi')->relationship()->orderColumn('redni_broj')->hiddenLabel()->schema([
                     DatePicker::make('datum')->label('Datum dolaska')->default(today())->required()
-                        ->native(false)->displayFormat('d.m.Y.')->locale('hr')->firstDayOfWeek(1)->columnSpan(2),
+                        ->native(false)->displayFormat('d.m.Y.')->locale('hr')->firstDayOfWeek(1)->columnSpan(['lg' => 2]),
                     TimePicker::make('vrijeme_dolaska')->label('Vrijeme')->default(fn () => now()->format('H:i'))
-                        ->native(false)->seconds(false)->displayFormat('H:i')->format('H:i')->columnSpan(1),
+                        ->native(false)->seconds(false)->displayFormat('H:i')->format('H:i')->columnSpan(['lg' => 1]),
                     Select::make('zaposlenik_id')->label('Zaposlenik')
                         ->options(fn ($state) => Zaposlenik::opcije($tvrtkaId(), [$state]))
                         ->default(fn (Get $get) => $get('../../nositelj_id'))
@@ -137,13 +137,13 @@ class RadniNalogResource extends Resource
                             if ($state && ($z = Zaposlenik::find($state)) && $z->cijena_sata !== null) {
                                 $set('cijena_sata', $z->cijena_sata);
                             }
-                        })->columnSpan(3),
+                        })->columnSpan(['lg' => 3]),
                     TextInput::make('sati')->label('Sati')->numeric()->required()->step(0.25)->minValue(0.25)
-                        ->default(1)->columnSpan(1),
+                        ->default(1)->columnSpan(['lg' => 1]),
                     TextInput::make('cijena_sata')->label('Cijena sata')->numeric()->step(0.01)->prefix('€')
                         ->default(fn (Get $get) => Zaposlenik::find($get('../../nositelj_id'))?->cijena_sata)
-                        ->columnSpan(2),
-                    TextInput::make('opis')->label('Što je napravljeno')->columnSpan(3),
+                        ->columnSpan(['lg' => 2]),
+                    TextInput::make('opis')->label('Što je napravljeno')->columnSpan(['lg' => 3]),
                 ])->columns(12)->addActionLabel('+ Upiši rad')->defaultItems(0)->reorderable(false),
             ])->collapsible(),
 
@@ -160,24 +160,24 @@ class RadniNalogResource extends Resource
                                 $set('jedinica_mjere', $usluga->jedinica_mjere);
                             }
                             static::izracunajStavku($get, $set);
-                        })->columnSpan(4),
-                    TextInput::make('naziv')->label('Naziv')->required()->columnSpan(4),
-                    TextInput::make('opis')->label('Opis')->columnSpan(4),
-                    TextInput::make('jedinica_mjere')->label('JM')->default('kom')->columnSpan(1),
+                        })->columnSpan(['lg' => 4]),
+                    TextInput::make('naziv')->label('Naziv')->required()->columnSpan(['lg' => 4]),
+                    TextInput::make('opis')->label('Opis')->columnSpan(['lg' => 4]),
+                    TextInput::make('jedinica_mjere')->label('JM')->default('kom')->columnSpan(['lg' => 1]),
                     TextInput::make('kolicina')->label('Količina')->numeric()->required()->default(1)
                         ->step(0.001)->minValue(0.001)->live(onBlur: true)
-                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))->columnSpan(2),
+                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))->columnSpan(['lg' => 2]),
                     TextInput::make('cijena')->label('Cijena (bez PDV)')->numeric()->required()->default(0)
                         ->step(0.01)->prefix('€')->live(onBlur: true)
-                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))->columnSpan(2),
+                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))->columnSpan(['lg' => 2]),
                     TextInput::make('rabat_posto')->label('Rabat %')->numeric()->default(0)->step(0.01)
                         ->suffix('%')->live(onBlur: true)
-                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))->columnSpan(2),
+                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))->columnSpan(['lg' => 2]),
                     Select::make('pdv_stopa')->label('PDV %')->options(Usluga::pdvStope())->default(null)
                         ->native(false)->live()
-                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))->columnSpan(2),
+                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavku($get, $set))->columnSpan(['lg' => 2]),
                     TextInput::make('ukupno')->label('Ukupno €')->numeric()->disabled()->dehydrated()
-                        ->prefix('€')->columnSpan(3),
+                        ->prefix('€')->columnSpan(['lg' => 3]),
                 ])->columns(12)->addActionLabel('+ Dodaj materijal / uslugu')->reorderable()->defaultItems(0),
             ])->collapsible(),
 

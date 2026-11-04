@@ -70,7 +70,7 @@ class RacunResource extends Resource
                     ->label('Broj računa')
                     ->disabled()
                     ->dehydrated()
-                    ->columnSpan(1),
+                    ->columnSpan(['lg' => 1]),
 
                 DatePicker::make('datum_izdavanja')
                     ->label('Datum izdavanja')
@@ -78,7 +78,7 @@ class RacunResource extends Resource
                     ->required()
                     ->native(false)
                     ->displayFormat('d.m.Y.')
-                    ->columnSpan(1),
+                    ->columnSpan(['lg' => 1]),
 
                 TextInput::make('vrijeme_izdavanja')
                     ->label('Vrijeme izdavanja')
@@ -86,26 +86,26 @@ class RacunResource extends Resource
                     ->placeholder('HH:MM')
                     ->mask('99:99')
                     ->rule('regex:/^([01]\d|2[0-3]):([0-5]\d)$/')
-                    ->columnSpan(1),
+                    ->columnSpan(['lg' => 1]),
 
                 DatePicker::make('datum_dospijeca')
                     ->label('Datum dospijeća')
                     ->default(today())
                     ->native(false)
                     ->displayFormat('d.m.Y.')
-                    ->columnSpan(1),
+                    ->columnSpan(['lg' => 1]),
 
                 DatePicker::make('datum_isporuke')
                     ->label('Datum isporuke')
                     ->default(today())
                     ->native(false)
                     ->displayFormat('d.m.Y.')
-                    ->columnSpan(1),
+                    ->columnSpan(['lg' => 1]),
 
                 TextInput::make('mjesto_izdavanja')
                     ->label('Mjesto izdavanja')
                     ->default(fn () => filament()->getTenant()->mjesto)
-                    ->columnSpan(1),
+                    ->columnSpan(['lg' => 1]),
 
                 Select::make('nacin_placanja')
                     ->label('Način plaćanja')
@@ -117,7 +117,7 @@ class RacunResource extends Resource
                     ])
                     ->default('transakcijski')
                     ->native(false)
-                    ->columnSpan(1),
+                    ->columnSpan(['lg' => 1]),
 
                 Textarea::make('napomena')
                     ->label('Napomena')
@@ -155,22 +155,22 @@ class RacunResource extends Resource
                                 }
                                 static::izracunajStavkuIUkupno($get, $set);
                             })
-                            ->columnSpan(4),
+                            ->columnSpan(['lg' => 4]),
 
                         TextInput::make('naziv')
                             ->label('Naziv')
                             ->required(fn (Get $get): bool => static::stavkaImaSadrzaj($get))
-                            ->columnSpan(4),
+                            ->columnSpan(['lg' => 4]),
 
                         TextInput::make('opis')
                             ->label('Opis')
-                            ->columnSpan(4),
+                            ->columnSpan(['lg' => 4]),
 
                         // Red 2: JM, Količina, Cijena, Rabat, PDV, Ukupno
                         TextInput::make('jedinica_mjere')
                             ->label('JM')
                             ->default('kom')
-                            ->columnSpan(1),
+                            ->columnSpan(['lg' => 1]),
 
                         TextInput::make('kolicina')
                             ->label('Količina')
@@ -183,7 +183,7 @@ class RacunResource extends Resource
                             ->dehydrateStateUsing(fn ($state) => (int) ($state ?? 1))
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavkuIUkupno($get, $set))
-                            ->columnSpan(2),
+                            ->columnSpan(['lg' => 2]),
 
                         TextInput::make('cijena')
                             ->label('Cijena (bez PDV)')
@@ -195,7 +195,7 @@ class RacunResource extends Resource
                             ->dehydrateStateUsing(fn ($state) => $state ?? 0)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavkuIUkupno($get, $set))
-                            ->columnSpan(2),
+                            ->columnSpan(['lg' => 2]),
 
                         TextInput::make('rabat_posto')
                             ->label('Rabat %')
@@ -206,7 +206,7 @@ class RacunResource extends Resource
                             ->dehydrateStateUsing(fn ($state) => $state ?? 0)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavkuIUkupno($get, $set))
-                            ->columnSpan(2),
+                            ->columnSpan(['lg' => 2]),
 
                         Select::make('pdv_stopa')
                             ->label('PDV %')
@@ -216,7 +216,7 @@ class RacunResource extends Resource
                             ->native(false)
                             ->live()
                             ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajStavkuIUkupno($get, $set))
-                            ->columnSpan(2),
+                            ->columnSpan(['lg' => 2]),
 
                         TextInput::make('ukupno')
                             ->label('Ukupno €')
@@ -224,7 +224,7 @@ class RacunResource extends Resource
                             ->disabled()
                             ->dehydrated()
                             ->prefix('€')
-                            ->columnSpan(3),
+                            ->columnSpan(['lg' => 3]),
                     ])
                     ->columns(12)
                     ->addActionLabel('+ Dodaj stavku')

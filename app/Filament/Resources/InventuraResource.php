@@ -61,15 +61,15 @@ class InventuraResource extends Resource
                 Repeater::make('stavke')->schema([
                     Hidden::make('id'),
                     Hidden::make('usluga_id'),
-                    TextInput::make('naziv')->label('Proizvod')->disabled()->dehydrated(false)->columnSpan(5),
-                    TextInput::make('ocekivana_kolicina')->label('Očekivano')->disabled()->dehydrated()->numeric()->columnSpan(2),
+                    TextInput::make('naziv')->label('Proizvod')->disabled()->dehydrated(false)->columnSpan(['lg' => 5]),
+                    TextInput::make('ocekivana_kolicina')->label('Očekivano')->disabled()->dehydrated()->numeric()->columnSpan(['lg' => 2]),
                     TextInput::make('stvarna_kolicina')->label('Stvarno stanje')->numeric()->step(0.001)->live(onBlur: true)
                         ->afterStateUpdated(function (Get $get, Set $set) {
                             $stvarno = $get('stvarna_kolicina');
                             $ocekivano = (float) ($get('ocekivana_kolicina') ?? 0);
                             $set('razlika', $stvarno === null || $stvarno === '' ? null : round((float) $stvarno - $ocekivano, 3));
-                        })->columnSpan(2),
-                    TextInput::make('razlika')->label('Razlika')->disabled()->dehydrated(false)->columnSpan(3),
+                        })->columnSpan(['lg' => 2]),
+                    TextInput::make('razlika')->label('Razlika')->disabled()->dehydrated(false)->columnSpan(['lg' => 3]),
                 ])->columns(12)
                     ->disableItemCreation()
                     ->disableItemDeletion()

@@ -125,16 +125,16 @@ class PretplataResource extends Resource
                                     $set('pdv_stopa', $usluga->pdv_stopa);
                                 }
                             })
-                            ->columnSpan(4),
+                            ->columnSpan(['lg' => 4]),
 
                         TextInput::make('naziv')
                             ->label('Naziv')
-                            ->columnSpan(4),
+                            ->columnSpan(['lg' => 4]),
 
                         TextInput::make('opis')
                             ->label('Opis')
                             ->placeholder('npr. Hosting paket / Domena')
-                            ->columnSpan(4),
+                            ->columnSpan(['lg' => 4]),
 
                         // Red 2: Kol, Cijena, PDV
                         TextInput::make('kolicina')
@@ -142,7 +142,7 @@ class PretplataResource extends Resource
                             ->numeric()
                             ->default(1)
                             ->step(0.001)
-                            ->columnSpan(2),
+                            ->columnSpan(['lg' => 2]),
 
                         TextInput::make('cijena')
                             ->label('Cijena (€)')
@@ -150,7 +150,7 @@ class PretplataResource extends Resource
                             ->default(0)
                             ->step(0.01)
                             ->prefix('€')
-                            ->columnSpan(4),
+                            ->columnSpan(['lg' => 4]),
 
                         Select::make('pdv_stopa')
                             ->label('PDV %')
@@ -158,7 +158,7 @@ class PretplataResource extends Resource
                             ->placeholder('PDV')
                             ->default(null)
                             ->native(false)
-                            ->columnSpan(4),
+                            ->columnSpan(['lg' => 4]),
                     ])
                     ->columns(12)
                     ->addActionLabel('+ Dodaj stavku')

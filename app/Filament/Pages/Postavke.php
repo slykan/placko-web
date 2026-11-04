@@ -381,7 +381,7 @@ class Postavke extends Page implements HasForms
                             ->acceptedFileTypes(['application/x-pkcs12', 'application/octet-stream'])
                             ->maxSize(2048)
                             ->helperText('Sprema se sigurno na server — privatna lokacija')
-                            ->columnSpan(2),
+                            ->columnSpan(['lg' => 2]),
 
                         TextInput::make('fina_cert_lozinka')
                             ->label('Lozinka certifikata')
@@ -392,19 +392,19 @@ class Postavke extends Page implements HasForms
                                 return $postavke?->fina_cert_lozinka ? '••••••••' : '';
                             })
                             ->helperText('Ostavi prazno ako ne mijenjаš lozinku')
-                            ->columnSpan(2),
+                            ->columnSpan(['lg' => 2]),
 
                         TextInput::make('fis_prostor_oznaka')
                             ->label('Oznaka poslovnog prostora')
                             ->default('1')
                             ->helperText('Prema prijavi u ePorezna — obično "1"')
-                            ->columnSpan(1),
+                            ->columnSpan(['lg' => 1]),
 
                         TextInput::make('fis_uredaj_oznaka')
                             ->label('Oznaka naplatnog uređaja')
                             ->default('1')
                             ->helperText('Prema prijavi u ePorezna — obično "1"')
-                            ->columnSpan(1),
+                            ->columnSpan(['lg' => 1]),
                     ])->columns(2),
             ])
             ->statePath('fiskalizacijaData');
@@ -533,7 +533,7 @@ class Postavke extends Page implements HasForms
                             ->acceptedFileTypes(['application/x-pkcs12', 'application/octet-stream'])
                             ->maxSize(2048)
                             ->helperText('Spremi certifikat ovdje, a zatim ga konfiguriraj u middleware keystoreu')
-                            ->columnSpan(2),
+                            ->columnSpan(['lg' => 2]),
 
                         TextInput::make('eracun_cert_lozinka')
                             ->label('Lozinka certifikata')
@@ -544,7 +544,7 @@ class Postavke extends Page implements HasForms
                                 return $postavke?->eracun_cert_lozinka ? '••••••••' : '';
                             })
                             ->helperText('Ostavi prazno ako ne mijenjаš lozinku')
-                            ->columnSpan(2),
+                            ->columnSpan(['lg' => 2]),
                     ])->columns(2),
             ])
             ->statePath('eracunData');

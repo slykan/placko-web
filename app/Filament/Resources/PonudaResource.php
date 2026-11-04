@@ -86,24 +86,24 @@ class PonudaResource extends Resource
                                 $set('jedinica_mjere', $usluga->jedinica_mjere);
                             }
                             static::izracunajSve($get, $set);
-                        })->columnSpan(4),
-                    TextInput::make('naziv')->label('Naziv')->required()->columnSpan(4),
-                    TextInput::make('opis')->label('Opis')->columnSpan(4),
-                    TextInput::make('jedinica_mjere')->label('JM')->default('kom')->columnSpan(1),
+                        })->columnSpan(['lg' => 4]),
+                    TextInput::make('naziv')->label('Naziv')->required()->columnSpan(['lg' => 4]),
+                    TextInput::make('opis')->label('Opis')->columnSpan(['lg' => 4]),
+                    TextInput::make('jedinica_mjere')->label('JM')->default('kom')->columnSpan(['lg' => 1]),
                     TextInput::make('kolicina')->label('Količina')->numeric()->required()->default(1)
                         ->step(0.001)->minValue(0.001)->live(onBlur: true)
-                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(2),
+                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(['lg' => 2]),
                     TextInput::make('cijena')->label('Cijena (bez PDV)')->numeric()->required()->default(0)
                         ->step(0.01)->prefix('€')->live(onBlur: true)
-                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(2),
+                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(['lg' => 2]),
                     TextInput::make('rabat_posto')->label('Rabat %')->numeric()->default(0)->step(0.01)
                         ->suffix('%')->live(onBlur: true)
-                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(2),
+                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(['lg' => 2]),
                     Select::make('pdv_stopa')->label('PDV %')->options(Usluga::pdvStope())->default(null)
                         ->native(false)->live()
-                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(2),
+                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(['lg' => 2]),
                     TextInput::make('ukupno')->label('Ukupno €')->numeric()->disabled()->dehydrated()
-                        ->prefix('€')->columnSpan(3),
+                        ->prefix('€')->columnSpan(['lg' => 3]),
                 ])->columns(12)->addActionLabel('+ Dodaj stavku')->reorderable()->cloneable()
                     ->defaultItems(0)->live()
                     ->afterStateUpdated(fn (Get $get, Set $set) => static::postaviUkupno($get('stavke') ?? [], $set)),

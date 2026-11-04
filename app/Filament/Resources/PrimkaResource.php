@@ -73,15 +73,15 @@ class PrimkaResource extends Resource
                             ->where('prati_zalihu', true)->orderBy('naziv')->pluck('naziv', 'id'))
                         ->searchable()->required()
                         ->helperText('Samo proizvodi s uključenim praćenjem zalihe')
-                        ->columnSpan(5),
+                        ->columnSpan(['lg' => 5]),
                     TextInput::make('kolicina')->label('Količina')->numeric()->required()->default(1)
                         ->step(0.001)->minValue(0.001)->live(onBlur: true)
-                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(2),
+                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(['lg' => 2]),
                     TextInput::make('nabavna_cijena')->label('Nabavna cijena')->numeric()->required()->default(0)
                         ->step(0.01)->prefix('€')->live(onBlur: true)
-                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(2),
+                        ->afterStateUpdated(fn (Get $get, Set $set) => static::izracunajSve($get, $set))->columnSpan(['lg' => 2]),
                     TextInput::make('ukupno')->label('Ukupno €')->numeric()->disabled()->dehydrated()
-                        ->prefix('€')->columnSpan(3),
+                        ->prefix('€')->columnSpan(['lg' => 3]),
                 ])->columns(12)->addActionLabel('+ Dodaj stavku')->reorderable()->cloneable()
                     ->defaultItems(0)->live()
                     ->afterStateUpdated(fn (Get $get, Set $set) => static::postaviUkupno($get('stavke') ?? [], $set)),
