@@ -266,6 +266,12 @@
             text-transform: uppercase; color: var(--p); background: var(--pl);
             padding: 3px 10px; border-radius: 99px;
         }
+        .feature-card.uskoro { border-style: dashed; }
+        .feature-card .feature-tag.uskoro { color: #b45309; background: #fef3c7; }
+        .plan-features .uskoro-oznaka {
+            font-size: 10px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+            color: #b45309; background: #fef3c7; padding: 1px 7px; border-radius: 99px; margin-left: 4px;
+        }
 
         /* ── HOW IT WORKS ───────────────────────────────── */
         .how-bg { background: var(--bg); }
@@ -687,6 +693,18 @@
                 <p>Imaš obrt i d.o.o.? Upravljajte svim tvrtkama iz jednog korisničkog računa, potpuno odvojene financije i dokumenti, brzo prebacivanje između profila.</p>
                 <span class="feature-tag">Multi-tenant</span>
             </article>
+            <article class="feature-card">
+                <div class="feature-icon-wrap">🛠️</div>
+                <h3>Radni nalozi i zaposlenici</h3>
+                <p>Nalog stiže zaposleniku mailom, on ga prihvati i na mobitelu upiše dolazak, sate, materijal i potpis klijenta. Ti dobiješ obavijest i iz naloga jednim klikom radiš račun.</p>
+                <span class="feature-tag">Pro • Business</span>
+            </article>
+            <article class="feature-card uskoro">
+                <div class="feature-icon-wrap">🚗</div>
+                <h3>Putni nalozi i loko vožnja</h3>
+                <p>Putni nalog s automatskim obračunom dnevnica i kilometraže, privitcima računa i PDF-om za knjigovođu. Evidencija loko vožnje puni se sama iz radnih naloga.</p>
+                <span class="feature-tag uskoro">Uskoro</span>
+            </article>
         </div>
     </div>
 </section>
@@ -782,6 +800,7 @@
                 ['Pretplate klijenata', true, true, true],
                 ['Skladište i zalihe', true, true, true],
                 ['Radni nalozi i zaposlenici', false, true, true],
+                ['Putni nalozi i loko vožnja', false, true, true, 'uskoro'],
                 ['Više tvrtki / obrta', false, true, true],
                 ['Podrška e-mailom', false, true, true],
                 ['Prioritetna podrška (SLA)', false, false, true],
@@ -808,9 +827,9 @@
                 <ul class="plan-features">
                     @foreach ($mogucnosti as $m)
                         @if ($m[$k['i']])
-                            <li><span class="check">✓</span> {{ $m[0] }}</li>
+                            <li><span class="check">✓</span> {{ $m[0] }}@if(($m[4] ?? null) === 'uskoro')<span class="uskoro-oznaka">uskoro</span>@endif</li>
                         @else
-                            <li class="no"><span class="cross">○</span> {{ $m[0] }}</li>
+                            <li class="no"><span class="cross">○</span> {{ $m[0] }}@if(($m[4] ?? null) === 'uskoro')<span class="uskoro-oznaka">uskoro</span>@endif</li>
                         @endif
                     @endforeach
                 </ul>
