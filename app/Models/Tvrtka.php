@@ -82,6 +82,16 @@ class Tvrtka extends Model
         return $this->hasMany(Ponuda::class);
     }
 
+    public function radniNalozi(): HasMany
+    {
+        return $this->hasMany(RadniNalog::class);
+    }
+
+    public function zaposlenici(): HasMany
+    {
+        return $this->hasMany(Zaposlenik::class);
+    }
+
     public function skladista(): HasMany
     {
         return $this->hasMany(Skladiste::class);

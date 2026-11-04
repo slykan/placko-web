@@ -1,0 +1,154 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\ZaposlenikResource\Pages;
+use App\Models\Zaposlenik;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+
+class ZaposlenikResource extends Resource
+{
+    protected static ?string $model = Zaposlenik::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
+    protected static ?string $navigationLabel = 'Zaposlenici';
+
+    protected static ?string $modelLabel = 'Zaposlenik';
+
+    protected static ?string $pluralModelLabel = 'Zaposlenici';
+
+    protected static ?string $slug = 'zaposlenici';
+
+    protected static ?int $navigationSort = 7;
+
+    protected static ?string $tenantRelationshipName = 'zaposlenici';
+
+    public static function form(Form $form): Form
+    {
+        return $form->schema([
+            TextInput::make('ime_prezime')
+                ->label('Ime i prezime')
+                ->required()
+                ->columnSpanFull(),
+
+            TextInput::make('radno_mjesto')
+                ->label('Radno mjesto')
+                ->placeholder('npr. serviser, monter, električar'),
+
+            TextInput::make('cijena_sata')
+                ->label('Cijena sata rada')
+                ->helperText('Predlaže se na radnom nalogu i na računu (bez PDV-a).')
+                ->numeric()
+                ->step(0.01)
+                ->minValue(0)
+                ->prefix('€'),
+
+            TextInput::make('kontakt_broj')
+                ->label('Kontakt broj')
+                ->tel(),
+
+            TextInput::make('email')
+                ->label('Email')
+                ->helperText('Na ovu adresu možeš poslati radni nalog.')
+                ->email(),
+
+            Toggle::make('aktivan')
+                ->label('Aktivan')
+                ->helperText('Bivše zaposlenike isključi umjesto brisanja — ostaju zapisani na starim nalozima.')
+                ->default(true)
+                ->columnSpanFull(),
+
+            Textarea::make('napomena')
+                ->label('Napomena')
+                ->rows(2)
+                ->columnSpanFull(),
+        ])->columns(2);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query
+                ->withSum(['radovi as sati_ovaj_mjesec' => fn (Builder $q) => $q
+                    ->whereBetween('datum', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]),
+                ], 'sati')
+                ->withCount(['radniNalozi as otvoreni_nalozi' => fn (Builder $q) => $q
+                    ->whereIn('status', ['otvoren', 'u_tijeku']),
+                ]))
+            ->columns([
+                Tables\Columns\TextColumn::make('ime_prezime')
+                    ->label('Ime i prezime')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('radno_mjesto')
+                    ->label('Radno mjesto')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('kontakt_broj')
+                    ->label('Kontakt broj'),
+
+                Tables\Columns\TextColumn::make('email')
+                    ->label('Email')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('cijena_sata')
+                    ->label('Cijena sata')
+                    ->money('EUR'),
+
+                Tables\Columns\TextColumn::make('otvoreni_nalozi')
+                    ->label('Otvoreni nalozi')
+                    ->badge()
+                    ->color(fn ($state) => $state ? 'warning' : 'gray'),
+
+                Tables\Columns\TextColumn::make('sati_ovaj_mjesec')
+                    ->label('Sati ovaj mjesec')
+                    ->numeric(2, ',', '.')
+                    ->placeholder('0'),
+
+                Tables\Columns\IconColumn::make('aktivan')
+                    ->label('Aktivan')
+                    ->boolean(),
+            ])
+            ->defaultSort('ime_prezime')
+            ->filters([
+                Tables\Filters\TernaryFilter::make('aktivan')
+                    ->label('Aktivan')
+                    ->default(true),
+            ])
+            ->actions([
+                Tables\Actions\Action::make('nalozi')
+                    ->label('Nalozi')
+                    ->icon('heroicon-o-wrench-screwdriver')
+                    ->color('gray')
+                    ->url(fn (Zaposlenik $z) => RadniNalogResource::getUrl('index', [
+                        'tableFilters' => ['zaposlenik' => ['value' => $z->id]],
+                    ])),
+                Tables\Actions\EditAction::make()->label('Uredi'),
+                Tables\Actions\DeleteAction::make()->label('Obriši')
+                    ->modalDescription('Zaposlenik će biti uklonjen sa svih naloga, a njegovi upisani sati ostat će bez imena. Ako je samo otišao iz firme, radije ga označi kao neaktivnog.'),
+            ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('tvrtka_id', filament()->getTenant()->id);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListZaposlenici::route('/'),
+            'create' => Pages\CreateZaposlenik::route('/create'),
+            'edit' => Pages\EditZaposlenik::route('/{record}/edit'),
+        ];
+    }
+}

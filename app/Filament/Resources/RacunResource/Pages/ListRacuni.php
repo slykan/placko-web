@@ -11,6 +11,7 @@ use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ListRacuni extends ListRecords
 {
@@ -44,11 +45,28 @@ class ListRacuni extends ListRecords
                 ->action(function (array $data): void {
                     $tvrtka = filament()->getTenant();
 
-                    $racun = DB::transaction(function () use ($data, $tvrtka): Racun {
-                        $ponuda = Ponuda::query()
-                            ->with('stavke')
-                            ->where('tvrtka_id', $tvrtka->id)
-                            ->findOrFail($data['ponuda_id']);
+                    $ponuda = Ponuda::query()
+                        ->with('stavke')
+                        ->where('tvrtka_id', $tvrtka->id)
+                        ->findOrFail($data['ponuda_id']);
+
+                    $prodano = [];
+                    foreach ($ponuda->stavke as $stavka) {
+                        if ($stavka->usluga_id) {
+                            $prodano[$stavka->usluga_id] = ($prodano[$stavka->usluga_id] ?? 0) + (float) $stavka->kolicina;
+                        }
+                    }
+
+                    try {
+                        RacunResource::provjeriDovoljnoZalihe($tvrtka->id, $prodano);
+                    } catch (ValidationException $e) {
+                        Notification::make()->title('Račun nije izrađen')
+                            ->body(collect($e->errors())->flatten()->implode("\n"))->danger()->persistent()->send();
+
+                        return;
+                    }
+
+                    $racun = DB::transaction(function () use ($ponuda, $tvrtka): Racun {
                         $broj = Racun::generiraBroj($tvrtka->id);
 
                         $racun = Racun::create([
@@ -88,6 +106,8 @@ class ListRacuni extends ListRecords
 
                         return $racun;
                     });
+
+                    RacunResource::primijeniProdajuNaZalihu($racun, $prodano, 'izlaz');
 
                     Notification::make()
                         ->title('Račun '.$racun->broj.' izrađen je iz ponude')
