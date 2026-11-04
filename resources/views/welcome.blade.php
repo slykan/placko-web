@@ -256,6 +256,7 @@
             background: var(--pl); display: flex; align-items: center;
             justify-content: center; font-size: 24px; margin-bottom: 20px;
         }
+        .feature-icon-wrap svg { width: 26px; height: 26px; color: var(--p); stroke-width: 1.7; }
         .feature-card h3 {
             font-size: 1.05rem; font-weight: 750; margin-bottom: 10px;
         }
@@ -658,49 +659,49 @@
         </div>
         <div class="features-grid">
             <article class="feature-card">
-                <div class="feature-icon-wrap">📄</div>
+                <div class="feature-icon-wrap"><x-heroicon-o-document-text /></div>
                 <h3>Izlazni računi (IRA)</h3>
                 <p>Izrada računa u sekundi s automatskim izračunom PDV-a, rabata i ukupnog iznosa. PDF preuzimanje, arhiviranje i slanje e-mailom direktno iz aplikacije.</p>
                 <span class="feature-tag">HUB-3 barkod</span>
             </article>
             <article class="feature-card">
-                <div class="feature-icon-wrap">🔐</div>
+                <div class="feature-icon-wrap"><x-heroicon-o-lock-closed /></div>
                 <h3>Fiskalizacija</h3>
                 <p>Gotovinska naplata po Zakonu o fiskalizaciji (NN 133/12). FINA certifikat, automatski ZKI i JIR kod, ispis na računu. Podrška za demo i produkcijsko okruženje.</p>
                 <span class="feature-tag">FINA certifikat</span>
             </article>
             <article class="feature-card">
-                <div class="feature-icon-wrap">📨</div>
+                <div class="feature-icon-wrap"><x-heroicon-o-paper-airplane /></div>
                 <h3>eRačun — UBL 2.1</h3>
                 <p>Generiranje elektroničkih računa u PEPPOL BIS Billing 3.0 formatu (EN 16931). Spreman za B2G slanje prema državnim tijelima. B2B dolazi do Q4 2026.</p>
                 <span class="feature-tag">PEPPOL ready</span>
             </article>
             <article class="feature-card">
-                <div class="feature-icon-wrap">🔁</div>
+                <div class="feature-icon-wrap"><x-heroicon-o-arrow-path /></div>
                 <h3>Pretplate klijenata</h3>
                 <p>Pratite godišnje, kvartalne i mjesečne pretplate. Automatska e-mail upozorenja prije isteka, jednim klikom produljenje. Vlastiti SMTP server.</p>
                 <span class="feature-tag">Automatizacija</span>
             </article>
             <article class="feature-card">
-                <div class="feature-icon-wrap">📊</div>
+                <div class="feature-icon-wrap"><x-heroicon-o-chart-bar /></div>
                 <h3>Porezni obrasci</h3>
                 <p>PO-SD obrazac za paušalne obrtnike automatski izračunat iz vaših računa — paušalni izdatci 30%, osobni odbitak, porezna obveza. IRA knjiga po godinama.</p>
                 <span class="feature-tag">PO-SD • IRA</span>
             </article>
             <article class="feature-card">
-                <div class="feature-icon-wrap">🏢</div>
+                <div class="feature-icon-wrap"><x-heroicon-o-building-office-2 /></div>
                 <h3>Više tvrtki</h3>
                 <p>Imaš obrt i d.o.o.? Upravljajte svim tvrtkama iz jednog korisničkog računa, potpuno odvojene financije i dokumenti, brzo prebacivanje između profila.</p>
                 <span class="feature-tag">Multi-tenant</span>
             </article>
             <article class="feature-card">
-                <div class="feature-icon-wrap">🛠️</div>
+                <div class="feature-icon-wrap"><x-heroicon-o-wrench-screwdriver /></div>
                 <h3>Radni nalozi i zaposlenici</h3>
                 <p>Nalog stiže zaposleniku mailom, on ga prihvati i na mobitelu upiše dolazak, sate, materijal i potpis klijenta. Ti dobiješ obavijest i iz naloga jednim klikom radiš račun.</p>
                 <span class="feature-tag">Pro • Business</span>
             </article>
             <article class="feature-card uskoro">
-                <div class="feature-icon-wrap">🚗</div>
+                <div class="feature-icon-wrap"><x-heroicon-o-map /></div>
                 <h3>Putni nalozi i loko vožnja</h3>
                 <p>Putni nalog s automatskim obračunom dnevnica i kilometraže, privitcima računa i PDF-om za knjigovođu. Evidencija loko vožnje puni se sama iz radnih naloga.</p>
                 <span class="feature-tag uskoro">Uskoro</span>
