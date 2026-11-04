@@ -79,7 +79,7 @@ class MojiNaloziController extends Controller
             'izvrseni_radovi' => ['nullable', 'string', 'max:5000'],
             'radovi' => ['array', 'max:100'],
             'radovi.*.id' => ['nullable', 'integer'],
-            'radovi.*.datum' => ['required', 'date'],
+            'radovi.*.dolazak' => ['required', 'date_format:Y-m-d H:i'],
             'radovi.*.sati' => ['required', 'numeric', 'min:0.25', 'max:24'],
             'radovi.*.opis' => ['nullable', 'string', 'max:255'],
             'stavke' => ['array', 'max:100'],
@@ -91,6 +91,8 @@ class MojiNaloziController extends Controller
             'potpisao' => ['nullable', 'string', 'max:255'],
             'zavrsen' => ['nullable', 'boolean'],
         ], [
+            'radovi.*.dolazak.required' => 'Upiši datum i vrijeme dolaska.',
+            'radovi.*.dolazak.date_format' => 'Datum i vrijeme dolaska nisu ispravni (npr. 04.11.2026. 08:30).',
             'radovi.*.sati.min' => 'Najmanje 0,25 sati po upisu.',
             'radovi.*.sati.max' => 'Najviše 24 sata po upisu — za više dana dodaj više redaka.',
             'stavke.*.naziv.required' => 'Upiši naziv materijala.',
@@ -140,7 +142,8 @@ class MojiNaloziController extends Controller
         $redni = (int) $nalog->radovi()->max('redni_broj');
 
         foreach (array_values($radovi) as $r) {
-            $vrijednosti = ['datum' => $r['datum'], 'sati' => $r['sati'], 'opis' => $r['opis'] ?? null];
+            [$datum, $vrijeme] = explode(' ', $r['dolazak']);
+            $vrijednosti = ['datum' => $datum, 'vrijeme_dolaska' => $vrijeme, 'sati' => $r['sati'], 'opis' => $r['opis'] ?? null];
 
             if (! empty($r['id']) && $postojeci->has((int) $r['id'])) {
                 $postojeci[(int) $r['id']]->update($vrijednosti);

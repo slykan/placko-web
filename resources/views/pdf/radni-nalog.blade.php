@@ -57,11 +57,11 @@
 <div class="box {{ $nalog->izvrseni_radovi ? '' : 'big' }}">{!! nl2br(e($nalog->izvrseni_radovi)) !!}</div>
 
 <h3>Evidencija rada</h3>
-<table><thead><tr><th style="width:15%">Datum</th><th style="width:25%">Izvršitelj</th><th>Opis</th><th class="num" style="width:10%">Sati</th>
+<table><thead><tr><th style="width:18%">Dolazak</th><th style="width:25%">Izvršitelj</th><th>Opis</th><th class="num" style="width:10%">Sati</th>
 @if($zaKlijenta)<th class="num" style="width:13%">Cijena sata</th><th class="num" style="width:13%">Iznos</th>@endif</tr></thead>
 <tbody>
 @foreach($nalog->radovi as $r)
-<tr><td>{{ $r->datum->format('d.m.Y.') }}</td><td>{{ $r->zaposlenik?->ime_prezime }}</td><td>{{ $r->opis }}</td>
+<tr><td>{{ $r->dolazak() }}</td><td>{{ $r->zaposlenik?->ime_prezime }}</td><td>{{ $r->opis }}</td>
 <td class="num">{{ number_format((float)$r->sati,2,',','.') }}</td>
 @if($zaKlijenta)<td class="num">{{ number_format((float)$r->cijena_sata,2,',','.') }} €</td><td class="num">{{ number_format((float)$r->sati*(float)$r->cijena_sata,2,',','.') }} €</td>@endif</tr>
 @endforeach

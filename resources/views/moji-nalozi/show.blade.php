@@ -11,7 +11,7 @@
     $token = $zaposlenik->portal_token;
     $statusi = \App\Models\RadniNalog::statusi();
     $mojiRadovi = old('radovi', $nalog->radovi->where('zaposlenik_id', $zaposlenik->id)
-        ->map(fn ($r) => ['id' => $r->id, 'datum' => $r->datum->toDateString(), 'sati' => (float) $r->sati, 'opis' => $r->opis])->values()->all());
+        ->map(fn ($r) => ['id' => $r->id, 'dolazak' => trim($r->datum->toDateString().' '.substr((string) $r->vrijeme_dolaska, 0, 5)), 'sati' => (float) $r->sati, 'opis' => $r->opis])->values()->all());
     $tudiRadovi = $nalog->radovi->where('zaposlenik_id', '!=', $zaposlenik->id);
     $stavke = old('stavke', $nalog->stavke
         ->map(fn ($s) => ['id' => $s->id, 'naziv' => $s->naziv, 'kolicina' => (float) $s->kolicina, 'jedinica_mjere' => $s->jedinica_mjere])->values()->all());
@@ -60,7 +60,7 @@
             @foreach($mojiRadovi as $i => $r)
                 <div class="redak rad">
                     <input type="hidden" name="radovi[{{ $i }}][id]" value="{{ $r['id'] ?? '' }}">
-                    <div><label>Datum</label><input type="date" name="radovi[{{ $i }}][datum]" value="{{ $r['datum'] ?? '' }}" required></div>
+                    <div><label>Datum i vrijeme dolaska</label><input type="text" class="dolazak" name="radovi[{{ $i }}][dolazak]" value="{{ $r['dolazak'] ?? '' }}" required></div>
                     <div><label>Sati</label><input type="number" name="radovi[{{ $i }}][sati]" value="{{ $r['sati'] ?? '' }}" step="0.25" min="0.25" max="24" inputmode="decimal" required></div>
                     <div class="puna"><label>Što je napravljeno</label><input type="text" name="radovi[{{ $i }}][opis]" value="{{ $r['opis'] ?? '' }}" maxlength="255"></div>
                     <button type="button" class="makni" aria-label="Ukloni" onclick="this.closest('.redak').remove()">×</button>
@@ -73,7 +73,7 @@
             <p class="muted" style="margin-top:14px;margin-bottom:4px;">Upisali drugi:</p>
             <ul class="ostali">
                 @foreach($tudiRadovi as $r)
-                    <li>{{ $r->datum->format('d.m.') }} · {{ $r->zaposlenik?->ime_prezime ?? '—' }} · <strong>{{ number_format((float) $r->sati, 2, ',', '.') }} h</strong>@if($r->opis) · {{ $r->opis }}@endif</li>
+                    <li>{{ $r->dolazak() }} · {{ $r->zaposlenik?->ime_prezime ?? '—' }} · <strong>{{ number_format((float) $r->sati, 2, ',', '.') }} h</strong>@if($r->opis) · {{ $r->opis }}@endif</li>
                 @endforeach
             </ul>
         @endif
@@ -138,7 +138,7 @@
 <template id="tpl-rad">
     <div class="redak rad">
         <input type="hidden" name="radovi[__i__][id]" value="">
-        <div><label>Datum</label><input type="date" name="radovi[__i__][datum]" value="{{ today()->toDateString() }}" required></div>
+        <div><label>Datum i vrijeme dolaska</label><input type="text" class="dolazak" name="radovi[__i__][dolazak]" value="{{ now()->format('Y-m-d H:i') }}" required></div>
         <div><label>Sati</label><input type="number" name="radovi[__i__][sati]" step="0.25" min="0.25" max="24" inputmode="decimal" required></div>
         <div class="puna"><label>Što je napravljeno</label><input type="text" name="radovi[__i__][opis]" maxlength="255"></div>
         <button type="button" class="makni" aria-label="Ukloni" onclick="this.closest('.redak').remove()">×</button>
@@ -160,7 +160,7 @@
         <h2 style="margin-top:14px;">Sati</h2>
         <ul class="ostali">
             @forelse($nalog->radovi as $r)
-                <li>{{ $r->datum->format('d.m.Y.') }} · {{ $r->zaposlenik?->ime_prezime ?? '—' }} · <strong>{{ number_format((float) $r->sati, 2, ',', '.') }} h</strong>@if($r->opis) · {{ $r->opis }}@endif</li>
+                <li>{{ $r->dolazak() }} · {{ $r->zaposlenik?->ime_prezime ?? '—' }} · <strong>{{ number_format((float) $r->sati, 2, ',', '.') }} h</strong>@if($r->opis) · {{ $r->opis }}@endif</li>
             @empty
                 <li class="muted">Nema upisanih sati.</li>
             @endforelse
@@ -178,14 +178,42 @@
 @endif
 @endsection
 
+@push('head')
+<link rel="stylesheet" href="/vendor/flatpickr/flatpickr.min.css">
+<style>
+    .flatpickr-calendar { font-size: 15px; }
+    .flatpickr-day.selected, .flatpickr-day.selected:hover { background: #2ba99b; border-color: #2ba99b; }
+    .flatpickr-time input { font-size: 18px; }
+    input.dolazak[readonly] { background: #fff; cursor: pointer; }
+</style>
+@endpush
+
 @push('scripts')
+<script src="/vendor/flatpickr/flatpickr.min.js"></script>
+<script src="/vendor/flatpickr/hr.js"></script>
 <script>
+    // Kalendar na hrvatskom: prikaz 04.11.2026. 08:30 (24 h), a na server ide 2026-11-04 08:30.
+    function kalendar(el) {
+        flatpickr(el, {
+            locale: 'hr',
+            enableTime: true,
+            time_24hr: true,
+            minuteIncrement: 5,
+            dateFormat: 'Y-m-d H:i',
+            altInput: true,
+            altFormat: 'd.m.Y. H:i',
+            disableMobile: true,
+        });
+    }
+    document.querySelectorAll('#radovi input.dolazak').forEach(kalendar);
+
     let brojac = 1000;
     function dodaj(kontejner, predlozak) {
         const html = document.getElementById(predlozak).innerHTML.replaceAll('__i__', brojac++);
         document.getElementById(kontejner).insertAdjacentHTML('beforeend', html);
         const novi = document.getElementById(kontejner).lastElementChild;
-        novi.querySelector('input[type=number], input[type=text]:not([type=hidden])')?.focus();
+        novi.querySelectorAll('input.dolazak').forEach(kalendar);
+        novi.querySelector('input[type=number], input[type=text]:not([type=hidden]):not(.dolazak)')?.focus();
     }
 
     let platno, ctx, crta = false, nacrtano = false;

@@ -20,6 +20,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -78,8 +79,8 @@ class RadniNalogResource extends Resource
                 Select::make('status')->label('Status')->options(RadniNalog::statusi())
                     ->default('otvoren')->required()->native(false),
                 DatePicker::make('datum_otvaranja')->label('Datum otvaranja')
-                    ->default(today())->required()->native(false)->displayFormat('d.m.Y.'),
-                DatePicker::make('rok')->label('Rok izvršenja')->native(false)->displayFormat('d.m.Y.'),
+                    ->default(today())->required()->native(false)->displayFormat('d.m.Y.')->locale('hr')->firstDayOfWeek(1),
+                DatePicker::make('rok')->label('Rok izvršenja')->native(false)->displayFormat('d.m.Y.')->locale('hr')->firstDayOfWeek(1),
                 TextInput::make('predmet')->label('Predmet')
                     ->placeholder('uređaj, vozilo, objekt… npr. Bosch perilica WAN28, ZG-1234-AB')->columnSpan(2),
                 TextInput::make('lokacija')->label('Lokacija / adresa izvršenja')->columnSpan(2),
@@ -112,8 +113,10 @@ class RadniNalogResource extends Resource
 
             Section::make('Evidencija rada')->schema([
                 Repeater::make('radovi')->relationship()->orderColumn('redni_broj')->hiddenLabel()->schema([
-                    DatePicker::make('datum')->label('Datum')->default(today())->required()
-                        ->native(false)->displayFormat('d.m.Y.')->columnSpan(2),
+                    DatePicker::make('datum')->label('Datum dolaska')->default(today())->required()
+                        ->native(false)->displayFormat('d.m.Y.')->locale('hr')->firstDayOfWeek(1)->columnSpan(2),
+                    TimePicker::make('vrijeme_dolaska')->label('Vrijeme')->default(fn () => now()->format('H:i'))
+                        ->native(false)->seconds(false)->displayFormat('H:i')->format('H:i')->columnSpan(1),
                     Select::make('zaposlenik_id')->label('Zaposlenik')
                         ->options(fn ($state) => Zaposlenik::opcije($tvrtkaId(), [$state]))
                         ->default(fn (Get $get) => $get('../../nositelj_id'))
@@ -128,7 +131,7 @@ class RadniNalogResource extends Resource
                     TextInput::make('cijena_sata')->label('Cijena sata')->numeric()->step(0.01)->prefix('€')
                         ->default(fn (Get $get) => Zaposlenik::find($get('../../nositelj_id'))?->cijena_sata)
                         ->columnSpan(2),
-                    TextInput::make('opis')->label('Što je napravljeno')->columnSpan(4),
+                    TextInput::make('opis')->label('Što je napravljeno')->columnSpan(3),
                 ])->columns(12)->addActionLabel('+ Upiši rad')->defaultItems(0)->reorderable(false),
             ])->collapsible(),
 

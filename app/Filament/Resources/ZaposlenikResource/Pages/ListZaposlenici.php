@@ -53,20 +53,21 @@ class ListZaposlenici extends ListRecords
         return response()->streamDownload(function () use ($radovi) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Zaposlenik', 'Datum', 'Radni nalog', 'Klijent', 'Sati', 'Opis'], ';', '"', '');
+            fputcsv($out, ['Zaposlenik', 'Datum', 'Vrijeme dolaska', 'Radni nalog', 'Klijent', 'Sati', 'Opis'], ';', '"', '');
 
             foreach ($radovi->groupBy(fn (RadniNalogRad $r) => $r->zaposlenik?->ime_prezime ?? '(bez zaposlenika)') as $ime => $grupa) {
                 foreach ($grupa as $r) {
                     fputcsv($out, [
                         $ime,
                         $r->datum->format('d.m.Y.'),
+                        substr((string) $r->vrijeme_dolaska, 0, 5),
                         $r->radniNalog->broj,
                         $r->radniNalog->klijent?->naziv,
                         number_format((float) $r->sati, 2, ',', ''),
                         $r->opis,
                     ], ';', '"', '');
                 }
-                fputcsv($out, [$ime.' — ukupno', '', '', '', number_format((float) $grupa->sum('sati'), 2, ',', ''), ''], ';', '"', '');
+                fputcsv($out, [$ime.' — ukupno', '', '', '', '', number_format((float) $grupa->sum('sati'), 2, ',', ''), ''], ';', '"', '');
             }
 
             fclose($out);

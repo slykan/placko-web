@@ -7,6 +7,7 @@
     <meta name="referrer" content="no-referrer">
     <title>@yield('title') — {{ $tvrtka->naziv }}</title>
     <link rel="icon" href="/img/placko-icon.svg" type="image/svg+xml">
+    @stack('head')
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f2f6f6; color: #162433; font-size: 16px; line-height: 1.5; }
