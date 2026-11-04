@@ -41,6 +41,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
             'password' => 'hashed',
             'plan_do' => 'date',
             'is_admin' => 'boolean',
+            'procitane_novosti' => 'array',
         ];
     }
 

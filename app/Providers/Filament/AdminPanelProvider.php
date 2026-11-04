@@ -17,6 +17,7 @@ use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
@@ -40,6 +41,8 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('img/placko-icon.svg'))
             ->maxContentWidth('full')
             ->renderHook(PanelsRenderHook::HEAD_END, fn () => view('partials.pwa-head'))
+            // Zvono s novostima (objave kategorije "novosti") lijevo od korisničkog izbornika
+            ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => Blade::render('@livewire(\'novosti-zvono\')'))
             ->tenant(Tvrtka::class, slugAttribute: 'id')
             ->tenantRegistration(\App\Filament\Pages\RegisterTvrtka::class)
             // Administrator je zadnja grupa u izborniku (vidljiva samo adminima)
