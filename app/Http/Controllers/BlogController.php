@@ -21,6 +21,14 @@ class BlogController extends Controller
     {
         return [
             [
+                'slug' => 'radni-nalozi-i-zaposlenici',
+                'kategorija' => 'novosti',
+                'title' => 'Novo: radni nalozi i zaposlenici — nalog na mobitelu, potpis klijenta na ekranu',
+                'excerpt' => 'Nalog stiže zaposleniku mailom, on ga prihvati jednim klikom i na terenu upiše dolazak, sate, materijal i potpis klijenta. Ti dobiješ obavijest i iz naloga jednim klikom radiš račun.',
+                'date' => '2026-11-04',
+                'read' => '5 min čitanja',
+            ],
+            [
                 'slug' => 'eracun-od-2027-kako-ga-izdati-pausalist',
                 'kategorija' => 'vodic',
                 'title' => 'eRačun od 1. siječnja 2027.: kako će paušalist izdavati eRačune',
