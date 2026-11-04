@@ -764,7 +764,7 @@
         <div class="section-header center">
             <span class="section-tag">Cijene</span>
             <h2 class="section-title">Jednostavne cijene, bez iznenađenja</h2>
-            <p class="section-sub">Starter je besplatan zauvijek i ima sve mogućnosti aplikacije za jednu tvrtku ili obrt.</p>
+            <p class="section-sub">Starter je besplatan zauvijek i ima sve za račune, ponude i fiskalizaciju jedne tvrtke ili obrta.</p>
         </div>
         @php
             $planStarter = collect($cjenik)->firstWhere('naziv', 'Starter');
@@ -781,14 +781,15 @@
                 ['PO-SD obrazac i IRA knjiga', true, true, true],
                 ['Pretplate klijenata', true, true, true],
                 ['Skladište i zalihe', true, true, true],
+                ['Radni nalozi i zaposlenici', false, true, true],
                 ['Više tvrtki / obrta', false, true, true],
                 ['Podrška e-mailom', false, true, true],
                 ['Prioritetna podrška (SLA)', false, false, true],
                 ['Zahtjevi za nadogradnju', false, false, true],
             ];
             $kartice = [
-                ['plan' => $planStarter, 'i' => 1, 'naziv' => 'Starter', 'jed' => 'zauvijek', 'opis' => 'Sve mogućnosti aplikacije za jednu tvrtku ili obrt.', 'uklj' => null, 'cta' => 'Počni besplatno', 'href' => '/admin/register', 'klasa' => 'plan-cta-outline', 'featured' => false],
-                ['plan' => $planPro, 'i' => 2, 'naziv' => 'Pro', 'jed' => 'mj', 'opis' => 'Za one koji vode više tvrtki ili obrta.', 'uklj' => 'Sve iz Starter plana + više tvrtki i podrška', 'cta' => 'Isprobaj Pro', 'href' => '/admin/register', 'klasa' => 'plan-cta-solid', 'featured' => true],
+                ['plan' => $planStarter, 'i' => 1, 'naziv' => 'Starter', 'jed' => 'zauvijek', 'opis' => 'Računi, ponude, fiskalizacija i skladište za jednu tvrtku ili obrt.', 'uklj' => null, 'cta' => 'Počni besplatno', 'href' => '/admin/register', 'klasa' => 'plan-cta-outline', 'featured' => false],
+                ['plan' => $planPro, 'i' => 2, 'naziv' => 'Pro', 'jed' => 'mj', 'opis' => 'Za obrte sa zaposlenicima i one koji vode više tvrtki.', 'uklj' => 'Sve iz Starter plana + radni nalozi, više tvrtki i podrška', 'cta' => 'Isprobaj Pro', 'href' => '/admin/register', 'klasa' => 'plan-cta-solid', 'featured' => true],
                 ['plan' => $planBusiness, 'i' => 3, 'naziv' => 'Business', 'jed' => 'mj', 'opis' => 'Za tvrtke kojima je važna brza podrška i prilagodbe.', 'uklj' => 'Sve iz Pro plana + SLA i nadogradnje', 'cta' => 'Kontaktiraj nas', 'href' => '/kontakt', 'klasa' => 'plan-cta-outline', 'featured' => false],
             ];
         @endphp
@@ -847,7 +848,7 @@
                     <span class="faq-icon">+</span>
                 </label>
                 <div class="faq-body">
-                    <p>Da — Starter plan je besplatan zauvijek i ima sve mogućnosti aplikacije za jednu tvrtku ili obrt: neograničene račune i ponude, PDF s HUB-3 barkodom, slanje e-mailom, fiskalizaciju, eRačun XML, PO-SD, IRA knjigu, pretplate i skladište. Pro plan (4,99 €/mj) dodaje više tvrtki na jednom računu i podršku e-mailom, a Business (12,99 €/mj) prioritetnu podršku i zahtjeve za nadogradnju.</p>
+                    <p>Da — Starter plan je besplatan zauvijek i ima sve što treba za jednu tvrtku ili obrt: neograničene račune i ponude, PDF s HUB-3 barkodom, slanje e-mailom, fiskalizaciju, eRačun XML, PO-SD, IRA knjigu, pretplate i skladište. Pro plan (4,99 €/mj) dodaje radne naloge sa zaposlenicima (zaposlenik nalog prima mailom i sam upisuje sate, materijal i potpis klijenta), više tvrtki na jednom računu i podršku e-mailom, a Business (12,99 €/mj) prioritetnu podršku i zahtjeve za nadogradnju.</p>
                 </div>
             </div>
 

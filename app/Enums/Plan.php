@@ -4,8 +4,8 @@ namespace App\Enums;
 
 /**
  * Paketi plačko.app (cijene su u config/cjenik.php).
- *  - Starter: sve mogućnosti za jednu tvrtku/obrt, bez podrške
- *  - Pro: + više tvrtki na jednom računu, podrška e-mailom
+ *  - Starter: računi, ponude, fiskalizacija, skladište za jednu tvrtku/obrt, bez podrške
+ *  - Pro: + radni nalozi i zaposlenici, više tvrtki na jednom računu, podrška e-mailom
  *  - Business: + prioritetna podrška (SLA) i zahtjevi za nadogradnju
  */
 enum Plan: string

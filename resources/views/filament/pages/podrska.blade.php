@@ -149,7 +149,7 @@
             </a>
         @else
             <p style="color:#374151; margin-bottom:1rem; line-height:1.7;">
-                Starter paket uključuje sve mogućnosti aplikacije za jednu tvrtku, ali ne i podršku. Odgovore na najčešća
+                Starter paket uključuje račune, ponude, fiskalizaciju i skladište za jednu tvrtku, ali ne i radne naloge ni podršku. Odgovore na najčešća
                 pitanja potražite u uputama iznad i u <a href="/novosti?kategorija=vodic" target="_blank" style="color:#2ba99b; font-weight:600;">vodičima</a>.
             </p>
             <p style="color:#374151; margin-bottom:1rem; line-height:1.7;">
