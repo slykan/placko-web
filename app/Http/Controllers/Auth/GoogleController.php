@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController extends Controller
@@ -40,17 +39,7 @@ class GoogleController extends Controller
                 'google_id' => $googleUser->getId(),
                 'password'  => null,
             ]);
-
-            // Obavijesti admina o novoj registraciji
-            $adminEmail = config('mail.from.address');
-            if ($adminEmail) {
-                try {
-                    Mail::raw(
-                        "Nova Google registracija:\nIme: {$user->name}\nEmail: {$user->email}",
-                        fn ($m) => $m->to($adminEmail)->subject('Nova registracija — ' . config('app.name'))
-                    );
-                } catch (\Throwable) {}
-            }
+            // Obavijest adminima šalje User::created (NovaRegistracijaMail)
         }
 
         Auth::login($user, remember: true);
