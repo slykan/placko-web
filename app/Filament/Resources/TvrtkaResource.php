@@ -35,7 +35,7 @@ class TvrtkaResource extends Resource
         return 'Obrti i tvrtke';
     }
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 0;
 
     // Tvrtka je sam tenant model - ne scopamo po tenantу
     protected static bool $isScopedToTenant = false;

@@ -29,7 +29,7 @@ class ZaposlenikResource extends Resource
 
     protected static ?string $slug = 'zaposlenici';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $tenantRelationshipName = 'zaposlenici';
 
