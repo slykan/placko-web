@@ -96,7 +96,7 @@ class RadniNalogResource extends Resource
                         }
                     }),
                 Select::make('zaposlenici')->label('Svi izvršitelji')
-                    ->relationship('zaposlenici', 'ime_prezime', fn (Builder $query) => $query->where('tvrtka_id', $tvrtkaId()))
+                    ->relationship('zaposlenici', 'ime_prezime', fn (Builder $query) => $query->where('tvrtka_id', $tvrtkaId())->orderBy('prezime')->orderBy('ime'))
                     ->getOptionLabelFromRecordUsing(fn (Zaposlenik $z) => $z->ime_prezime.($z->aktivan ? '' : ' (neaktivan)'))
                     ->multiple()->preload()->searchable(),
             ])->columns(2)

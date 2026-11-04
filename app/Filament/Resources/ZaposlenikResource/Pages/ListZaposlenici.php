@@ -48,7 +48,7 @@ class ListZaposlenici extends ListRecords
             ->whereHas('radniNalog', fn ($q) => $q->where('tvrtka_id', $tvrtkaId))
             ->whereBetween('datum', [$od->toDateString(), $od->copy()->endOfMonth()->toDateString()])
             ->get()
-            ->sortBy(fn (RadniNalogRad $r) => ($r->zaposlenik?->ime_prezime ?? '~').$r->datum->format('Ymd'));
+            ->sortBy(fn (RadniNalogRad $r) => ($r->zaposlenik ? $r->zaposlenik->prezime.' '.$r->zaposlenik->ime : '~').$r->datum->format('Ymd'));
 
         return response()->streamDownload(function () use ($radovi) {
             $out = fopen('php://output', 'w');

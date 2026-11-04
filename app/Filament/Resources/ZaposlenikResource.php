@@ -36,10 +36,15 @@ class ZaposlenikResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            TextInput::make('ime_prezime')
-                ->label('Ime i prezime')
+            TextInput::make('ime')
+                ->label('Ime')
                 ->required()
-                ->columnSpanFull(),
+                ->maxLength(100),
+
+            TextInput::make('prezime')
+                ->label('Prezime')
+                ->required()
+                ->maxLength(150),
 
             TextInput::make('radno_mjesto')
                 ->label('Radno mjesto')
@@ -96,8 +101,13 @@ class ZaposlenikResource extends Resource
                     ->whereIn('status', ['otvoren', 'u_tijeku']),
                 ]))
             ->columns([
-                Tables\Columns\TextColumn::make('ime_prezime')
-                    ->label('Ime i prezime')
+                Tables\Columns\TextColumn::make('prezime')
+                    ->label('Prezime')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('ime')
+                    ->label('Ime')
                     ->searchable()
                     ->sortable(),
 
@@ -130,7 +140,7 @@ class ZaposlenikResource extends Resource
                     ->label('Aktivan')
                     ->boolean(),
             ])
-            ->defaultSort('ime_prezime')
+            ->defaultSort(fn (Builder $query) => $query->orderBy('prezime')->orderBy('ime'))
             ->filters([
                 Tables\Filters\TernaryFilter::make('aktivan')
                     ->label('Aktivan')

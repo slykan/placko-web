@@ -14,6 +14,8 @@ class Zaposlenik extends Model
 
     protected $fillable = [
         'tvrtka_id',
+        'ime',
+        'prezime',
         'ime_prezime',
         'radno_mjesto',
         'kontakt_broj',
@@ -27,6 +29,18 @@ class Zaposlenik extends Model
         'cijena_sata' => 'decimal:2',
         'aktivan' => 'boolean',
     ];
+
+    /** ime_prezime je spremljeni "Ime Prezime" — koriste ga popisi, mailovi i PDF-ovi. */
+    protected static function booted(): void
+    {
+        static::saving(function (Zaposlenik $z) {
+            if (filled($z->ime) || filled($z->prezime)) {
+                $z->ime_prezime = trim($z->ime.' '.$z->prezime);
+            } elseif (filled($z->ime_prezime)) {
+                [$z->ime, $z->prezime] = array_pad(preg_split('/\s+/', trim($z->ime_prezime), 2), 2, '');
+            }
+        });
+    }
 
     /** Osobni link "Moji nalozi" — tko ima link, vidi naloge tog zaposlenika (bez lozinke). */
     public function portalUrl(): string
@@ -63,7 +77,7 @@ class Zaposlenik extends Model
     {
         return static::where('tvrtka_id', $tvrtkaId)
             ->where(fn ($q) => $q->where('aktivan', true)->orWhereIn('id', array_filter($ukljuci)))
-            ->orderBy('ime_prezime')
+            ->orderBy('prezime')->orderBy('ime')
             ->pluck('ime_prezime', 'id')
             ->all();
     }
