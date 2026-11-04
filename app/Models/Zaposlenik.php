@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Zaposlenik extends Model
 {
@@ -27,6 +28,21 @@ class Zaposlenik extends Model
         'aktivan' => 'boolean',
     ];
 
+    /** Osobni link "Moji nalozi" — tko ima link, vidi naloge tog zaposlenika (bez lozinke). */
+    public function portalUrl(): string
+    {
+        if (! $this->portal_token) {
+            $this->noviPortalToken();
+        }
+
+        return route('moji-nalozi.index', $this->portal_token);
+    }
+
+    public function noviPortalToken(): void
+    {
+        $this->forceFill(['portal_token' => Str::random(48)])->save();
+    }
+
     public function tvrtka(): BelongsTo
     {
         return $this->belongsTo(Tvrtka::class);
@@ -34,7 +50,7 @@ class Zaposlenik extends Model
 
     public function radniNalozi(): BelongsToMany
     {
-        return $this->belongsToMany(RadniNalog::class, 'radni_nalog_zaposlenik');
+        return $this->belongsToMany(RadniNalog::class, 'radni_nalog_zaposlenik')->withPivot('prihvacen_at');
     }
 
     public function radovi(): HasMany

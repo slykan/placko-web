@@ -16,13 +16,17 @@ class RadniNalog extends Model
         'broj', 'redni_broj', 'godina', 'status',
         'datum_otvaranja', 'rok', 'predmet', 'lokacija',
         'opis_posla', 'izvrseni_radovi', 'napomena', 'zavrsen_at',
+        'potpis_klijenta', 'potpisao', 'potpisano_at',
         'ukupno_sati', 'ukupno_rad', 'ukupno_materijal',
     ];
+
+    protected $attributes = ['status' => 'otvoren'];
 
     protected $casts = [
         'datum_otvaranja' => 'date',
         'rok' => 'date',
         'zavrsen_at' => 'datetime',
+        'potpisano_at' => 'datetime',
         'ukupno_sati' => 'decimal:2',
         'ukupno_rad' => 'decimal:2',
         'ukupno_materijal' => 'decimal:2',
@@ -125,7 +129,7 @@ class RadniNalog extends Model
 
     public function zaposlenici(): BelongsToMany
     {
-        return $this->belongsToMany(Zaposlenik::class, 'radni_nalog_zaposlenik');
+        return $this->belongsToMany(Zaposlenik::class, 'radni_nalog_zaposlenik')->withPivot('prihvacen_at');
     }
 
     public function radovi(): HasMany

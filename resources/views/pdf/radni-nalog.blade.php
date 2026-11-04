@@ -103,7 +103,15 @@
 
 <div class="potpisi">
     <div class="left"><div class="crta">{{ $zaKlijenta ? 'Radove izvršio' : 'Izvršitelj' }}</div></div>
-    <div class="right"><div class="crta">{{ $zaKlijenta ? 'Radove preuzeo (klijent)' : 'Potpis klijenta' }}</div></div>
+    <div class="right">
+        @if($nalog->potpis_klijenta)
+            <img src="{{ $nalog->potpis_klijenta }}" style="height:16mm;margin-top:-4mm;display:block;margin-left:auto;margin-right:auto">
+            <div class="crta" style="margin-top:0">{{ $zaKlijenta ? 'Radove preuzeo (klijent)' : 'Potpis klijenta' }}@if($nalog->potpisao): {{ $nalog->potpisao }}@endif
+                <br>{{ $nalog->potpisano_at?->format('d.m.Y. H:i') }}</div>
+        @else
+            <div class="crta">{{ $zaKlijenta ? 'Radove preuzeo (klijent)' : 'Potpis klijenta' }}</div>
+        @endif
+    </div>
 </div>
 
 <div class="footer-bottom">{{ $tvrtka->naziv }}, {{ $tvrtka->adresa }}, {{ $tvrtka->po_broj }} {{ $tvrtka->mjesto }}

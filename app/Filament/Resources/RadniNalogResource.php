@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\RadniNalogResource\Pages;
-use App\Mail\PonudaMail;
+use App\Mail\RadniNalogZaposlenikMail;
 use App\Models\Klijent;
 use App\Models\RadniNalog;
 use App\Models\Racun;
@@ -175,6 +175,12 @@ class RadniNalogResource extends Resource
                     ->content(fn (?RadniNalog $record) => number_format((float) $record?->ukupno_materijal, 2, ',', '.').' €'),
                 Placeholder::make('sazetak_racun')->label('Račun')
                     ->content(fn (?RadniNalog $record) => $record?->racun?->broj ?? '—'),
+                Placeholder::make('potpis')->label('Potpis klijenta')
+                    ->visible(fn (?RadniNalog $record) => (bool) $record?->potpis_klijenta)
+                    ->content(fn (?RadniNalog $record) => new \Illuminate\Support\HtmlString(
+                        '<img src="'.e($record->potpis_klijenta).'" style="max-height:90px;background:#fff;border:1px solid #e5e7eb;border-radius:8px">'
+                        .'<div style="font-size:12px;color:#6b7280">'.e($record->potpisao ?? '').' · '.$record->potpisano_at?->format('d.m.Y. H:i').'</div>'
+                    ))->columnSpanFull(),
             ])->columns(4)->hiddenOn('create')
                 ->description('Zbrojevi se osvježe nakon spremanja.'),
         ]);
@@ -195,8 +201,11 @@ class RadniNalogResource extends Resource
                 ->placeholder('interno'),
             Tables\Columns\TextColumn::make('predmet')->label('Predmet')->searchable()->limit(40)
                 ->description(fn (RadniNalog $n) => \Illuminate\Support\Str::limit($n->opis_posla, 60)),
-            Tables\Columns\TextColumn::make('zaposlenici.ime_prezime')->label('Izvršitelji')
-                ->badge()->color('gray')->limitList(3),
+            Tables\Columns\TextColumn::make('izvrsitelji')->label('Izvršitelji')
+                ->getStateUsing(fn (RadniNalog $n) => $n->zaposlenici
+                    ->map(fn (Zaposlenik $z) => $z->ime_prezime.($z->pivot->prihvacen_at ? ' ✓' : ''))->all())
+                ->badge()->color(fn (string $state) => str_ends_with($state, '✓') ? 'success' : 'gray')->limitList(3)
+                ->tooltip('✓ = zaposlenik je prihvatio nalog'),
             Tables\Columns\TextColumn::make('rok')->label('Rok')->date('d.m.Y.')->sortable()
                 ->color(fn (RadniNalog $n) => $n->rok && $n->jeOtvoren() && $n->rok->isPast() && ! $n->rok->isToday() ? 'danger' : null),
             Tables\Columns\TextColumn::make('status')->label('Status')->badge()
@@ -206,7 +215,8 @@ class RadniNalogResource extends Resource
                 ->toggleable(),
             Tables\Columns\TextColumn::make('racun.broj')->label('Račun')->placeholder('—')
                 ->toggleable(isToggledHiddenByDefault: true),
-        ])->defaultSort('datum_otvaranja', 'desc')
+        ])->modifyQueryUsing(fn (Builder $query) => $query->with(['zaposlenici', 'klijent', 'racun']))
+            ->defaultSort('datum_otvaranja', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')->label('Status')->options(RadniNalog::statusi())->multiple(),
                 Tables\Filters\SelectFilter::make('zaposlenik')->label('Zaposlenik')
@@ -257,27 +267,36 @@ class RadniNalogResource extends Resource
     {
         return Tables\Actions\Action::make('posalji_zaposleniku')
             ->label('Pošalji zaposleniku')
-            ->icon('heroicon-o-envelope')->color('primary')->iconButton()->tooltip('Pošalji nalog zaposleniku e-mailom')
+            ->icon('heroicon-o-envelope')->color('primary')->iconButton()->tooltip('Pošalji nalog zaposleniku (e-mail s linkom)')
             ->visible(fn (RadniNalog $n) => $n->jeOtvoren())
             ->form(function (RadniNalog $n): array {
                 $n->load(['zaposlenici', 'tvrtka', 'klijent']);
                 $sEmailom = $n->zaposlenici->filter(fn (Zaposlenik $z) => filled($z->email));
                 $postavke = TvrtkaPostavke::where('tvrtka_id', $n->tvrtka_id)->first();
 
-                $poruka = 'Bok,'."\n\n".'u privitku je radni nalog '.$n->broj
-                    .($n->klijent ? ' za '.$n->klijent->naziv : '')
-                    .($n->lokacija ? ', lokacija: '.$n->lokacija : '')
-                    .($n->rok ? ', rok: '.$n->rok->format('d.m.Y.') : '').'.'
+                $poruka = 'Bok,'."\n\n".'dodijeljen ti je radni nalog '.$n->broj
+                    .($n->klijent ? ' za '.$n->klijent->naziv : '').'.'
                     ."\n\n".'Posao: '.$n->opis_posla."\n\n".'Pozdrav,'."\n".($n->tvrtka->vlasnik ?: $n->tvrtka->naziv);
+
+                $linkovi = $n->zaposlenici->map(function (Zaposlenik $z) use ($n) {
+                    $z->portalUrl();
+                    $url = route('moji-nalozi.show', [$z->portal_token, $n->id]);
+
+                    return '<li style="margin:4px 0"><strong>'.e($z->ime_prezime).'</strong>'.($z->pivot->prihvacen_at ? ' ✓ prihvatio' : '')
+                        .'<input readonly onclick="this.select()" value="'.e($url).'" '
+                        .'style="width:100%;font-size:12px;padding:4px 6px;border:1px solid #d1d5db;border-radius:6px"></li>';
+                })->implode('');
 
                 return [
                     TextInput::make('od')->label('Pošiljatelj')
                         ->default($postavke?->smtp_from_email ?? '')->required(),
                     Select::make('prima')->label('Prima')->multiple()->required()
-                        ->options($sEmailom->mapWithKeys(fn (Zaposlenik $z) => [$z->email => $z->ime_prezime.' <'.$z->email.'>'])->all())
-                        ->default($sEmailom->pluck('email')->values()->all())
-                        ->helperText($sEmailom->isEmpty() ? 'Nijedan izvršitelj nema upisan e-mail (Zaposlenici → Uredi).' : null),
-                    Textarea::make('poruka')->label('Poruka')->default($poruka)->rows(8),
+                        ->options($sEmailom->mapWithKeys(fn (Zaposlenik $z) => [$z->id => $z->ime_prezime.' <'.$z->email.'>'])->all())
+                        ->default($sEmailom->pluck('id')->values()->all())
+                        ->helperText($sEmailom->isEmpty() ? 'Nijedan izvršitelj nema upisan e-mail (Zaposlenici → Uredi).' : 'Svaki dobiva svoj mail s gumbom „Prihvati i otvori nalog”.'),
+                    Textarea::make('poruka')->label('Poruka')->default($poruka)->rows(6),
+                    Placeholder::make('linkovi')->label('Osobni linkovi na nalog (za WhatsApp/SMS)')
+                        ->content(new \Illuminate\Support\HtmlString($linkovi ? '<ul>'.$linkovi.'</ul>' : '—')),
                 ];
             })
             ->modalHeading(fn (RadniNalog $n) => 'Pošalji nalog '.$n->broj.' zaposleniku')
@@ -306,14 +325,17 @@ class RadniNalogResource extends Resource
                     $mailer = Mail::mailer();
                 }
 
-                $mailable = (new PonudaMail($data['poruka'], static::generirajPdf($n, false), 'Radni_nalog_'.$n->broj.'.pdf', [], $n->tvrtka))
-                    ->subject('Radni nalog '.$n->broj.($n->klijent ? ' — '.$n->klijent->naziv : ''));
+                $n->load(['tvrtka', 'klijent']);
+                $primatelji = $n->zaposlenici()->whereIn('zaposlenici.id', $data['prima'])->whereNotNull('email')->get();
 
                 try {
-                    $mailer->to($data['prima'])->send($mailable);
+                    foreach ($primatelji as $z) {
+                        $z->portalUrl();
+                        $mailer->to($z->email)->send(new RadniNalogZaposlenikMail($n, $z, $data['poruka']));
+                    }
 
                     Notification::make()->title('Nalog poslan')
-                        ->body('Radni nalog '.$n->broj.' poslan na '.implode(', ', $data['prima']))
+                        ->body('Radni nalog '.$n->broj.' poslan: '.$primatelji->pluck('ime_prezime')->implode(', '))
                         ->success()->send();
                 } catch (\Throwable $e) {
                     Notification::make()->title('Greška pri slanju e-maila')

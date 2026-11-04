@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ZaposlenikResource\Pages;
 use App\Models\Zaposlenik;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -12,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\HtmlString;
 
 class ZaposlenikResource extends Resource
 {
@@ -69,6 +71,16 @@ class ZaposlenikResource extends Resource
             Textarea::make('napomena')
                 ->label('Napomena')
                 ->rows(2)
+                ->columnSpanFull(),
+
+            Placeholder::make('portal')
+                ->label('Osobni link „Moji nalozi”')
+                ->helperText('Zaposlenik na ovom linku vidi svoje naloge, upisuje sate i materijal. Ne treba lozinku — ako link procuri, napravi novi (gumb gore desno).')
+                ->content(fn (?Zaposlenik $record) => $record ? new HtmlString(
+                    '<input readonly onclick="this.select()" value="'.e($record->portalUrl()).'" '
+                    .'style="width:100%;font-size:13px;padding:6px 8px;border:1px solid #d1d5db;border-radius:8px">'
+                ) : null)
+                ->hiddenOn('create')
                 ->columnSpanFull(),
         ])->columns(2);
     }

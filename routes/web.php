@@ -3,6 +3,7 @@
 use App\Http\Controllers\AlatiController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\MojiNaloziController;
 use App\Http\Controllers\PonudaPrihvatiController;
 use Illuminate\Support\Facades\Route;
 
@@ -71,7 +72,14 @@ Route::get('/ponuda/{ponuda}/prihvati', [PonudaPrihvatiController::class, 'prihv
     ->name('ponuda.prihvati')
     ->middleware('signed');
 
-Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
+Route::prefix('moji-nalozi/{token}')->name('moji-nalozi.')->middleware('throttle:60,1')->group(function () {
+    Route::get('/', [MojiNaloziController::class, 'index'])->name('index');
+    Route::get('/{nalog}', [MojiNaloziController::class, 'show'])->whereNumber('nalog')->name('show');
+    Route::post('/{nalog}', [MojiNaloziController::class, 'spremi'])->whereNumber('nalog')->name('spremi');
+    Route::post('/{nalog}/prihvati', [MojiNaloziController::class, 'prihvati'])->whereNumber('nalog')->name('prihvati');
+});
+
+Route::get('/auth/google',[GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 
 Route::post('/turnstile/verify', function (\Illuminate\Http\Request $request) {
