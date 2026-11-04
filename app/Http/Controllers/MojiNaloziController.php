@@ -232,7 +232,10 @@ class MojiNaloziController extends Controller
     {
         abort_if(strlen($token) < 32, 404);
 
-        return Zaposlenik::with('tvrtka')->where('portal_token', $token)->where('aktivan', true)->firstOrFail();
+        $zaposlenik = Zaposlenik::with('tvrtka.users')->where('portal_token', $token)->where('aktivan', true)->firstOrFail();
+        abort_unless($zaposlenik->tvrtka->imaRadneNaloge(), 403, 'Radni nalozi trenutno nisu aktivni za ovu tvrtku. Javi se uredu.');
+
+        return $zaposlenik;
     }
 
     private function nalog(Zaposlenik $zaposlenik, int $id): RadniNalog

@@ -82,6 +82,12 @@ class Tvrtka extends Model
         return $this->hasMany(Ponuda::class);
     }
 
+    /** Radni nalozi i zaposlenici su u paketima Pro i Business — dovoljno je da ga ima jedan korisnik tvrtke. */
+    public function imaRadneNaloge(): bool
+    {
+        return $this->users->contains(fn (User $u) => $u->isAdmin() || $u->paket()->radniNalozi());
+    }
+
     public function radniNalozi(): HasMany
     {
         return $this->hasMany(RadniNalog::class);

@@ -29,6 +29,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
@@ -50,6 +51,17 @@ class RadniNalogResource extends Resource
     protected static ?int $navigationSort = 6;
 
     protected static ?string $tenantRelationshipName = 'radniNalozi';
+
+    /** Pro i Business (ili admin); Starter umjesto ovoga vidi stranicu RadniNaloziPro. */
+    public static function dostupno(): bool
+    {
+        return (bool) (auth()->user()?->isAdmin() || filament()->getTenant()?->imaRadneNaloge());
+    }
+
+    public static function can(string $action, ?Model $record = null): bool
+    {
+        return static::dostupno() && parent::can($action, $record);
+    }
 
     public static function getNavigationBadge(): ?string
     {

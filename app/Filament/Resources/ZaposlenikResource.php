@@ -13,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
 
 class ZaposlenikResource extends Resource
@@ -32,6 +33,11 @@ class ZaposlenikResource extends Resource
     protected static ?int $navigationSort = 1;
 
     protected static ?string $tenantRelationshipName = 'zaposlenici';
+
+    public static function can(string $action, ?Model $record = null): bool
+    {
+        return RadniNalogResource::dostupno() && parent::can($action, $record);
+    }
 
     public static function form(Form $form): Form
     {

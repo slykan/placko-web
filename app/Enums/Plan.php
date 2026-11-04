@@ -37,6 +37,11 @@ enum Plan: string
         return $this !== self::Starter;
     }
 
+    public function radniNalozi(): bool
+    {
+        return $this !== self::Starter;
+    }
+
     public function podrska(): bool
     {
         return $this !== self::Starter;
