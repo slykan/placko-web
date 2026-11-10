@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
     private ProgressBar progress;
     private String retryUrl = NavigationPolicy.HOME;
     private boolean failed;
+    private NativePdf nativePdf;
     private boolean splashReady;
     private final Handler launchHandler = new Handler(Looper.getMainLooper());
     private final Runnable releaseSplash = () -> splashReady = true;
@@ -76,6 +77,7 @@ public class MainActivity extends Activity {
         root.addView(error, new LinearLayout.LayoutParams(-1, 0, 1));
 
         web = new WebView(this);
+        nativePdf = new NativePdf(this, web);
         root.addView(web, new LinearLayout.LayoutParams(-1, 0, 1));
         setContentView(root);
         // Keep the system launch screen until the first web screen is ready.
@@ -150,6 +152,7 @@ public class MainActivity extends Activity {
                 return true;
             }
             @Override public void onPageStarted(WebView view, String url, android.graphics.Bitmap icon) {
+                nativePdf.reset();
                 failed = false;
                 if (NavigationPolicy.isInternal(url)) retryUrl = url;
                 progress.setVisibility(View.VISIBLE);
@@ -157,6 +160,7 @@ public class MainActivity extends Activity {
                 web.setVisibility(View.VISIBLE);
             }
             @Override public void onPageFinished(WebView view, String url) {
+                nativePdf.pageFinished(web);
                 finishSplash();
                 progress.setVisibility(View.GONE);
                 CookieManager.getInstance().flush();
@@ -172,7 +176,7 @@ public class MainActivity extends Activity {
                 if (request.isForMainFrame() && response.getStatusCode() >= 500) showError();
             }
         });
-        // izvještaji (PDF, CSV, XLSX): preuzme se uz prijavu, spremi u Preuzimanja/Placko i odmah otvori
+        // Direct authenticated downloads; PDFs open in the private preview.
         Preuzimanje preuzimanje = new Preuzimanje(this);
         web.setDownloadListener((url, userAgent, disposition, mime, length) ->
             preuzimanje.preuzmi(url, userAgent, disposition, mime));
@@ -242,6 +246,7 @@ public class MainActivity extends Activity {
     @Override protected void onDestroy() {
         launchHandler.removeCallbacks(releaseSplash);
         if (fileCallback != null) { fileCallback.onReceiveValue(null); fileCallback = null; }
+        nativePdf.reset();
         web.destroy();
         super.onDestroy();
     }

@@ -41,6 +41,8 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('img/placko-icon.svg'))
             ->maxContentWidth('full')
             ->renderHook(PanelsRenderHook::HEAD_END, fn () => view('partials.pwa-head'))
+            // Na mobitelu redovi tablica postaju kartice s gumbima na dnu (bez vodoravnog scrolla)
+            ->renderHook(PanelsRenderHook::HEAD_END, fn () => view('partials.mobilne-tablice'))
             // Zvono s novostima (objave kategorije "novosti") lijevo od korisničkog izbornika
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => Blade::render('@livewire(\'novosti-zvono\')'))
             ->tenant(Tvrtka::class, slugAttribute: 'id')

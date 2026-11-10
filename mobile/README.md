@@ -1,9 +1,11 @@
-# Plačko Android — prototip 0.2
+# Plačko Android — prototip 0.3
 
 Prva Android osnova, prilagođena iz AgroLog projekta. Otvara postojeći
 `https://placko.app/admin`; korisnici, baza i poslovna logika ostaju na serveru.
-Verzija 0.2 dodaje Google prijavu kroz vanjski preglednik i povratak u aplikaciju.
-Za nju su potrebne serverske promjene opisane niže; još nisu objavljene na serveru.
+Verzija 0.3 otvara PDF odmah unutar aplikacije, bez automatskog spremanja u Preuzimanja.
+Pregled ima povećavanje s dva prsta, pomicanje, listanje stranica te Spremi, Podijeli i Ispiši.
+Promjena je samo u APK-u: ne traži nove serverske promjene i ne mijenja obični web.
+Verzija 0.2 dodala je Google prijavu; korisnik je potvrdio deploy i stvarnu prijavu na mobitelu.
 
 ## Uključeno
 
@@ -13,7 +15,8 @@ Za nju su potrebne serverske promjene opisane niže; još nisu objavljene na ser
 - Odabir datoteka za logotip i privitke kroz sistemski odabir.
 - Vanjske HTTPS, telefonske i e-mail poveznice otvaraju se u drugim aplikacijama.
 - Mrežna pogreška s gumbom za ponovni pokušaj.
-- Izravna HTTPS preuzimanja s vlastite domene spremaju se u Preuzimanja/Placko.
+- Livewire PDF i izravni HTTPS PDF otvaraju se u ugrađenom pregledu.
+- Ostala izravna HTTPS preuzimanja spremaju se u Preuzimanja/Placko.
 - Samo dopuštenje za internet; nema AgroLog Firebase konfiguracije ni ključeva.
 
 ## Trenutne granice
@@ -21,10 +24,11 @@ Za nju su potrebne serverske promjene opisane niže; još nisu objavljene na ser
 Ovo je probni APK za Android 10+, potpisan razvojnim ključem.
 Identifikator `app.placko.mobile` treba potvrditi prije objave u trgovini.
 
-- Google prijava zahtijeva objavu serverskih promjena i migracije, zatim provjeru
-  stvarnim Google računom na mobitelu. Automatizirani testovi koriste zamjenski Google odgovor.
-- Filament/Livewire PDF preuzimanja koriste blob/base64 mehanizam koji još nije podržan.
-  Za račune i ponude trenutačno koristiti web u pregledniku.
+- PDF pregled zahtijeva Android System WebView s podrškom za WEB_MESSAGE_LISTENER.
+- PDF je ograničen na 25 MB. Prikazuje se po jedna stranica radi ograničenja memorije.
+- PDF ostaje u privatnom cacheu; datoteke starije od 24 sata brišu se pri pokretanju aplikacije.
+  Korisnik trajno sprema dokument tek gumbom Spremi, uz izbor mjesta i naziva.
+- Ostali Livewire izvozi poput XML-a i CSV-a još nisu povezani s Androidovim spremanjem.
 - Ispis kroz `window.print()` još nije povezan s Androidom.
 - Nema offline unosa, mobilnih push obavijesti ni iOS projekta.
 - Gradle izgradnja i lint ne potvrđuju stvarnu prijavu ili poslovne tokove.
@@ -44,6 +48,26 @@ cd mobile/android
 
 APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
 
+JS provjere: `node --test mobile/tests/pdf-downloads.test.cjs` iz korijena projekta.
+Provjera na emulatoru/uređaju: `gradlew.bat connectedDebugAndroidTest` iz `mobile/android`.
+
+## PDF pregled 0.3
+
+Pokriva sve postojeće Filament/Livewire PDF gumbe: računi, ponude, primke,
+radni nalozi (interni i za klijenta, u popisu i uređivanju), PO-SD i IRA izvještaji,
+uključujući iste izvještaje na stranici Obrasci.
+
+Aplikacija pri početku učitavanja ubacuje `pdf-downloads.js` samo na `https://placko.app`.
+Presreće PDF blob iz Livewire gumba prije automatskog preuzimanja i zadržava referencu
+dok Livewire uklanja privremeni URL. Prijenos ide u blokovima uz potvrdu svakog bloka.
+Android prima poruke samo iz glavnog okvira te domene, provjerava veličinu i PDF zaglavlje,
+zatim otvara privatni pregled preko Android PdfRenderera. Nema općeg JavaScript sučelja
+za datoteke ili pokretanje Android akcija. Drugi izvori i iframeovi nemaju pristup pregledu.
+
+Spremi otvara Androidov izbor odredišta, Podijeli daje odabranoj aplikaciji privremeno
+dopuštenje za čitanje preko FileProvidera, a Ispiši koristi Androidov dijalog za ispis.
+Datoteka ne napušta uređaj bez korisnikove akcije dijeljenja/ispisa.
+
 ## Serverske promjene za Google prijavu
 
 Objaviti kroz postojeći git/deploy postupak zajedno:
@@ -57,7 +81,7 @@ Objaviti kroz postojeći git/deploy postupak zajedno:
 
 `deploy.sh` već pokreće `php artisan migrate --force` i obnavlja cache.
 Koristi se postojeći Google OAuth client i `/auth/google/callback`; tajne nisu u APK-u.
-Ova radna kopija nema konfiguriran pristup Plačkovu serveru.
+Serverske promjene 0.2 korisnik je objavio i potvrdio prijavu na mobitelu.
 
 Tok: WebView dobiva nasumično stanje vezano uz sesiju, potpisana poveznica otvara
 Google u pregledniku, a povratak `placko://auth/google` nosi jednokratni kod koji
@@ -71,5 +95,5 @@ izvorne sesije ne može iskoristiti kod. Za trgovinu razmotriti verificirane App
 Provjeriti na uređaju: postojeći i novi Google račun, odustajanje, istek koda,
 povratak nakon gašenja procesa i nepromijenjenu web prijavu.
 
-Sljedeći koraci: objava serverskih promjena, stvarna Google prijava na uređaju,
-Livewire PDF preuzimanja i provjera preostalih korisničkih tokova.
+Na stvarnom mobitelu provjeriti PDF svakog tipa dokumenta, više stranica, povećavanje,
+spremanje i odustajanje, dijeljenje, ispis te povratak u obrazac bez gubitka unosa.

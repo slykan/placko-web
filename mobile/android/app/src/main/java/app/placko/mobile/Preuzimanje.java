@@ -13,14 +13,15 @@ import android.webkit.URLUtil;
 import android.widget.Toast;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Preuzimanje izvještaja (PDF, CSV, XLSX) s placko.app uz prijavu iz WebViewa: datoteka se spremi u
- * Preuzimanja/Placko i odmah otvori. Za razliku od DownloadManagera korisnik odmah vidi rezultat ili grešku.
+ * Authenticated HTTPS downloads: PDFs go to private preview; other types go to Downloads/Placko.
  */
 final class Preuzimanje {
     private static final ExecutorService POZADINA = Executors.newSingleThreadExecutor();
@@ -49,6 +50,11 @@ final class Preuzimanje {
                 String vrsta = tip.isEmpty() ? (mime == null ? "application/octet-stream" : mime) : tip;
                 String ime = URLUtil.guessFileName(url, veza.getHeaderField("Content-Disposition") != null
                     ? veza.getHeaderField("Content-Disposition") : disposition, vrsta);
+                if ("application/pdf".equalsIgnoreCase(vrsta) || ime.toLowerCase(java.util.Locale.ROOT).endsWith(".pdf")) {
+                    File pdf = spremiPdf(veza.getInputStream());
+                    naUi(() -> PdfActivity.open(activity, pdf, ime));
+                    return;
+                }
                 Uri datoteka = spremi(veza.getInputStream(), ime, vrsta);
                 naUi(() -> otvori(datoteka, vrsta, ime));
             } catch (Exception e) {
@@ -57,6 +63,22 @@ final class Preuzimanje {
                 if (veza != null) veza.disconnect();
             }
         });
+    }
+
+    private File spremiPdf(InputStream input) throws Exception {
+        File directory = new File(activity.getCacheDir(), "pdf-preview");
+        if (!directory.isDirectory() && !directory.mkdirs()) throw new java.io.IOException();
+        File file = File.createTempFile("document-", ".pdf", directory);
+        try (InputStream in = input; OutputStream out = new FileOutputStream(file)) {
+            byte[] buffer = new byte[16384];
+            long total = 0;
+            for (int count; (count = in.read(buffer)) != -1;) {
+                total += count;
+                if (total > PdfTransfer.LIMIT) throw new java.io.IOException();
+                out.write(buffer, 0, count);
+            }
+            return file;
+        } catch (Exception e) { file.delete(); throw e; }
     }
 
     /** Sprema u Preuzimanja/Placko preko MediaStorea (Android 10+, bez dopuštenja za pohranu). */
