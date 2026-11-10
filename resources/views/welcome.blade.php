@@ -167,7 +167,7 @@
         }
         .hero-cta {
             display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
-            margin-bottom: 56px;
+            margin-bottom: 24px;
         }
         .btn-primary {
             padding: 14px 34px; background: var(--p); color: white;
@@ -183,6 +183,22 @@
             display: inline-flex; align-items: center; gap: 8px;
         }
         .btn-ghost:hover { border-color: var(--p); color: var(--p); transform: translateY(-2px); }
+
+        /* Mobilne aplikacije: još nisu u trgovinama, pa namjerno nisu poveznice (i bez službenih Google Play / App Store oznaka) */
+        .hero-apps { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 48px; }
+        .hero-app {
+            display: inline-flex; align-items: center; gap: 10px; text-align: left;
+            padding: 9px 14px; border-radius: 12px; border: 1.5px dashed var(--border);
+            background: var(--white); color: var(--muted); cursor: not-allowed; user-select: none;
+        }
+        .hero-app svg { width: 24px; height: 24px; flex-shrink: 0; }
+        .hero-app-mali { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--light); line-height: 1.2; }
+        .hero-app-ime { display: block; font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.2; }
+        .hero-app-uskoro {
+            margin-left: 4px; padding: 2px 8px; border-radius: 99px;
+            background: var(--pl); color: var(--pd);
+            font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px;
+        }
 
         .hero-trust {
             display: flex; align-items: center; gap: 24px;
@@ -614,6 +630,23 @@
         <a href="#znacajke" class="btn-ghost">
             Što sve nudi?
         </a>
+    </div>
+
+    <div class="hero-apps">
+        @foreach ([['Android', 'Aplikacija za Android'], ['iPhone', 'Aplikacija za iPhone']] as [$sustav, $opis])
+            <span class="hero-app" title="{{ $opis }}: uskoro">
+                @if ($sustav === 'Android')
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.2 9.5h9.6c.4 0 .7.3.7.7v6.6c0 .6-.5 1.1-1.1 1.1h-.8v2.4a1 1 0 01-2 0v-2.4h-3.2v2.4a1 1 0 01-2 0v-2.4h-.8c-.6 0-1.1-.5-1.1-1.1v-6.6c0-.4.3-.7.7-.7zM4.6 9.6a1 1 0 011 1v4.6a1 1 0 01-2 0v-4.6a1 1 0 011-1zm14.8 0a1 1 0 011 1v4.6a1 1 0 01-2 0v-4.6a1 1 0 011-1zM8.6 4.2l-.9-1.5a.3.3 0 01.5-.3l.9 1.6A6 6 0 0112 3.4c1 0 2 .2 2.9.6l.9-1.6a.3.3 0 01.5.3l-.9 1.5A5 5 0 0117.6 8.7H6.4a5 5 0 012.2-4.5zM10 6.3a.6.6 0 100 1.2.6.6 0 000-1.2zm4 0a.6.6 0 100 1.2.6.6 0 000-1.2z"/></svg>
+                @else
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.4"/><path stroke-linecap="round" d="M10.5 5h3M11 18.5h2"/></svg>
+                @endif
+                <span>
+                    <span class="hero-app-mali">Aplikacija za</span>
+                    <span class="hero-app-ime">{{ $sustav }}</span>
+                </span>
+                <span class="hero-app-uskoro">Uskoro</span>
+            </span>
+        @endforeach
     </div>
 
     <div class="hero-trust">
