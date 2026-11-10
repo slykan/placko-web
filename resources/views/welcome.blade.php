@@ -132,7 +132,39 @@
         /* Valovi u kutovima (kao na promotivnom banneru), namjerno blagi da ne odvlače od naslova */
         .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
         .hero-bg svg { width: 100%; height: 100%; display: block; }
-        .hero > *:not(.hero-bg) { position: relative; z-index: 1; }
+        .hero > *:not(.hero-bg):not(.hero-deko) { position: relative; z-index: 1; }
+
+        /* Plutajuće kartice (fakturiranje, skladište, radnici...): blijede, sa strane, samo kad ima mjesta */
+        .hero-deko { position: absolute; inset: 0; z-index: 0; pointer-events: none; display: none; }
+        @@media (min-width: 1280px) { .hero-deko { display: block; } }
+        .deko {
+            position: absolute; display: flex; align-items: center; gap: 12px;
+            padding: 12px 18px 12px 12px; border-radius: 16px;
+            background: rgba(255,255,255,.72); border: 1px solid rgba(226,236,233,.9);
+            box-shadow: 0 10px 30px rgba(22,36,51,.06); backdrop-filter: blur(4px);
+            opacity: .78; transform: rotate(var(--r, 0deg));
+            animation: deko-plovi 7s ease-in-out infinite; animation-delay: var(--d, 0s);
+        }
+        .deko-ico {
+            width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--deko-poz); color: var(--deko-boja);
+        }
+        .deko-ico svg { width: 20px; height: 20px; }
+        .deko-tekst { display: flex; flex-direction: column; text-align: left; line-height: 1.25; }
+        .deko-tekst b { font-size: 13px; font-weight: 800; color: var(--text); }
+        .deko-tekst small { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+        .deko-l1 { left: 7%;  top: 24%; --r: -4deg; --d: 0s; }
+        .deko-l2 { left: 4%;  top: 50%; --r: 3deg;  --d: -2.3s; }
+        .deko-l3 { left: 9%;  top: 74%; --r: -2deg; --d: -4.6s; }
+        .deko-d1 { right: 7%; top: 22%; --r: 4deg;  --d: -1.2s; }
+        .deko-d2 { right: 4%; top: 48%; --r: -3deg; --d: -3.5s; }
+        .deko-d3 { right: 9%; top: 72%; --r: 2deg;  --d: -5.8s; }
+        @@keyframes deko-plovi {
+            0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+            50%      { transform: translateY(-10px) rotate(var(--r, 0deg)); }
+        }
+        @@media (prefers-reduced-motion: reduce) { .deko { animation: none; } }
         @@media (max-width: 640px) { .hero-bg { opacity: .7; } }
 
         .hero-eyebrow {
@@ -664,6 +696,22 @@
             <path d="M0 900V610c70 80 170 160 310 205 70 22 110 55 130 85z" fill="url(#val-tirkiz)" opacity=".1"/>
             <path d="M0 0v230c60-60 150-100 260-120 60-11 95-60 100-110z" fill="url(#val-zelen)" opacity=".1"/>
         </svg>
+    </div>
+    {{-- Ukrasne kartice oko naslova: fakturiranje, fiskalizacija, skladište, radnici, poslovanje (samo široki ekrani) --}}
+    <div class="hero-deko" aria-hidden="true">
+        @foreach ([
+            ['l1', 'document-text', '#2ba99b', '#e3f6f3', 'Račun 14-1-1', '160,00 €'],
+            ['l2', 'cube', '#d97706', '#fef3e2', 'Skladište', 'primka · 24 kom'],
+            ['l3', 'banknotes', '#16a34a', '#e8f7ec', 'Plaćeno', 'HUB-3 uplatnica'],
+            ['d1', 'check-badge', '#0d9488', '#e0f5f2', 'Fiskalizirano', 'JIR i ZKI'],
+            ['d2', 'user-group', '#7c3aed', '#f1ebfd', 'Radni nalog', 'na terenu · potpis'],
+            ['d3', 'chart-bar', '#2563eb', '#e8f0fe', 'Poslovanje', 'KPR i PO-SD'],
+        ] as [$mjesto, $ikona, $boja, $pozadina, $naslov, $opis])
+            <div class="deko deko-{{ $mjesto }}" style="--deko-boja: {{ $boja }}; --deko-poz: {{ $pozadina }};">
+                <span class="deko-ico">@svg('heroicon-o-'.$ikona)</span>
+                <span class="deko-tekst"><b>{{ $naslov }}</b><small>{{ $opis }}</small></span>
+            </div>
+        @endforeach
     </div>
     <div class="hero-eyebrow">
         <span class="hero-eyebrow-dot"></span>
