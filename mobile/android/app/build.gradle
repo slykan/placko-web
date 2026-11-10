@@ -1,7 +1,31 @@
 plugins { id 'com.android.application' }
 
+// Upload key lives outside the repo in Desktop/CLAUDE/placko-keys (keystore.properties + placko-upload.jks).
+def keystoreFile = rootProject.file('../../../placko-keys/keystore.properties')
+def keystoreProps = new Properties()
+if (keystoreFile.exists()) {
+    keystoreFile.withInputStream { keystoreProps.load(it) }
+}
+
 android {
     namespace 'app.placko.mobile'
+    signingConfigs {
+        if (keystoreFile.exists()) {
+            upload {
+                storeFile new File(keystoreFile.parentFile, keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (keystoreFile.exists()) {
+                signingConfig signingConfigs.upload
+            }
+        }
+    }
     compileSdk 36
     defaultConfig {
         applicationId 'app.placko.mobile'
