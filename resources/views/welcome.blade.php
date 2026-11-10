@@ -485,12 +485,36 @@
         .price-table-updated { margin-top: 24px; text-align: center; font-size: .8rem; color: var(--light); }
 
         /* ── BROJKE ─────────────────────────────────────── */
-        .brojke { padding: 72px 6%; background: linear-gradient(135deg, var(--pd) 0%, var(--p) 100%); color: #fff; }
-        .brojke-inner { max-width: 880px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; text-align: center; }
-        .brojka-num { font-size: clamp(2.6rem, 6vw, 4rem); font-weight: 900; line-height: 1; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
-        .brojka-num span { color: #b9f5a0; }
-        .brojka-label { margin-top: 10px; font-size: 1rem; font-weight: 600; opacity: .9; }
-        @@media (max-width: 640px) { .brojke-inner { grid-template-columns: 1fr; gap: 36px; } }
+        .brojke {
+            padding: 88px 6%;
+            background: radial-gradient(ellipse 70% 80% at 50% 0%, rgba(43,169,155,.10) 0%, transparent 70%), var(--bg);
+        }
+        .brojke-inner { max-width: 1040px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+        .brojka {
+            position: relative; overflow: hidden; background: var(--white);
+            border: 1px solid var(--border); border-radius: 22px; padding: 34px 30px 30px;
+            box-shadow: 0 2px 16px rgba(43,169,155,.08); transition: transform .25s, box-shadow .25s;
+        }
+        .brojka::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, var(--p), #52d4b0, var(--acc)); }
+        .brojka::after {
+            content: ""; position: absolute; right: -60px; bottom: -60px; width: 180px; height: 180px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(82,212,176,.18) 0%, transparent 70%);
+        }
+        .brojka:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(43,169,155,.16); }
+        .brojka-ico {
+            width: 52px; height: 52px; border-radius: 15px; margin-bottom: 22px;
+            display: flex; align-items: center; justify-content: center; color: #fff;
+            background: linear-gradient(135deg, var(--p), #52d4b0); box-shadow: 0 6px 18px rgba(43,169,155,.32);
+        }
+        .brojka-ico svg { width: 26px; height: 26px; }
+        .brojka-num {
+            font-size: clamp(2.4rem, 4.5vw, 3.2rem); font-weight: 900; line-height: 1; letter-spacing: -1.5px;
+            font-variant-numeric: tabular-nums; color: var(--text);
+        }
+        .brojka-num span { background: linear-gradient(135deg, var(--p), #52d4b0); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .brojka-label { margin-top: 10px; font-size: 1.05rem; font-weight: 800; color: var(--text); }
+        .brojka-opis { margin-top: 4px; font-size: .9rem; color: var(--muted); line-height: 1.55; position: relative; z-index: 1; }
+        @@media (max-width: 860px) { .brojke-inner { grid-template-columns: 1fr; max-width: 440px; } .brojke { padding: 64px 6%; } }
 
         /* ── FAQ ────────────────────────────────────────── */
         .faq-bg { background: var(--white); }
@@ -615,8 +639,9 @@
         <a href="/alati" class="nav-link">Alati</a>
         <a href="/novosti" class="nav-link">Novosti</a>
         <a href="#faq" class="nav-link">FAQ</a>
+        <a href="/kontakt" class="nav-link">Kontakt</a>
         <a href="/admin" class="btn-nav-outline">Prijava</a>
-        <a href="/admin/register" class="btn-nav-solid">Isprobaj</a>
+        <a href="/admin/register" class="btn-nav-solid">Regaj se</a>
     </div>
 </nav>
 
@@ -920,14 +945,26 @@
 <!-- ══ BROJKE ═════════════════════════════════════════ -->
 @if (! empty($brojke))
 <section class="brojke" aria-label="plačko.app u brojkama">
-    <div class="brojke-inner">
-        @foreach ([[$brojke['korisnika'], 'korisnika'], [$brojke['racuna'], 'izdanih računa']] as [$broj, $opis])
-            <div>
-                {{-- Konačan broj je već u HTML-u (bez JS-a i za tražilice), animacija ga samo odbroji od nule. --}}
-                <div class="brojka-num"><b data-brojka="{{ $broj }}" style="font-weight:inherit">{{ number_format($broj, 0, ',', '.') }}</b><span>+</span></div>
-                <div class="brojka-label">{{ $opis }}</div>
-            </div>
-        @endforeach
+    <div class="section-inner">
+        <div class="section-header center">
+            <span class="section-tag">U brojkama</span>
+            <h2 class="section-title">Obrtnici već fakturiraju s nama</h2>
+        </div>
+        <div class="brojke-inner">
+            @foreach ([
+                ['user-group', $brojke['korisnika'], '+', 'korisnika', 'obrtnika i malih tvrtki koristi plačko.app'],
+                ['document-check', $brojke['racuna'], '+', 'izdanih računa', 'izdano kupcima izravno iz aplikacije'],
+                ['gift', null, $cjenik[0]['cijena_prikaz'] ?? '0 €', 'Starter paket', 'za paušaliste, bez kreditne kartice, zauvijek'],
+            ] as [$ikona, $broj, $sufiks, $naslov, $opis])
+                <div class="brojka">
+                    <div class="brojka-ico">@svg('heroicon-o-'.$ikona)</div>
+                    {{-- Konačan broj je već u HTML-u (bez JS-a i za tražilice), animacija ga samo odbroji od nule. --}}
+                    <div class="brojka-num">@if ($broj !== null)<b data-brojka="{{ $broj }}" style="font-weight:inherit">{{ number_format($broj, 0, ',', '.') }}</b>@endif<span>{{ $sufiks }}</span></div>
+                    <div class="brojka-label">{{ $naslov }}</div>
+                    <p class="brojka-opis">{{ $opis }}</p>
+                </div>
+            @endforeach
+        </div>
     </div>
 </section>
 <script>

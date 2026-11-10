@@ -35,6 +35,7 @@ class KontaktController extends Controller
             'email' => ['required', 'email:rfc', 'max:191'],
             'tema' => ['required', Rule::in(array_keys(self::TEME))],
             'poruka' => ['required', 'string', 'min:10', 'max:5000'],
+            'paket' => ['nullable', 'required_if:tema,nadogradnja', Rule::in(array_column(config('cjenik.planovi'), 'naziv'))],
             'privatnost' => ['accepted'],
             'kopija' => ['nullable', 'boolean'],
         ], [
@@ -45,6 +46,8 @@ class KontaktController extends Controller
             'poruka.required' => 'Napiši poruku.',
             'poruka.min' => 'Poruka je prekratka.',
             'poruka.max' => 'Poruka je preduga (najviše 5000 znakova).',
+            'paket.required_if' => 'Odaberi paket koji te zanima.',
+            'paket.in' => 'Odaberi paket koji te zanima.',
             'privatnost.accepted' => 'Za slanje je potrebna privola za obradu podataka.',
         ]);
 
@@ -54,6 +57,8 @@ class KontaktController extends Controller
             'ime' => $d['ime'],
             'email' => $d['email'],
             'tema' => self::TEME[$d['tema']],
+            // Paket samo uz nadogradnju (inače bi ostao od ranijeg odabira bez JS-a)
+            'paket' => $d['tema'] === 'nadogradnja' ? ($d['paket'] ?? null) : null,
             'poruka' => $d['poruka'],
             'korisnik' => $request->user()?->only(['id', 'email']),
             'vrijeme' => now()->timezone(config('app.timezone'))->format('d.m.Y. H:i'),

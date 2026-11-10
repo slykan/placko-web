@@ -50,6 +50,26 @@ class KontaktTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_nadogradnja_trazi_paket_i_salje_ga_u_mailu(): void
+    {
+        Mail::fake();
+        $this->from('/kontakt')->post('/kontakt', $this->podaci(['tema' => 'nadogradnja']))->assertSessionHasErrors(['paket']);
+        $this->post('/kontakt', $this->podaci(['tema' => 'nadogradnja', 'paket' => 'Pro']))->assertSessionHas('kontakt_poslano');
+
+        Mail::assertSent(KontaktMail::class, fn ($m) => $m->zaAdmina && $m->poruka['paket'] === 'Pro'
+            && str_contains($m->envelope()->subject, 'Nadogradnja računa: Pro')
+            && str_contains($m->render(), 'Paket'));
+    }
+
+    public function test_paketi_se_vide_samo_uz_nadogradnju(): void
+    {
+        $this->get('/kontakt?paket=Business')->assertOk()
+            ->assertSee('value="nadogradnja" checked', false)
+            ->assertSee('value="Business" checked', false)
+            ->assertSee('Starter')->assertSee('Pro')->assertSee('12,99 €');
+        $this->get('/kontakt')->assertSee('id="paketi" hidden', false);
+    }
+
     public function test_robot_ne_salje_nista(): void
     {
         Mail::fake();

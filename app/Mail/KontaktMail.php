@@ -16,7 +16,7 @@ class KontaktMail extends Mailable
     {
         return $this->zaAdmina
             ? new Envelope(
-                subject: '['.$this->poruka['tema'].'] Upit s plačko.app — '.$this->poruka['ime'],
+                subject: '['.$this->poruka['tema'].(! empty($this->poruka['paket']) ? ': '.$this->poruka['paket'] : '').'] Upit s plačko.app — '.$this->poruka['ime'],
                 replyTo: [new Address($this->poruka['email'], $this->poruka['ime'])],
             )
             : new Envelope(

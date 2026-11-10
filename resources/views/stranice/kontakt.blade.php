@@ -7,13 +7,17 @@
 @php
     $teme = \App\Http\Controllers\KontaktController::TEME;
     $korisnik = auth()->user();
-    $odabranaTema = old('tema', array_key_exists(request('tema'), $teme) ? request('tema') : null);
+    $paketi = config('cjenik.planovi');
+    // ?paket=Pro (npr. s gumba u cjeniku) sam odabere temu nadogradnje
+    $odabranaTema = old('tema', array_key_exists((string) request('tema'), $teme) ? request('tema')
+        : (in_array(request('paket'), array_column($paketi, 'naziv'), true) ? 'nadogradnja' : null));
     $turnstile = config('services.turnstile.key') && ! app()->environment('local', 'testing');
 @endphp
 
 @section('content')
     <style>
-        .kontakt { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 28px; margin-top: 40px; align-items: start; }
+        .kontakt-stranica { width: min(1120px, calc(100vw - 40px)); position: relative; left: 50%; transform: translateX(-50%); }
+        .kontakt { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 32px; margin-top: 40px; align-items: start; }
         .kontakt .tool { margin-top: 0; }
         .kontakt h2.forma-naslov { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; }
         .kontakt .forma-uvod { color: var(--muted); font-size: .95rem; margin-bottom: 22px; }
@@ -25,7 +29,7 @@
             padding: 14px 8px; border: 1.5px solid var(--border); border-radius: 12px; background: var(--bg);
             font-size: .88rem; font-weight: 700; color: var(--muted); cursor: pointer; transition: all .15s; height: 100%;
         }
-        .tema span b { font-size: 1.4rem; line-height: 1; }
+        .tema span svg { width: 26px; height: 26px; color: var(--p); }
         .tema input:checked + span { border-color: var(--p); background: var(--pl); color: var(--pd); }
         .tema input:focus-visible + span { outline: 2px solid var(--p); outline-offset: 2px; }
         .polje { margin-bottom: 16px; }
@@ -41,16 +45,33 @@
         .info + .info { margin-top: 16px; }
         .info-red { display: flex; gap: 14px; align-items: flex-start; }
         .info-red + .info-red { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
-        .info-ico { width: 40px; height: 40px; border-radius: 12px; background: var(--pl); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0; }
+        .info-ico { width: 40px; height: 40px; border-radius: 12px; background: var(--pl); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--pd); }
+        .info-ico svg { width: 21px; height: 21px; }
         .info h3 { font-size: .98rem; font-weight: 800; margin-bottom: 2px; }
         .info p, .info li { color: var(--muted); font-size: .9rem; line-height: 1.6; }
         .info a { color: var(--pd); font-weight: 700; }
         .info ul { margin: 8px 0 0 18px; }
         .info li + li { margin-top: 6px; }
-        @media (max-width: 860px) { .kontakt { grid-template-columns: 1fr; } }
-        @media (max-width: 480px) { .teme { grid-template-columns: 1fr; } .tema span { flex-direction: row; justify-content: flex-start; padding: 12px 14px; } }
+        .paketi-blok { margin: -4px 0 20px; padding: 16px; border-radius: 14px; background: var(--bg); border: 1px dashed rgba(43,169,155,.35); }
+        .paketi-blok[hidden] { display: none; }
+        .tool .paketi-naslov { margin-bottom: 10px; }
+        .paketi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+        .tool .paket { margin: 0; }
+        .paket input { position: absolute; opacity: 0; pointer-events: none; }
+        .paket span {
+            display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; height: 100%;
+            padding: 12px 8px; border: 1.5px solid var(--border); border-radius: 12px; background: var(--white); cursor: pointer; transition: all .15s;
+        }
+        .paket strong { font-size: .98rem; font-weight: 800; color: var(--text); }
+        .paket em { font-style: normal; font-size: .95rem; font-weight: 800; color: var(--pd); }
+        .paket small { font-size: .75rem; font-weight: 600; color: var(--light); }
+        .paket input:checked + span { border-color: var(--p); background: var(--pl); box-shadow: 0 0 0 3px rgba(43,169,155,.12); }
+        .paket input:focus-visible + span { outline: 2px solid var(--p); outline-offset: 2px; }
+        @media (max-width: 860px) { .kontakt { grid-template-columns: 1fr; } .kontakt-stranica { width: auto; left: 0; transform: none; } }
+        @media (max-width: 480px) { .paketi { grid-template-columns: 1fr; } .paket span { flex-direction: row; justify-content: space-between; padding: 12px 14px; } .teme { grid-template-columns: 1fr; } .tema span { flex-direction: row; justify-content: flex-start; padding: 12px 14px; } }
     </style>
 
+    <div class="kontakt-stranica">
     <span class="page-eyebrow">Kontakt</span>
     <h1 class="page-title">Javi nam se</h1>
     <p class="page-sub">Nadogradnja paketa, zapelo je nešto u aplikaciji ili imaš prijedlog? Odgovaramo u pravilu unutar jednog radnog dana.</p>
@@ -78,9 +99,27 @@
                 @foreach ($teme as $kljuc => $naziv)
                     <label class="tema">
                         <input type="radio" name="tema" value="{{ $kljuc }}" @checked($odabranaTema === $kljuc) required>
-                        <span><b aria-hidden="true">{{ ['nadogradnja' => '⭐', 'podrska' => '🛠️', 'ostalo' => '💬'][$kljuc] }}</b>{{ $naziv }}</span>
+                        <span>@svg('heroicon-o-'.['nadogradnja' => 'star', 'podrska' => 'wrench-screwdriver', 'ostalo' => 'chat-bubble-left-right'][$kljuc]){{ $naziv }}</span>
                     </label>
                 @endforeach
+            </div>
+
+            {{-- Paketi: samo uz temu "Nadogradnja računa" (cijene iz config/cjenik.php, isto kao na naslovnici) --}}
+            @php($odabraniPaket = old('paket', in_array(request('paket'), array_column($paketi, 'naziv'), true) ? request('paket') : null))
+            <div class="paketi-blok" id="paketi"@if ($odabranaTema !== 'nadogradnja') hidden @endif>
+                <label class="paketi-naslov">Koji paket te zanima?</label>
+                <div class="paketi" role="radiogroup" aria-label="Paket">
+                    @foreach ($paketi as $paket)
+                        <label class="paket">
+                            <input type="radio" name="paket" value="{{ $paket['naziv'] }}" @checked($odabraniPaket === $paket['naziv'])>
+                            <span>
+                                <strong>{{ $paket['naziv'] }}</strong>
+                                <em>{{ $paket['cijena_prikaz'] }}<small> / {{ $paket['jedinica'] }}</small></em>
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('paket')<p class="greska">{{ $message }}</p>@enderror
             </div>
             @error('tema')<p class="greska" style="margin:-8px 0 14px;">{{ $message }}</p>@enderror
 
@@ -124,21 +163,21 @@
         <aside>
             <div class="info">
                 <div class="info-red">
-                    <div class="info-ico">✉️</div>
+                    <div class="info-ico">@svg('heroicon-o-envelope')</div>
                     <div>
                         <h3>E-mail</h3>
                         <p><a href="mailto:{{ config('mail.kontakt') }}">{{ config('mail.kontakt') }}</a></p>
                     </div>
                 </div>
                 <div class="info-red">
-                    <div class="info-ico">📍</div>
+                    <div class="info-ico">@svg('heroicon-o-map-pin')</div>
                     <div>
                         <h3>Adresa</h3>
                         <p>On-Click<br>Ilirska 27, 31000 Osijek<br>Hrvatska</p>
                     </div>
                 </div>
                 <div class="info-red">
-                    <div class="info-ico">⏱️</div>
+                    <div class="info-ico">@svg('heroicon-o-clock')</div>
                     <div>
                         <h3>Odgovor</h3>
                         <p>Radnim danom, u pravilu unutar 24 sata.</p>
@@ -155,6 +194,20 @@
             </div>
         </aside>
     </div>
+
+    </div>
+
+    <script>
+        // Paketi se pokazuju samo uz temu "Nadogradnja računa"; kod druge teme odabir paketa se poništi.
+        (() => {
+            const blok = document.getElementById('paketi');
+            document.querySelectorAll('input[name="tema"]').forEach((r) => r.addEventListener('change', () => {
+                const nadogradnja = r.checked && r.value === 'nadogradnja';
+                blok.hidden = ! nadogradnja;
+                if (! nadogradnja) blok.querySelectorAll('input').forEach((p) => { p.checked = false; });
+            }));
+        })();
+    </script>
 
     @if ($turnstile)
         @push('scripts')

@@ -14,7 +14,7 @@
                 <tr>
                     <td style="background:#2ba99b;background-image:linear-gradient(135deg,#1f8a7e 0%,#2ba99b 60%,#52d4b0 100%);padding:32px 32px 28px;font-family:Arial,Helvetica,sans-serif;" align="left">
                         <img src="{{ url('/img/icon-192.png') }}" width="44" height="44" alt="plačko.app" style="display:block;border:0;border-radius:11px;margin:0 0 16px;">
-                        <span style="display:inline-block;background:rgba(255,255,255,.18);color:#ffffff;font-size:12px;font-weight:700;letter-spacing:.5px;padding:4px 12px;border-radius:99px;margin:0 0 12px;">{{ $p['tema'] }}</span>
+                        <span style="display:inline-block;background:rgba(255,255,255,.18);color:#ffffff;font-size:12px;font-weight:700;letter-spacing:.5px;padding:4px 12px;border-radius:99px;margin:0 0 12px;">{{ $p['tema'] }}{{ ! empty($p['paket']) ? ' · '.$p['paket'] : '' }}</span>
                         <p style="margin:0;color:#ffffff;font-size:24px;font-weight:800;line-height:1.3;">
                             {{ $zaAdmina ? 'Novi upit s kontakt obrasca' : 'Hvala, primili smo tvoju poruku!' }}
                         </p>
@@ -31,6 +31,9 @@
                                 <tr><td style="padding:3px 18px 3px 0;color:#5b6b78;">Ime</td><td style="padding:3px 0;"><strong>{{ $p['ime'] }}</strong></td></tr>
                                 <tr><td style="padding:3px 18px 3px 0;color:#5b6b78;">E-mail</td><td style="padding:3px 0;"><a href="mailto:{{ $p['email'] }}" style="color:#1f8a7e;">{{ $p['email'] }}</a></td></tr>
                                 <tr><td style="padding:3px 18px 3px 0;color:#5b6b78;">Tema</td><td style="padding:3px 0;">{{ $p['tema'] }}</td></tr>
+                                @if (! empty($p['paket']))
+                                    <tr><td style="padding:3px 18px 3px 0;color:#5b6b78;">Paket</td><td style="padding:3px 0;"><strong style="color:#1f8a7e;">{{ $p['paket'] }}</strong></td></tr>
+                                @endif
                                 <tr><td style="padding:3px 18px 3px 0;color:#5b6b78;">Prijavljen</td><td style="padding:3px 0;">{{ $p['korisnik'] ? 'da, korisnik #'.$p['korisnik']['id'].' ('.$p['korisnik']['email'].')' : 'ne' }}</td></tr>
                                 <tr><td style="padding:3px 18px 3px 0;color:#5b6b78;">Vrijeme</td><td style="padding:3px 0;">{{ $p['vrijeme'] }}</td></tr>
                             </table>

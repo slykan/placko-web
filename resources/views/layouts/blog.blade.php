@@ -241,8 +241,9 @@
         <a href="/alati" class="nav-link {{ ($nav ?? '') === 'alati' ? 'active' : '' }}">Alati</a>
         <a href="/novosti" class="nav-link {{ ($nav ?? 'novosti') === 'novosti' ? 'active' : '' }}">Novosti</a>
         <a href="/#faq" class="nav-link">FAQ</a>
+        <a href="/kontakt" class="nav-link">Kontakt</a>
         <a href="/admin" class="btn-nav-outline">Prijava</a>
-        <a href="/admin/register" class="btn-nav-solid">Isprobaj</a>
+        <a href="/admin/register" class="btn-nav-solid">Regaj se</a>
     </div>
 </nav>
 
