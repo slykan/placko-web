@@ -129,6 +129,12 @@
                         var(--bg);
             position: relative; overflow: hidden;
         }
+        /* Valovi u kutovima (kao na promotivnom banneru), namjerno blagi da ne odvlače od naslova */
+        .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+        .hero-bg svg { width: 100%; height: 100%; display: block; }
+        .hero > *:not(.hero-bg) { position: relative; z-index: 1; }
+        @@media (max-width: 640px) { .hero-bg { opacity: .7; } }
+
         .hero-eyebrow {
             display: inline-flex; align-items: center; gap: 7px;
             background: var(--pl); color: var(--pd);
@@ -478,6 +484,14 @@
         .price-table-download:hover { text-decoration: underline; }
         .price-table-updated { margin-top: 24px; text-align: center; font-size: .8rem; color: var(--light); }
 
+        /* ── BROJKE ─────────────────────────────────────── */
+        .brojke { padding: 72px 6%; background: linear-gradient(135deg, var(--pd) 0%, var(--p) 100%); color: #fff; }
+        .brojke-inner { max-width: 880px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; text-align: center; }
+        .brojka-num { font-size: clamp(2.6rem, 6vw, 4rem); font-weight: 900; line-height: 1; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
+        .brojka-num span { color: #b9f5a0; }
+        .brojka-label { margin-top: 10px; font-size: 1rem; font-weight: 600; opacity: .9; }
+        @@media (max-width: 640px) { .brojke-inner { grid-template-columns: 1fr; gap: 36px; } }
+
         /* ── FAQ ────────────────────────────────────────── */
         .faq-bg { background: var(--white); }
         .faq-list { max-width: 720px; margin: 0 auto; }
@@ -608,6 +622,24 @@
 
 <!-- ══ HERO ═══════════════════════════════════════════ -->
 <header class="hero">
+    <div class="hero-bg" aria-hidden="true">
+        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="val-tirkiz" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#2ba99b"/><stop offset="1" stop-color="#52d4b0"/>
+                </linearGradient>
+                <linearGradient id="val-zelen" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#52d4b0"/><stop offset="1" stop-color="#96f070"/>
+                </linearGradient>
+            </defs>
+            <path d="M1440 0H840c90 110 200 165 350 180 120 12 200 80 250 170z" fill="url(#val-tirkiz)" opacity=".13"/>
+            <path d="M1440 0h-330c60 80 150 110 230 130 50 13 85 45 100 80z" fill="url(#val-zelen)" opacity=".2"/>
+            <path d="M1440 900V540c-70 90-150 170-280 225-100 42-190 85-240 135z" fill="url(#val-zelen)" opacity=".18"/>
+            <path d="M1440 900V700c-60 70-140 140-260 200z" fill="url(#val-tirkiz)" opacity=".14"/>
+            <path d="M0 900V610c70 80 170 160 310 205 70 22 110 55 130 85z" fill="url(#val-tirkiz)" opacity=".1"/>
+            <path d="M0 0v230c60-60 150-100 260-120 60-11 95-60 100-110z" fill="url(#val-zelen)" opacity=".1"/>
+        </svg>
+    </div>
     <div class="hero-eyebrow">
         <span class="hero-eyebrow-dot"></span>
         Besplatno za paušalne obrtnike
@@ -884,6 +916,43 @@
         </p>
     </div>
 </section>
+
+<!-- ══ BROJKE ═════════════════════════════════════════ -->
+@if (! empty($brojke))
+<section class="brojke" aria-label="plačko.app u brojkama">
+    <div class="brojke-inner">
+        @foreach ([[$brojke['korisnika'], 'korisnika'], [$brojke['racuna'], 'izdanih računa']] as [$broj, $opis])
+            <div>
+                {{-- Konačan broj je već u HTML-u (bez JS-a i za tražilice), animacija ga samo odbroji od nule. --}}
+                <div class="brojka-num"><b data-brojka="{{ $broj }}" style="font-weight:inherit">{{ number_format($broj, 0, ',', '.') }}</b><span>+</span></div>
+                <div class="brojka-label">{{ $opis }}</div>
+            </div>
+        @endforeach
+    </div>
+</section>
+<script>
+(() => {
+    const brojke = document.querySelectorAll('[data-brojka]');
+    if (! brojke.length || ! ('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const format = (n) => n.toLocaleString('hr-HR');
+    const odbroji = (el) => {
+        const cilj = +el.dataset.brojka, pocetak = performance.now(), trajanje = 1800;
+        const korak = (t) => {
+            const p = Math.min(1, (t - pocetak) / trajanje);
+            el.textContent = format(Math.round(cilj * (1 - Math.pow(1 - p, 3))));
+            if (p < 1) requestAnimationFrame(korak);
+        };
+        requestAnimationFrame(korak);
+    };
+    const promatrac = new IntersectionObserver((unosi) => unosi.forEach((u) => {
+        if (! u.isIntersecting) return;
+        promatrac.unobserve(u.target);
+        odbroji(u.target);
+    }), { threshold: 0.4 });
+    brojke.forEach((el) => { el.textContent = '0'; promatrac.observe(el); });
+})();
+</script>
+@endif
 
 <!-- ══ FAQ ════════════════════════════════════════════ -->
 <section id="faq" class="faq-bg">

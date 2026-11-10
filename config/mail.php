@@ -115,4 +115,7 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    // Kamo stižu poruke s kontakt obrasca (/kontakt)
+    'kontakt' => env('KONTAKT_EMAIL', 'placko@placko.app'),
+
 ];

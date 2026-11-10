@@ -9,7 +9,23 @@ use App\Http\Controllers\PonudaPrihvatiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome', ['cjenik' => config('cjenik.planovi')]);
+    // Brojke za naslovnicu: stvarno stanje iz baze, zaokruženo naniže (prikaz "N+"), osvježava se svaki sat.
+    // Ako baza nije dostupna, naslovnica se svejedno prikaže, samo bez brojki.
+    try {
+        $brojke = \Illuminate\Support\Facades\Cache::remember('naslovnica-brojke', 3600, function () {
+            $dolje = fn (int $n) => $n < 20 ? $n : intdiv($n, $n < 1000 ? 10 : 100) * ($n < 1000 ? 10 : 100);
+
+            return [
+                'korisnika' => $dolje(\App\Models\User::count()),
+                'racuna' => $dolje(\App\Models\Racun::where('status', '!=', 'nacrt')->count()),
+            ];
+        });
+    } catch (\Throwable $e) {
+        report($e);
+        $brojke = null;
+    }
+
+    return view('welcome', ['cjenik' => config('cjenik.planovi'), 'brojke' => $brojke]);
 });
 
 Route::get('/cjenik.csv', function () {
@@ -44,6 +60,10 @@ Route::get('/alati/{slug}', [AlatiController::class, 'show'])->name('alati.show'
 foreach (['o-nama', 'kontakt', 'privatnost', 'uvjeti-koristenja', 'brisanje-racuna'] as $stranica) {
     Route::view('/'.$stranica, 'stranice.'.$stranica)->name('stranica.'.$stranica);
 }
+
+// Kontakt obrazac: najviše 5 slanja u 10 minuta s iste adrese (uz Turnstile i honeypot u kontroleru)
+Route::post('/kontakt', [\App\Http\Controllers\KontaktController::class, 'posalji'])
+    ->middleware('throttle:5,10')->name('kontakt.posalji');
 
 Route::get('/sitemap.xml', function () {
     $urls = [

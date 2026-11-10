@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Plan;
+use App\Mail\DobrodosliceMail;
 use App\Mail\NovaRegistracijaMail;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
@@ -50,13 +51,28 @@ class User extends Authenticatable implements FilamentUser, HasTenants
 
     protected static function booted(): void
     {
-        // Nova registracija (obrazac ili Google) → mail svim adminima, nakon što korisnik dobije odgovor.
+        // Nova registracija (obrazac ili Google) → dobrodošlica korisniku i mail svim adminima, nakon što korisnik dobije odgovor.
         static::created(function (User $user) {
             if (auth()->user()?->isAdmin()) {
                 return;
             }
+            dispatch(fn () => static::posaljiDobrodoslicu($user->id))->afterResponse();
             dispatch(fn () => static::javiAdminimaNovuRegistraciju($user->id))->afterResponse();
         });
+    }
+
+    /** Mail dobrodošlice novom korisniku. Greška slanja ne smije srušiti registraciju. */
+    public static function posaljiDobrodoslicu(int $userId): void
+    {
+        $korisnik = static::find($userId);
+        if (! $korisnik?->email) {
+            return;
+        }
+        try {
+            Mail::to($korisnik->email)->send(new DobrodosliceMail($korisnik));
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     public static function javiAdminimaNovuRegistraciju(int $userId): void

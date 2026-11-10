@@ -32,6 +32,7 @@
         <h2>3. Zašto ih obrađujemo</h2>
         <ul>
             <li>za pružanje usluge (izrada računa, ponuda, obrazaca, slanje e-mailova iz aplikacije) — ugovorni odnos,</li>
+            <li>za odgovor na upit poslan kontakt obrascem (ime, e-mail i poruka; čuvamo ih koliko traje komunikacija) — tvoja privola i legitimni interes,</li>
             <li>za sigurnost, sprječavanje zlouporabe i otklanjanje grešaka — legitimni interes,</li>
             <li>za ispunjenje zakonskih obveza (npr. računovodstvenih) — zakonska obveza,</li>
             <li>za prikaz oglasa na javnim sadržajnim stranicama (vodiči, alati) — uz tvoju privolu gdje je to propisano.</li>
