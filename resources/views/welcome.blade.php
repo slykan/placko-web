@@ -976,6 +976,7 @@
                     <li><a href="/kontakt">Kontakt</a></li>
                     <li><a href="/uvjeti-koristenja">Uvjeti korištenja</a></li>
                     <li><a href="/privatnost">Politika privatnosti</a></li>
+                    <li><a href="/brisanje-racuna">Brisanje računa</a></li>
                 </ul>
             </div>
         </div>

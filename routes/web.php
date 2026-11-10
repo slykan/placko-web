@@ -41,7 +41,7 @@ Route::get('/novosti/{slug}', [BlogController::class, 'show'])->name('novosti.sh
 Route::get('/alati', [AlatiController::class, 'index'])->name('alati.index');
 Route::get('/alati/{slug}', [AlatiController::class, 'show'])->name('alati.show');
 
-foreach (['o-nama', 'kontakt', 'privatnost', 'uvjeti-koristenja'] as $stranica) {
+foreach (['o-nama', 'kontakt', 'privatnost', 'uvjeti-koristenja', 'brisanje-racuna'] as $stranica) {
     Route::view('/'.$stranica, 'stranice.'.$stranica)->name('stranica.'.$stranica);
 }
 
@@ -57,7 +57,7 @@ Route::get('/sitemap.xml', function () {
     foreach (BlogController::posts() as $p) {
         $urls[] = ['loc' => route('novosti.show', $p['slug']), 'priority' => $p['kategorija'] === 'vodic' ? '0.8' : '0.6', 'lastmod' => $p['modified'] ?? $p['date']];
     }
-    foreach (['o-nama', 'kontakt', 'privatnost', 'uvjeti-koristenja'] as $s) {
+    foreach (['o-nama', 'kontakt', 'privatnost', 'uvjeti-koristenja', 'brisanje-racuna'] as $s) {
         $urls[] = ['loc' => url('/'.$s), 'priority' => '0.3'];
     }
 

@@ -800,4 +800,42 @@ class Postavke extends Page implements HasForms
 
         Notification::make()->title('Postavke skladišta spremljene')->success()->send();
     }
+
+    /** Opasna zona: trajno brisanje računa i svih podataka (vidi App\Support\BrisanjeRacuna). */
+    public function obrisiRacunAction(): \Filament\Actions\Action
+    {
+        return \Filament\Actions\Action::make('obrisiRacun')
+            ->label('Obriši račun i sve podatke')
+            ->color('danger')
+            ->icon('heroicon-o-trash')
+            ->requiresConfirmation()
+            ->modalIcon('heroicon-o-exclamation-triangle')
+            ->modalHeading('Trajno brisanje računa')
+            ->modalDescription('Brišu se tvoj korisnički račun i sve tvrtke kojima si jedini korisnik: računi, ponude, klijenti, usluge, skladište, radni nalozi, pretplate, certifikati i arhivirani PDF-ovi. Ovo se ne može poništiti.')
+            ->modalSubmitActionLabel('Trajno obriši')
+            ->form([
+                TextInput::make('potvrda')
+                    ->label('Za potvrdu upiši svoju email adresu')
+                    ->placeholder(auth()->user()->email)
+                    ->required()
+                    ->rule(fn () => function (string $attribute, $value, \Closure $fail) {
+                        if (mb_strtolower(trim((string) $value)) !== mb_strtolower(auth()->user()->email)) {
+                            $fail('Email adresa se ne podudara.');
+                        }
+                    }),
+            ])
+            ->action(function () {
+                $user = auth()->user();
+
+                // Odjava PRIJE brisanja: logout() sprema novi remember_token na korisnika
+                // i time bi ga nakon brisanja ponovno upisao u bazu.
+                \Filament\Facades\Filament::auth()->logout();
+                session()->invalidate();
+                session()->regenerateToken();
+
+                \App\Support\BrisanjeRacuna::obrisi($user->fresh());
+
+                $this->redirect('/brisanje-racuna?obrisan=1');
+            });
+    }
 }
