@@ -33,6 +33,22 @@
     @endforelse
 </div>
 
+@if($putni->isNotEmpty())
+    <h2 style="margin-top:22px;">Putni nalozi</h2>
+    <div class="list">
+        @foreach($putni as $p)
+            <a class="item" href="{{ route('moji-nalozi.putni', [$token, $p->id]) }}">
+                <div class="row1">
+                    <strong>{{ $p->broj }}</strong>
+                    <span class="badge {{ $p->status === 'otvoren' ? 'b-u_tijeku' : 'b-zavrsen' }}">{{ $p->status === 'otvoren' ? 'Upiši podatke' : 'Obračunat' }}</span>
+                </div>
+                <div style="margin-top:4px;font-weight:600;">{{ $p->odrediste }}@if($p->vrsta === 'inozemni') · {{ $p->drzava }}@endif</div>
+                <div class="muted">{{ $p->polazak_at?->format('d.m.Y. H:i') }}@if($p->registracija) · {{ $p->registracija }}@endif</div>
+            </a>
+        @endforeach
+    </div>
+@endif
+
 @if($zatvoreni->isNotEmpty())
     <h2 style="margin-top:22px;">Zatvoreni</h2>
     <div class="list">

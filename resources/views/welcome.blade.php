@@ -838,11 +838,11 @@
                 <p>Nalog stiže zaposleniku mailom, on ga prihvati i na mobitelu upiše dolazak, sate, materijal i potpis klijenta. Ti dobiješ obavijest i iz naloga jednim klikom radiš račun.</p>
                 <span class="feature-tag">Pro • Business</span>
             </article>
-            <article class="feature-card uskoro">
+            <article class="feature-card">
                 <div class="feature-icon-wrap"><x-heroicon-o-map /></div>
                 <h3>Putni nalozi i loko vožnja</h3>
-                <p>Putni nalog s automatskim obračunom dnevnica i kilometraže, privitcima računa i PDF-om za knjigovođu. Evidencija loko vožnje puni se sama iz radnih naloga.</p>
-                <span class="feature-tag uskoro">Uskoro</span>
+                <p>Tuzemni i inozemni putni nalog s automatskim obračunom dnevnica (tablica za 106 država) i kilometraže, registracijom vozila, slikama računa i PDF-om za knjigovođu. Loko vožnja puni se sama iz radnih naloga.</p>
+                <span class="feature-tag">Novo · Pro • Business</span>
             </article>
         </div>
     </div>
@@ -939,7 +939,7 @@
                 ['Pretplate klijenata', true, true, true],
                 ['Skladište i zalihe', true, true, true],
                 ['Radni nalozi i zaposlenici', false, true, true],
-                ['Putni nalozi i loko vožnja', false, true, true, 'uskoro'],
+                ['Putni nalozi i loko vožnja', false, true, true],
                 ['Više tvrtki / obrta', false, true, true],
                 ['Podrška e-mailom', false, true, true],
                 ['Prioritetna podrška (SLA)', false, false, true],

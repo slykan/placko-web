@@ -39,6 +39,7 @@ class MojiNaloziController extends Controller
             'tvrtka' => $zaposlenik->tvrtka,
             'otvoreni' => $nalozi->filter->jeOtvoren()->values(),
             'zatvoreni' => $nalozi->reject->jeOtvoren()->values(),
+            'putni' => $zaposlenik->putniNalozi()->whereIn('status', ['otvoren', 'obracunat'])->latest('datum_naloga')->limit(30)->get(),
         ]);
     }
 

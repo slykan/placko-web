@@ -59,7 +59,7 @@ final class BrisanjeRacuna
     private static function obrisiDatoteke(Tvrtka $tvrtka): void
     {
         $lokalno = Storage::disk('local');
-        foreach (['fina/', 'eracun/', 'racuni/'] as $mapa) {
+        foreach (['fina/', 'eracun/', 'racuni/', 'putni-nalozi/'] as $mapa) {
             $lokalno->deleteDirectory($mapa . $tvrtka->id);
         }
 

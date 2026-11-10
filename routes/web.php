@@ -98,6 +98,8 @@ Route::prefix('moji-nalozi/{token}')->name('moji-nalozi.')->middleware('throttle
     Route::get('/{nalog}', [MojiNaloziController::class, 'show'])->whereNumber('nalog')->name('show');
     Route::post('/{nalog}', [MojiNaloziController::class, 'spremi'])->whereNumber('nalog')->name('spremi');
     Route::post('/{nalog}/prihvati', [MojiNaloziController::class, 'prihvati'])->whereNumber('nalog')->name('prihvati');
+    Route::get('/putni/{putni}', [\App\Http\Controllers\MojiPutniController::class, 'show'])->whereNumber('putni')->name('putni');
+    Route::post('/putni/{putni}', [\App\Http\Controllers\MojiPutniController::class, 'spremi'])->whereNumber('putni')->name('putni.spremi');
 });
 
 Route::get('/auth/google',[GoogleController::class, 'redirect'])->name('google.redirect');

@@ -20,6 +20,8 @@ class Zaposlenik extends Model
         'radno_mjesto',
         'kontakt_broj',
         'email',
+        'registracija',
+        'vozilo',
         'cijena_sata',
         'aktivan',
         'napomena',
@@ -65,6 +67,11 @@ class Zaposlenik extends Model
     public function radniNalozi(): BelongsToMany
     {
         return $this->belongsToMany(RadniNalog::class, 'radni_nalog_zaposlenik')->withPivot('prihvacen_at');
+    }
+
+    public function putniNalozi(): HasMany
+    {
+        return $this->hasMany(PutniNalog::class);
     }
 
     public function radovi(): HasMany

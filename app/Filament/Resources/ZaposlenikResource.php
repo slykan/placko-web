@@ -73,6 +73,18 @@ class ZaposlenikResource extends Resource
                 ->helperText('Na ovu adresu možeš poslati radni nalog.')
                 ->email(),
 
+            TextInput::make('registracija')
+                ->label('Registarska oznaka vozila')
+                ->placeholder('npr. OS-123-AB')
+                ->helperText('Predlaže se na putnom nalogu i u loko vožnji.')
+                ->maxLength(20)
+                ->dehydrateStateUsing(fn (?string $state) => $state ? mb_strtoupper(trim($state)) : null),
+
+            TextInput::make('vozilo')
+                ->label('Marka i model vozila')
+                ->placeholder('npr. Škoda Octavia')
+                ->maxLength(100),
+
             Toggle::make('aktivan')
                 ->label('Aktivan')
                 ->helperText('Bivše zaposlenike isključi umjesto brisanja — ostaju zapisani na starim nalozima.')

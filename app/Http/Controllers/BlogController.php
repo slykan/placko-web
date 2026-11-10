@@ -21,6 +21,14 @@ class BlogController extends Controller
     {
         return [
             [
+                'slug' => 'putni-nalozi-i-loko-voznja',
+                'kategorija' => 'novosti',
+                'title' => 'Novo: putni nalozi i loko vožnja — dnevnice, kilometri i PDF za knjigovođu',
+                'excerpt' => 'Tuzemni i inozemni putni nalog s automatskim obračunom dnevnica (106 država) i kilometara, registracijom vozila i slikama računa. Loko vožnja puni se sama iz radnih naloga.',
+                'date' => '2026-11-10',
+                'read' => '5 min čitanja',
+            ],
+            [
                 'slug' => 'radni-nalozi-i-zaposlenici',
                 'kategorija' => 'novosti',
                 'title' => 'Novo: radni nalozi i zaposlenici — nalog na mobitelu, potpis klijenta na ekranu',
