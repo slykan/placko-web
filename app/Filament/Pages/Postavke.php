@@ -801,6 +801,26 @@ class Postavke extends Page implements HasForms
         Notification::make()->title('Postavke skladišta spremljene')->success()->send();
     }
 
+    /** Push obavijesti o novostima: uključeno/isključeno za cijeli račun (svi uređaji). */
+    public function prebaciPushObavijesti(): void
+    {
+        $user = auth()->user();
+        $user->push_obavijesti = ! $user->push_obavijesti;
+        $user->save();
+
+        if (! $user->push_obavijesti) {
+            $user->pushPretplate()->delete();
+            $user->mobilePushDevices()->delete();
+        }
+
+        Notification::make()
+            ->title($user->push_obavijesti ? 'Obavijesti o novostima su uključene' : 'Obavijesti o novostima su isključene')
+            ->success()->send();
+
+        // Ponovno učitavanje osvježi meta oznake koje čitaju preglednik i Android aplikacija.
+        $this->redirect(static::getUrl());
+    }
+
     /** Opasna zona: trajno brisanje računa i svih podataka (vidi App\Support\BrisanjeRacuna). */
     public function obrisiRacunAction(): \Filament\Actions\Action
     {

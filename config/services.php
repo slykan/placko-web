@@ -1,5 +1,12 @@
 <?php
 
+$firebaseCredentials = env('FIREBASE_CREDENTIALS', storage_path('app/private/firebase-service-account.json'));
+$firebaseProjectId = env('FIREBASE_PROJECT_ID');
+if (! $firebaseProjectId && is_readable($firebaseCredentials)) {
+    // U config cache ide samo javni project_id; privatni ključ ostaje u svojoj datoteci (izvan gita).
+    $firebaseProjectId = json_decode(file_get_contents($firebaseCredentials), true)['project_id'] ?? null;
+}
+
 return [
 
     /*
@@ -39,6 +46,11 @@ return [
         'client_id'     => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect'      => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
+    ],
+
+    'firebase' => [
+        'project_id' => $firebaseProjectId,
+        'credentials' => $firebaseCredentials,
     ],
 
     'turnstile' => [

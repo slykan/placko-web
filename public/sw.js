@@ -1,4 +1,4 @@
-const CACHE = 'placko-static-v1';
+const CACHE = 'placko-static-v2';
 const ASSETS = [
     '/img/icon-192.png',
     '/img/icon-512.png',
@@ -34,4 +34,31 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request).then((cached) => cached || fetch(event.request))
     );
+});
+
+// Push obavijest (novosti): naslov, tekst i poveznica sa servera.
+self.addEventListener('push', (event) => {
+    let d = {};
+    try { d = event.data ? event.data.json() : {}; } catch (e) { /* neispravan sadržaj: ipak pokaži obavijest */ }
+    event.waitUntil(self.registration.showNotification(d.naslov || 'Plačko', {
+        body: d.tekst || '',
+        icon: '/img/icon-192.png',
+        badge: '/img/icon-192.png',
+        data: { url: d.url || '/admin' },
+        lang: 'hr',
+    }));
+});
+
+// Klik otvara poveznicu, samo unutar placko.app.
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    let cilj = new URL('/admin', self.location.origin).href;
+    try {
+        const u = new URL(event.notification.data?.url || '', self.location.origin);
+        if (u.origin === self.location.origin) cilj = u.href;
+    } catch (e) { /* ostaje /admin */ }
+    event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((prozori) => {
+        const otvoren = prozori.find((p) => p.url === cilj);
+        return otvoren ? otvoren.focus() : self.clients.openWindow(cilj);
+    }));
 });

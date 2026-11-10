@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
     private String retryUrl = NavigationPolicy.HOME;
     private boolean failed;
     private NativePdf nativePdf;
+    private NativePush nativePush;
     private boolean splashReady;
     private final Handler launchHandler = new Handler(Looper.getMainLooper());
     private final Runnable releaseSplash = () -> splashReady = true;
@@ -78,6 +79,7 @@ public class MainActivity extends Activity {
 
         web = new WebView(this);
         nativePdf = new NativePdf(this, web);
+        nativePush = new NativePush(this);
         root.addView(web, new LinearLayout.LayoutParams(-1, 0, 1));
         setContentView(root);
         // Keep the system launch screen until the first web screen is ready.
@@ -164,6 +166,7 @@ public class MainActivity extends Activity {
                 finishSplash();
                 progress.setVisibility(View.GONE);
                 CookieManager.getInstance().flush();
+                nativePush.sync(web);
                 if (failed) showError();
             }
             @Override public void onPageCommitVisible(WebView view, String url) {
@@ -183,7 +186,7 @@ public class MainActivity extends Activity {
         if (android.os.Build.VERSION.SDK_INT >= 33) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(0, this::goBack);
         }
-        if (!handleGoogleReturn(getIntent())) {
+        if (!handleGoogleReturn(getIntent()) && !handlePush(getIntent())) {
             if (state == null || web.restoreState(state) == null) web.loadUrl(NavigationPolicy.HOME);
         }
     }
@@ -192,7 +195,23 @@ public class MainActivity extends Activity {
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        handleGoogleReturn(intent);
+        if (!handleGoogleReturn(intent)) handlePush(intent);
+    }
+    /** Klik na push obavijest: otvara poveznicu iz obavijesti, samo unutar placko.app. */
+    private boolean handlePush(Intent intent) {
+        String url = intent.getStringExtra("push_url");
+        intent.removeExtra("push_url");
+        if (url == null) return false;
+        web.loadUrl(NavigationPolicy.isInternal(url) ? url : NavigationPolicy.HOME);
+        return true;
+    }
+    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode == 44) nativePush.sync(web);
+    }
+    @Override protected void onResume() {
+        super.onResume();
+        if (web != null) nativePush.sync(web);
     }
 
     private boolean handleGoogleReturn(Intent intent) {

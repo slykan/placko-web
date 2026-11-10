@@ -55,6 +55,16 @@
             >
                 Sve novosti
             </x-filament::dropdown.list.item>
+            {{-- Ponuda push obavijesti samo dok ih preglednik još nije dopustio (vidi partials/push) --}}
+            <div x-data="{ ponudi: window.plackoPush?.stanje() === 'nije-ukljuceno' }" x-show="ponudi" x-cloak>
+                <x-filament::dropdown.list.item
+                    tag="button"
+                    icon="heroicon-o-bell-alert"
+                    x-on:click="window.plackoPush.ukljuci().finally(() => ponudi = window.plackoPush.stanje() === 'nije-ukljuceno')"
+                >
+                    Javi mi novosti obaviješću
+                </x-filament::dropdown.list.item>
+            </div>
         </x-filament::dropdown.list>
     </x-filament::dropdown>
 </div>

@@ -30,7 +30,9 @@ Identifikator `app.placko.mobile` treba potvrditi prije objave u trgovini.
   Korisnik trajno sprema dokument tek gumbom Spremi, uz izbor mjesta i naziva.
 - Ostali Livewire izvozi poput XML-a i CSV-a još nisu povezani s Androidovim spremanjem.
 - Ispis kroz `window.print()` još nije povezan s Androidom.
-- Nema offline unosa, mobilnih push obavijesti ni iOS projekta.
+- Nema offline unosa ni iOS projekta.
+- Push obavijesti (0.4) rade tek kad je `android/app/google-services.json` iz Firebase projekta prisutan pri izgradnji;
+  server treba `storage/app/private/firebase-service-account.json`. Bez toga aplikacija radi, samo bez pusha.
 - Gradle izgradnja i lint ne potvrđuju stvarnu prijavu ili poslovne tokove.
   Na uređaju provjeriti Turnstile, prijavu/odjavu, Zapamti me, odabir tvrtke,
   unos i spremanje računa i ponuda, tablice, tipkovnicu, privitke i prekid mreže.

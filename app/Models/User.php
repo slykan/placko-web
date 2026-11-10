@@ -29,6 +29,8 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         'google_id',
     ];
 
+    protected $attributes = ['push_obavijesti' => true];
+
     protected $hidden = [
         'password',
         'remember_token',
@@ -42,6 +44,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
             'plan_do' => 'date',
             'is_admin' => 'boolean',
             'procitane_novosti' => 'array',
+            'push_obavijesti' => 'boolean',
         ];
     }
 
@@ -123,5 +126,15 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     public function canAccessPanel(Panel $panel): bool
     {
         return true;
+    }
+
+    public function mobilePushDevices(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(MobilePushDevice::class);
+    }
+
+    public function pushPretplate(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PushPretplata::class);
     }
 }

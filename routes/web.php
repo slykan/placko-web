@@ -98,3 +98,11 @@ Route::post('/turnstile/verify', function (\Illuminate\Http\Request $request) {
     }
     return response()->json(['ok' => true]);
 })->name('turnstile.verify');
+
+// Push obavijesti o novostima: preglednik (web push) i Android aplikacija (FCM)
+Route::middleware(['auth', 'throttle:30,1'])->prefix('push')->name('push.')->group(function () {
+    Route::post('/pretplata', [\App\Http\Controllers\PushController::class, 'spremi'])->name('spremi');
+    Route::delete('/pretplata', [\App\Http\Controllers\PushController::class, 'ukloni'])->name('ukloni');
+    Route::post('/mobile/device', [\App\Http\Controllers\PushController::class, 'mobilni'])->name('mobilni');
+    Route::post('/proba', [\App\Http\Controllers\PushController::class, 'proba'])->middleware('throttle:5,1')->name('proba');
+});
