@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AlatiController;
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\Auth\MobileGoogleController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\MojiNaloziController;
 use App\Http\Controllers\PonudaPrihvatiController;
@@ -81,6 +82,14 @@ Route::prefix('moji-nalozi/{token}')->name('moji-nalozi.')->middleware('throttle
 
 Route::get('/auth/google',[GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
+
+Route::middleware('throttle:20,1')->group(function () {
+    Route::get('/auth/mobile/google', [MobileGoogleController::class, 'prepare'])->name('auth.mobile.google');
+    Route::get('/auth/mobile/google/launch', [MobileGoogleController::class, 'launch'])
+        ->middleware('signed')->name('auth.mobile.google.launch');
+    Route::get('/auth/mobile/google/return', [MobileGoogleController::class, 'bridge'])->name('auth.mobile.google.return');
+    Route::post('/auth/mobile/google/complete', [MobileGoogleController::class, 'complete'])->name('auth.mobile.google.complete');
+});
 
 Route::post('/turnstile/verify', function (\Illuminate\Http\Request $request) {
     $token = $request->input('token');
