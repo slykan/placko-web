@@ -299,5 +299,6 @@
 </footer>
 
 @stack('scripts')
+@include('partials.puls')
 </body>
 </html>

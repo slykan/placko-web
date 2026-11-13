@@ -1177,5 +1177,6 @@
     </div>
 </footer>
 
+@include('partials.puls')
 </body>
 </html>
