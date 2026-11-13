@@ -47,5 +47,6 @@
             Uskoro će vas kontaktirati u vezi daljnjih koraka.
         </p>
     </div>
+    @include('partials.puls')
 </body>
 </html>

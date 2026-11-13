@@ -45,6 +45,8 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(PanelsRenderHook::HEAD_END, fn () => view('partials.mobilne-tablice'))
             // Push obavijesti o novostima (preglednik i Android aplikacija)
             ->renderHook(PanelsRenderHook::HEAD_END, fn () => view('partials.push'))
+            // Puls statistika posjeta (puls.on-click.hr), bez kolačića
+            ->renderHook(PanelsRenderHook::BODY_END, fn () => view('partials.puls'))
             // Zvono s novostima (objave kategorije "novosti") lijevo od korisničkog izbornika
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => Blade::render('@livewire(\'novosti-zvono\')'))
             ->tenant(Tvrtka::class, slugAttribute: 'id')

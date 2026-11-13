@@ -44,9 +44,10 @@
             Cloudflare Turnstile.
         </p>
         <p>
-            Za statistiku posjeta na javnim stranicama koristimo <strong>Puls</strong> (puls.on-click.hr), alat bez kolačića:
+            Za statistiku posjeta koristimo <strong>Puls</strong> (puls.on-click.hr), alat bez kolačića:
             ne sprema IP adresu, a posjet prepoznaje anonimnim kodom koji se mijenja svaki dan.
-            Unutar aplikacije (nakon prijave) Puls se ne koristi.
+            Bilježi samo koje su stranice otvorene, odakle je posjet došao te grad i vrstu uređaja,
+            a ne sadržaj računa, ponuda ni drugih podataka koje upisuješ.
         </p>
         <p>
             Na javnim stranicama s vodičima i alatima prikazujemo oglase putem usluge <strong>Google AdSense</strong>.
